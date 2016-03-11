@@ -1,13 +1,18 @@
 package ru.agny.xent
 
-sealed trait Facility[T <: Placed] {
+sealed trait Facility {
   val name: String
-}
-case class Outpost(name: String) extends Facility[Global]
-case class Building(name: String) extends Facility[Local]
 
-object Facility {
-  def apply(): Facility = {
-    ???
+  def produce(amount: Int)(recipe:String): Either[Error, List[(Resource, ResourceUnit)]]
+}
+case class Outpost(name: String, resource: Extractable, since: Set[Prereq]) extends Facility {
+  override def produce(amount: Int)(recipe:String): Either[Error, List[(Resource, ResourceUnit)]] = {
+    resource.out(amount)
+  }
+}
+case class Building(name: String, recipes: List[Recipe], since: Set[Prereq]) extends Facility {
+
+  override def produce(amount: Int)(recipe:String): Either[Error, List[(Resource, ResourceUnit)]] = {
+    recipes.find(x => x.title == recipe).map(x => x.produce()).getOrElse(Left(Error(s"$recipe not found")))
   }
 }
