@@ -9,7 +9,7 @@ sealed trait Facility {
 case class Outpost(name: String, id: Int, resource: Extractable, since: Set[Prereq]) extends Facility {
   override def produce(amount: Int): String => Either[Error, (Int, Resource)] =
     resourceName =>
-      if (resource.name == resourceName) Right(resource.out())
+      if (resource.name == resourceName) Right(resource.out(amount))
       else Left(Error(s"This facility can't extract $resourceName"))
 }
 case class Building(name: String, id: Int, resources: List[Producible], since: Set[Prereq]) extends Facility {
