@@ -2,17 +2,23 @@ package ru.agny.xent
 
 sealed trait Facility {
   val name: String
+  val id: Int
 
-  def produce(amount: Int)(recipe:String): Either[Error, List[(Resource, ResourceUnit)]]
+  def produce(amount: Int): String => Either[Error, (Int, Resource)]
 }
-case class Outpost(name: String, resource: Extractable, since: Set[Prereq]) extends Facility {
-  override def produce(amount: Int)(recipe:String): Either[Error, List[(Resource, ResourceUnit)]] = {
-    resource.out(amount)
-  }
+case class Outpost(name: String, id: Int, resource: Extractable, since: Set[Prereq]) extends Facility {
+  override def produce(amount: Int): String => Either[Error, (Int, Resource)] =
+    resourceName =>
+      if (resource.name == resourceName) Right(resource.out())
+      else Left(Error(s"This facility can't extract $resourceName"))
 }
-case class Building(name: String, recipes: List[Recipe], since: Set[Prereq]) extends Facility {
+case class Building(name: String, id: Int, resources: List[Producible], since: Set[Prereq]) extends Facility {
 
-  override def produce(amount: Int)(recipe:String): Either[Error, List[(Resource, ResourceUnit)]] = {
-    recipes.find(x => x.title == recipe).map(x => x.produce()).getOrElse(Left(Error(s"$recipe not found")))
-  }
+  override def produce(amount: Int): String => Either[Error, (Int, Resource)] =
+    resourceName => {
+      resources.find(x => x.name == resourceName) match {
+        case Some(v) => Right(v.out(amount))
+        case None => Left(Error(s"This facility can't produce $resourceName"))
+      }
+    }
 }
