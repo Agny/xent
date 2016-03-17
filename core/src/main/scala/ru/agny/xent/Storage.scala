@@ -1,18 +1,49 @@
 package ru.agny.xent
 
-case class Storage(resources: List[(Int, Resource)]) {
-  def spend(recipe: Recipe): Either[Error, Storage] = {
-    val diff = recipe.cost.map(x => resources.find(y => y._2.name == x._2.name) match {
-      case Some(v) => (v._1 - x._1, v._2)
-      case None => (0 - x._1, x._2)
+case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
+
+  def produce(rates: Facility => Int, craft: Facility => Resource): Storage = {
+    val outposts = producers.collect { case x: Outpost => x }
+    val buildings = producers.collect { case x: Building => x }
+
+    val outpostsProduction = outposts.foldRight(this)((x, y) => {
+      x.produce(rates(x))(y)(x.resource.name) match {
+        case Left(v) => println(v); this;
+        case Right(v) => v
+      }
     })
-    val balance = resources.map(x => recipe.cost.find(y => y._2.name == x._2.name) match {
-      case Some(v) => (x._1 - v._1, x._2)
+    val buildingsProduction = buildings.foldRight(outpostsProduction)((x, y) => {
+      x.produce(rates(x))(y)(craft(x).name) match {
+        case Left(v) => println(v); this;
+        case Right(v) => v
+      }
+    })
+    buildingsProduction
+  }
+
+  def add(r: ResourceUnit): Storage = {
+    resources.find(x => x.res.name == r.res.name) match {
+      case Some(v) =>
+        Storage(resources.map {
+          case x if x.res.name == r.res.name => ResourceUnit(x.value + r.value, r.res)
+          case x => x
+        }, producers)
+      case None => Storage(r :: resources, producers)
+    }
+  }
+
+  def spend(recipe: Recipe): Either[Error, Storage] = {
+    val diff = recipe.cost.map(x => resources.find(y => y.res.name == x.res.name) match {
+      case Some(v) => ResourceUnit(v.value - x.value, v.res)
+      case None => ResourceUnit(0 - x.value, x.res)
+    })
+    val balance = resources.map(x => recipe.cost.find(y => y.res.name == x.res.name) match {
+      case Some(v) => ResourceUnit(x.value - v.value, x.res)
       case None => x
     })
-    diff.find(x => x._1 < 0) match {
-      case Some(v) => Left(Error(s"There isn't enough of ${v._2}. Needed ${0 - v._1} more"))
-      case None => Right(Storage(balance))
+    diff.find(x => x.value < 0) match {
+      case Some(v) => Left(Error(s"There isn't enough of ${v.res}. Needed ${0 - v.value} more"))
+      case None => Right(Storage(balance, producers))
     }
   }
 }
