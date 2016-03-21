@@ -17,10 +17,13 @@ sealed trait Resource {
 
   override def toString = s"$name"
 }
-case class Extractable(id: Long, name: String, volume: Int, since: Set[Prereq]) extends Resource {
+case class Extractable(id: Long, name: String, var volume: Int, since: Set[Prereq]) extends Resource {
   override def out(): ResourceUnit =
     if (defaultYield > volume) ResourceUnit(0, this)
-    else ResourceUnit(defaultYield, this.copy(volume = volume - defaultYield))
+    else {
+      volume = volume - defaultYield
+      ResourceUnit(defaultYield, this)
+    }
 
   override def toString = s"$name[$volume]"
 }

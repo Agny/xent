@@ -14,7 +14,7 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
     })
     val buildingsProduction = buildings.foldRight(outpostsProduction)((x, y) => {
       x.produce(rates(x))(y)(craft(x).name) match {
-        case Left(v) => println(v); this;
+        case Left(v) => println(v); y;
         case Right(v) => v
       }
     })
@@ -32,18 +32,13 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
     }
   }
 
-  def spend(recipe: Recipe): Either[Error, Storage] = {
-    val diff = recipe.cost.map(x => resources.find(y => y.res.name == x.res.name) match {
-      case Some(v) => ResourceUnit(v.value - x.value, v.res)
-      case None => ResourceUnit(0 - x.value, x.res)
-    })
-    val balance = resources.map(x => recipe.cost.find(y => y.res.name == x.res.name) match {
-      case Some(v) => ResourceUnit(x.value - v.value, x.res)
-      case None => x
-    })
-    diff.find(x => x.value < 0) match {
-      case Some(v) => Left(Error(s"There isn't enough of ${v.res}. Needed ${0 - v.value} more"))
-      case None => Right(Storage(balance, producers))
+  def spend(recipe: Recipe): Either[Error, Storage] =
+    recipe.cost.find(x => !resources.exists(y => x.res.name == y.res.name && y.value >= x.value)) match {
+      case Some(v) => Left(Error(s"There isn't enough of ${v.res}"))
+      case None =>
+        Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.res.name match {
+          case a.res.name => ResourceUnit(bb.value - a.value, a.res)
+          case _ => bb
+        })),producers))
     }
-  }
 }
