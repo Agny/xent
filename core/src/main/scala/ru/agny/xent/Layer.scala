@@ -1,12 +1,30 @@
 package ru.agny.xent
 
+import scala.util.Random
+
 case class Layer(id: String, resources: List[Extractable]) {
 
-  val cells = Map[Pos, Cell]
+  val size = 30
+  val cells = generateMap()
 
-  def generateMap(): Map[Pos, Cell] = {
-    ???
+  def generateMap(): List[WorldCell] = {
+    def genByX(x: Int)(y: Int, acc: List[WorldCell]): List[WorldCell] = {
+      if (x < size) genByX(x + 1)(y, WorldCell(x, y, mbResource()) :: acc)
+      else WorldCell(x, y, mbResource()) :: acc
+    }
+
+    (0 to size).flatMap(y => genByX(0)(y, List.empty)).toList
   }
+
+  def mbResource(): List[Extractable] = {
+    val threshold = 94
+    Random.nextInt(100) match {
+      case c if c > threshold => List(generateResource())
+      case _ => List.empty
+    }
+  }
+
+  def generateResource(): Extractable = ???
 
   def tick(users: List[User], actions: Facility => Resource): List[Resource] = {
     val updatedUsers = users.map(x => x.tick(rates, actions))

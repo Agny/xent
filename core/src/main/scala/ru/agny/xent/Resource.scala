@@ -17,7 +17,7 @@ sealed trait Resource {
 
   override def toString = s"$name"
 }
-case class Extractable(id: Long, name: String, var volume: Int, since: Set[Prereq]) extends Resource {
+case class Extractable(id: Long, name: String, var volume: Int, since: Set[Prereq]) extends Resource with Placed {
   override def out(): ResourceUnit =
     if (defaultYield > volume) ResourceUnit(0, this)
     else {
