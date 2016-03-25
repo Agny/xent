@@ -10,7 +10,7 @@ case class LayerProvider(layers: List[Layer]) {
 }
 
 case class LayerGenerator() {
-  def gen(): List[Layer] = (for (i <- 1 to 7) yield Layer(i.toString, List.empty)).toList
+  def gen(): List[Layer] = (for (i <- 1 to 7) yield Layer(i.toString,i)).toList
 }
 
 case class Server() {

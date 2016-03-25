@@ -7,7 +7,7 @@ sealed trait Facility {
 
   def produce(amount: Int): Storage => ResourceName => Either[Error, Storage]
 }
-case class Outpost(id: Int, name: String, resource: Extractable, since: Set[Prereq]) extends Facility with Placed {
+case class Outpost(id: Int, name: String, resource: Extractable, since: Set[Prereq]) extends Facility {
   override def produce(amount: Int): Storage => ResourceName => Either[Error, Storage] = storage =>
     resourceName =>
       if (resource.name == resourceName) Right(storage.add(resource.out(amount)))
