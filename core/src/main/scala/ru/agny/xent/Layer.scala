@@ -1,17 +1,17 @@
 package ru.agny.xent
 
-case class Layer(id: String, level: Int) {
+case class Layer(id: String, level: Int, resources:List[Extractable], facilities:List[FacilityTemplate]) {
 
-  import ResourceGenerator._
+  import LayerGenerator._
 
   val size = 30
-  val resourceTemplates = gen(level)
   val cells = generateMap()
+  var users = List.empty
 
   private def generateMap(): List[WorldCell] = {
     def genByX(x: Int)(y: Int, acc: List[WorldCell]): List[WorldCell] = {
-      if (x < size) genByX(x + 1)(y, WorldCell(x, y, mbResource(resourceTemplates)) :: acc)
-      else  WorldCell(x, y, mbResource(resourceTemplates)) :: acc
+      if (x < size) genByX(x + 1)(y, WorldCell(x, y, mbResource(resources)) :: acc)
+      else WorldCell(x, y, mbResource(resources)) :: acc
     }
 
     (0 to size).flatMap(y => genByX(0)(y, List.empty)).toList
@@ -25,7 +25,12 @@ case class Layer(id: String, level: Int) {
     tick(updatedUsers, actions)
   }
 
-  def rates(f: Facility): Int = {
+  def resourceClaim(user: User, facilityName: String, res: Extractable): Either[Error, User] = {
+//    Outpost(user.localIdGen.next, facilityName, res,)
+    ???
+  }
+
+  private def rates(f: Facility): Int = {
     f match {
       case x => 1
     }

@@ -1,0 +1,13 @@
+{
+  "name": "Copper workshop",
+  "resources": ["Copper sheet", "Copper shield", "Copper sword"],
+  "recipe": {
+    "cost": [
+      {
+        "value": 5,
+        "res": "Wood"
+      }
+    ]
+  },
+  "since": ""
+}
