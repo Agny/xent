@@ -12,25 +12,25 @@ sealed trait Resource {
       if (amount == 1) out() :: acc
       else recursive_out(amount - 1, out() :: acc)
     }
-    recursive_out(amount, List.empty).foldRight(ResourceUnit(0, this))((x, y) => ResourceUnit(x.value + y.value, x.res))
+    recursive_out(amount, List.empty).foldRight(ResourceUnit(0, this.name))((x, y) => ResourceUnit(x.value + y.value, x.res))
   }
 
   override def toString = s"$name"
 }
 case class Extractable(id: Long, name: String, var volume: Int, since: Set[Prereq]) extends Resource {
   override def out(): ResourceUnit =
-    if (defaultYield > volume) ResourceUnit(0, this)
+    if (defaultYield > volume) ResourceUnit(0, this.name)
     else {
       volume = volume - defaultYield
-      ResourceUnit(defaultYield, this)
+      ResourceUnit(defaultYield, this.name)
     }
 
   override def toString = s"$name[$volume]"
 }
 case class Producible(name: String, recipe: Recipe, since: Set[Prereq]) extends Resource {
-  override def out(): ResourceUnit = ResourceUnit(defaultYield, this)
+  override def out(): ResourceUnit = ResourceUnit(defaultYield, this.name)
 
 }
 
 case class Recipe(cost: List[ResourceUnit])
-case class ResourceUnit(value: Int, res: Resource)
+case class ResourceUnit(value: Int, res: String)

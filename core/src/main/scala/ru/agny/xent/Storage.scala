@@ -22,10 +22,10 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
   }
 
   def add(r: ResourceUnit): Storage = {
-    resources.find(x => x.res.name == r.res.name) match {
+    resources.find(x => x.res == r.res) match {
       case Some(v) =>
         Storage(resources.map {
-          case x if x.res.name == r.res.name => ResourceUnit(x.value + r.value, r.res)
+          case x if x.res == r.res => ResourceUnit(x.value + r.value, r.res)
           case x => x
         }, producers)
       case None => Storage(r :: resources, producers)
@@ -33,11 +33,11 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
   }
 
   def spend(recipe: Recipe): Either[Error, Storage] =
-    recipe.cost.find(x => !resources.exists(y => x.res.name == y.res.name && y.value >= x.value)) match {
+    recipe.cost.find(x => !resources.exists(y => x.res == y.res && y.value >= x.value)) match {
       case Some(v) => Left(Error(s"There isn't enough of ${v.res}"))
       case None =>
-        Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.res.name match {
-          case a.res.name => ResourceUnit(bb.value - a.value, a.res)
+        Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.res match {
+          case a.res => ResourceUnit(bb.value - a.value, a.res)
           case _ => bb
         })),producers))
     }

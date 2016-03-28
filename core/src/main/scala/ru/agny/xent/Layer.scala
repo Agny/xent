@@ -1,6 +1,6 @@
 package ru.agny.xent
 
-case class Layer(id: String, level: Int, resources:List[Extractable], facilities:List[FacilityTemplate]) {
+case class Layer(id: String, level: Int, resources: List[Extractable], facilities: List[FacilityTemplate]) {
 
   import LayerGenerator._
 
@@ -25,10 +25,21 @@ case class Layer(id: String, level: Int, resources:List[Extractable], facilities
     tick(updatedUsers, actions)
   }
 
-  def resourceClaim(user: User, facilityName: String, res: Extractable): Either[Error, User] = {
-//    Outpost(user.localIdGen.next, facilityName, res,)
+ /* def resourceClaim(user: User, facilityName: String, resourceId: Long): Either[Error, User] = {
+    val resource = resources.find(x => x.id == resourceId)
+    val facilityT = facilities.find(x => x.name == facilityName)
+    resource.flatMap(x => facilityT.map(y => Outpost(user.localIdGen.next, y.name, x, y.recipe )))
+    //    Outpost(user.localIdGen.next, facilityName, res,)
     ???
   }
+
+  private def recipeFrom(recipeT:RecipeTemplate):Recipe = {
+    recipeT.cost
+  }
+
+  private def resourceUnitFrom(unitT: ResourceUnitTemplate):ResourceUnit = {
+    ResourceUnit()
+  }*/
 
   private def rates(f: Facility): Int = {
     f match {
