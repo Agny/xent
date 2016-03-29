@@ -40,10 +40,8 @@ object TemplateLoader {
 case class ResourceTemplate(name: String, baseVolume: Int, since: String)
 sealed trait FacilityTemplate {
   val name: String
-  val recipe: RecipeTemplate
+  val recipe: Recipe
   val since: String
 }
-case class OutpostTemplate(name: String, resource: String, recipe: RecipeTemplate, since: String) extends FacilityTemplate
-case class BuildingTemplate(name: String, resources: List[String], recipe: RecipeTemplate, since: String) extends FacilityTemplate
-case class RecipeTemplate(cost: List[ResourceUnitTemplate])
-case class ResourceUnitTemplate(value: Int, res: String)
+case class OutpostTemplate(name: String, resource: String, recipe: Recipe, since: String) extends FacilityTemplate
+case class BuildingTemplate(name: String, resources: List[String], recipe: Recipe, since: String) extends FacilityTemplate

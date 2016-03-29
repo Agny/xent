@@ -25,21 +25,20 @@ case class Layer(id: String, level: Int, resources: List[Extractable], facilitie
     tick(updatedUsers, actions)
   }
 
- /* def resourceClaim(user: User, facilityName: String, resourceId: Long): Either[Error, User] = {
+  def resourceClaim(user: User, facilityName: String, resourceId: Long): Either[Error, User] = {
     val resource = resources.find(x => x.id == resourceId)
     val facilityT = facilities.find(x => x.name == facilityName)
-    resource.flatMap(x => facilityT.map(y => Outpost(user.localIdGen.next, y.name, x, y.recipe )))
-    //    Outpost(user.localIdGen.next, facilityName, res,)
-    ???
+    resource.map(x => user.storage.findOutpost(x) match {
+      case Some(v) => Left(Error(s"Resource with id=$resourceId is already claimed"))
+      case None => facilityT.map(y => Outpost(user.localIdGen.next, y.name, x, y.recipe)) match {
+        case Some(v) => Right(User(user.name, Storage(user.storage.resources, v :: user.storage.producers)))
+        case None => Left(Error(s"Unable to claim resource with id=$resourceId by $facilityName"))
+      }
+    }) match {
+      case Some(v) => v
+      case None => Left(Error(s"Resource with id=$resourceId doesn't exists on this layer"))
+    }
   }
-
-  private def recipeFrom(recipeT:RecipeTemplate):Recipe = {
-    recipeT.cost
-  }
-
-  private def resourceUnitFrom(unitT: ResourceUnitTemplate):ResourceUnit = {
-    ResourceUnit()
-  }*/
 
   private def rates(f: Facility): Int = {
     f match {

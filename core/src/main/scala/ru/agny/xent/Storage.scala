@@ -21,7 +21,7 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
     buildingsProduction
   }
 
-  def add(r: ResourceUnit): Storage = {
+  def add(r: ResourceUnit): Storage =
     resources.find(x => x.res == r.res) match {
       case Some(v) =>
         Storage(resources.map {
@@ -30,7 +30,6 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
         }, producers)
       case None => Storage(r :: resources, producers)
     }
-  }
 
   def spend(recipe: Recipe): Either[Error, Storage] =
     recipe.cost.find(x => !resources.exists(y => x.res == y.res && y.value >= x.value)) match {
@@ -39,6 +38,9 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
         Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.res match {
           case a.res => ResourceUnit(bb.value - a.value, a.res)
           case _ => bb
-        })),producers))
+        })), producers))
     }
+
+  //TODO: find a more proper way
+  def findOutpost(res: Extractable): Option[Facility] = producers.collect { case x: Outpost => x }.find(x => x.resource.id == res.id)
 }
