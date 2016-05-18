@@ -4,13 +4,24 @@ import scala.util.Random
 
 object LayerGenerator {
 
-  def setupLayers(): List[Layer] = (for (i <- 1 to 7) yield Layer(i.toString, i, resourceGen(i), facilityGen(i))).toList
+  private val layerSize = 30
 
-  def resourceGen(layerLvl: Int): List[Extractable] = TemplateLoader.loadResource(layerLvl.toString)
+  def setupLayers(): List[Layer] = (for (i <- 1 to 1) yield Layer(i.toString, i, Seq.empty, generateMap(layerSize, resourceGen(i)), facilityGen(i))).toList
 
-  def facilityGen(layerLvl: Int): List[FacilityTemplate] = TemplateLoader.loadFacility(layerLvl.toString)
+  private def resourceGen(layerLvl: Int): List[Extractable] = TemplateLoader.loadResource(layerLvl.toString)
 
-  def mbResource(seed: List[Extractable]): Option[Extractable] = {
+  private def facilityGen(layerLvl: Int): List[FacilityTemplate] = TemplateLoader.loadFacility(layerLvl.toString)
+
+  private def generateMap(size: Int, resources: List[Extractable]): List[WorldCell] = {
+    def genByX(x: Int)(y: Int, acc: List[WorldCell]): List[WorldCell] = {
+      if (x < size) genByX(x + 1)(y, WorldCell(x, y, mbResource(resources)) :: acc)
+      else WorldCell(x, y, mbResource(resources)) :: acc
+    }
+
+    (0 to size).flatMap(y => genByX(0)(y, List.empty)).toList
+  }
+
+  private def mbResource(seed: List[Extractable]): Option[Extractable] = {
     val threshold = 94
     Random.nextInt(100) match {
       case c if c > threshold => Some(chooseResource(seed))
