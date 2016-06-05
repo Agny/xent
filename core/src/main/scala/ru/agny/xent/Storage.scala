@@ -2,27 +2,13 @@ package ru.agny.xent
 
 case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
 
-  def extract(): Storage = {
-    val outposts = producers.collect { case x: Outpost => x }
-    val outpostsProduction = outposts.foldRight(this)((x, y) => {
-      x.produce(1)(y)(x.resource.name) match {
-        case Left(v) => println(v); this;
-        case Right(v) => v
-      }
-    })
-    outpostsProduction
-  }
+  def tick(lastAction: Long): Storage = producers.foldRight(this)((f, s) => f.tick(lastAction)(s))
 
-  def produce(craft: Craft): Storage = {
-    val buildings = producers.collect { case x: Building => x }
-    val buildingsProduction = buildings.foldRight(this)((x, y) => {
-      x.produce(craft.amount)(y)(craft.f(x).name) match {
-        case Left(v) => println(v); y;
-        case Right(v) => v
-      }
-    })
-    buildingsProduction
-  }
+  def add(r: List[ResourceUnit]): Storage =
+    r match {
+      case x :: xs => add(x); add(xs)
+      case _ => this
+    }
 
   def add(r: ResourceUnit): Storage =
     resources.find(x => x.res == r.res) match {

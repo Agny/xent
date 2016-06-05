@@ -1,13 +1,11 @@
 {
   "name": "Copper mine",
   "resource": "Copper",
-  "recipe": {
-    "cost": [
-      {
-        "value": 5,
-        "res": "Wood"
-      }
-    ]
-  },
+  "cost": [
+    {
+      "value": 5,
+      "res": "Wood"
+    }
+  ],
   "since": ""
 }

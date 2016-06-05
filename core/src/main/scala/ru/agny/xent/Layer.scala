@@ -18,8 +18,8 @@ case class Layer(id: String, level: Int, users: Seq[User], cells: List[WorldCell
     val facilityT = facilities.find(x => x.name == facilityName)
     resource.map(x => user.storage.findOutpost(x.resource.get) match {
       case Some(v) => Left(Error(s"Resource with id=$resourceId is already claimed"))
-      case None => facilityT.map(y => Outpost(user.localIdGen.next, y.name, x.resource.get, y.recipe)) match {
-        case Some(v) => Right(User(user.id, user.name, Storage(user.storage.resources, v :: user.storage.producers)))
+      case None => facilityT.map(y => Outpost(user.localIdGen.next, y.name, x.resource.get, y.cost)) match {
+        case Some(v) => Right(User(user.id, user.name, Storage(user.storage.resources, v :: user.storage.producers), user.lastAction)) //TODO update user in layer
         case None => Left(Error(s"Unable to claim resource with id=$resourceId by $facilityName"))
       }
     }) match {
