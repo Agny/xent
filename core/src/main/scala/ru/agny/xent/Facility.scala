@@ -17,7 +17,8 @@ case class Outpost(id: Int, name: String, resource: Extractable, cost: List[Reso
   }
 
   private def extract(remindedTime: Long, extracted: ResourceUnit): ResourceUnit = {
-    if (remindedTime < resource.yieldTime) {
+    if(resource.volume == 0) extracted
+    else if (remindedTime < resource.yieldTime) {
       progress = remindedTime
       extracted
     } else {

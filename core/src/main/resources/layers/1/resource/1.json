@@ -1,6 +1,6 @@
 {
   "name":"Copper",
   "baseVolume": 100,
-  "yieldTime":300,
+  "yieldTime":3000,
   "since":""
 }

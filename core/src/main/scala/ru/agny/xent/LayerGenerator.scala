@@ -7,7 +7,7 @@ import scala.util.Random
 object LayerGenerator {
 
   private val layerSize = 30
-  val ids = IdGen(1)
+  val ids = IdGen()
 
   def setupLayers(): List[Layer] = (for (i <- 1 to 1) yield Layer(i.toString, i, Seq.empty, generateMap(layerSize, resourceGen(i)), facilityGen(i))).toList
 

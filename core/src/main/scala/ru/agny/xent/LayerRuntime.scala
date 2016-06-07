@@ -2,9 +2,9 @@ package ru.agny.xent
 
 object LayerRuntime {
 
-  private var newUsers: Map[User, String] = Map.empty
+  private var newUsers: Map[User, String] = Map.empty //TODO concurrency?
 
-  def run(layers: List[Layer]): List[Layer] = {
+  def run(layers: List[Layer], actions: Map[Long, Action]): List[Layer] = {
     //TODO have to send acquired message from server to make sure the operation was success
     def handleUsersMigration(): List[Layer] = {
       val tmpUsers = newUsers
@@ -13,10 +13,7 @@ object LayerRuntime {
       else newUsers = Map.empty
       updatedLayers
     }
-
-    val nextState = handleUsersMigration().map(r => r.tick(Seq.empty))
-    Thread.sleep(5000)
-    run(nextState)
+    handleUsersMigration().map(r => r.tick(actions))
   }
 
   def join(user: User, layer: String): Map[User, String] = {

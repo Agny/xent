@@ -13,5 +13,6 @@ object Server {
   private val layerProvider = LayerProvider(LayerGenerator.setupLayers())
   private val front = Front(layerProvider)
 
-  def claimResource(user: User, layer: String, facility: String, resourceId: Long) = layerProvider.provide(layer).map(x => x.resourceClaim(user, facility, resourceId))
+  def claimResource(user: User, layer: String, facility: String, resourceId: Long):Option[ResourceClaim] = layerProvider.provide(layer). map( x => ResourceClaim(facility,x,resourceId))
+  def layers = layerProvider.layers
 }

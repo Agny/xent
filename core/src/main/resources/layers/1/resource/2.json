@@ -1,6 +1,6 @@
 {
   "name":"Iron",
   "baseVolume": 80,
-  "yieldTime": 400,
+  "yieldTime": 4000,
   "since":"Iron Working"
 }
