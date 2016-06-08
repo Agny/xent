@@ -1,8 +1,8 @@
-package ru.agny.xent
+package ru.agny.xent.core.utils
 
 import java.io.File
 
-import ru.agny.xent.utils.IdGen
+import ru.agny.xent.core.ResourceUnit
 
 object TemplateLoader {
 

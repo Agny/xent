@@ -1,5 +1,7 @@
 package ru.agny.xent
 
+import ru.agny.xent.core.LayerGenerator
+
 // stub front-end
 case class Front(layers: LayerProvider) {
   def layer(name: String): Option[Layer] = layers.provide(name)

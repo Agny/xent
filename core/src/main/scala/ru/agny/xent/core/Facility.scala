@@ -1,5 +1,6 @@
-package ru.agny.xent
+package ru.agny.xent.core
 
+import ru.agny.xent.Error
 import scala.collection.immutable.Queue
 
 sealed trait Facility {

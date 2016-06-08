@@ -1,5 +1,6 @@
 package ru.agny.xent
 
+import ru.agny.xent.core.Storage
 import ru.agny.xent.utils.IdGen
 
 case class User(id: Long, name: String, storage: Storage, lastAction: Long) {

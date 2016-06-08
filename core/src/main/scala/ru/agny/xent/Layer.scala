@@ -1,5 +1,8 @@
 package ru.agny.xent
 
+import ru.agny.xent.core.WorldCell
+import ru.agny.xent.core.utils.FacilityTemplate
+
 case class Layer(id: String, level: Int, users: Seq[User], cells: List[WorldCell], facilities: List[FacilityTemplate]) {
 
   def tick(actions: Map[Long, Action]): Layer = {

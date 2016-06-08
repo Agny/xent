@@ -1,4 +1,6 @@
-package ru.agny.xent
+package ru.agny.xent.core
+
+import ru.agny.xent.Error
 
 case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
 

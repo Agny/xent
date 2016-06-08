@@ -1,4 +1,4 @@
-package ru.agny.xent
+package ru.agny.xent.core
 
 sealed trait Resource {
   val name: String

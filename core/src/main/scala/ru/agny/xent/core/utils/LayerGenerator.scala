@@ -1,6 +1,8 @@
-package ru.agny.xent
+package ru.agny.xent.core
 
+import ru.agny.xent.core.utils.{TemplateLoader, FacilityTemplate, ResourceTemplate}
 import ru.agny.xent.utils.IdGen
+import ru.agny.xent.Layer
 
 import scala.util.Random
 

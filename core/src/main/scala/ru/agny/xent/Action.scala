@@ -1,5 +1,7 @@
 package ru.agny.xent
 
+import ru.agny.xent.core.{Storage, Outpost}
+
 trait Action {
   def run(user: User): User
 }
