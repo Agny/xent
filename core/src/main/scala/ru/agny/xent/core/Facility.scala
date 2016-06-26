@@ -1,6 +1,6 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.Error
+import ru.agny.xent.Response
 import scala.collection.immutable.Queue
 
 sealed trait Facility {
@@ -37,7 +37,7 @@ case class Building(id: Int, name: String, resources: List[Producible], cost: Li
     storage.add(production)
   }
 
-  def addToQueue(item: (Recipe, Int)): Storage => Either[Error, (Recipe, Int)] = storage => {
+  def addToQueue(item: (Recipe, Int)): Storage => Either[Response, (Recipe, Int)] = storage => {
     storage.spend(Recipe(item._1.product, item._1.price(item._2))) match {
       case Left(s) => Left(s)
       case Right(s) => queue = queue.in(item._1, item._2); Right(item)

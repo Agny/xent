@@ -2,7 +2,6 @@ package ru.agny.xent
 
 import ru.agny.xent.core.LayerGenerator
 
-// stub front-end
 case class Front(layers: LayerProvider) {
   def layer(name: String): Option[Layer] = layers.provide(name)
 }
@@ -15,7 +14,12 @@ object Server {
   private val layerProvider = LayerProvider(LayerGenerator.setupLayers())
   private val front = Front(layerProvider)
 
-  def claimResource(msg: ResourceClaimMessage): Option[ResourceClaim] = layerProvider.provide(msg.layer).map(x => ResourceClaim(msg.facility, x, msg.resourceId))
+  def claimResource(user: User, layer: String, facility: String, resourceId: Long): Response = {
+    val mbMsg = layerProvider.provide(layer).map(x => ResourceClaim(facility, x, resourceId))
+    val msg = mbMsg.get
+    LayerRuntime.queue((ActionResult(user.id), msg))
+    Response("Ok")
+  }
 
   def layers = layerProvider.layers
 }
