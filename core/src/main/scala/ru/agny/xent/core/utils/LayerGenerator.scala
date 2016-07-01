@@ -1,6 +1,6 @@
-package ru.agny.xent.core
+package ru.agny.xent.core.utils
 
-import ru.agny.xent.core.utils.{TemplateLoader, FacilityTemplate, ResourceTemplate}
+import ru.agny.xent.core.{Extractable, WorldCell}
 import ru.agny.xent.utils.IdGen
 import ru.agny.xent.Layer
 
