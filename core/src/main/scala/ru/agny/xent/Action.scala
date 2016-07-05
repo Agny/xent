@@ -1,6 +1,6 @@
 package ru.agny.xent
 
-import ru.agny.xent.core.{Storage, Outpost}
+import ru.agny.xent.core.{WorldCell, Storage, Outpost}
 
 trait Action {
   def run(user: User): (User, Response)
@@ -10,22 +10,22 @@ object DoNothing extends Action {
   override def run(user: User): (User, Response) = (user, ResponseOk)
 }
 
-case class ResourceClaim(facilityName: String, layer: Layer, resourceId: Long) extends Action {
+case class ResourceClaim(facilityName: String, layer: Layer, cell: WorldCell) extends Action {
   override def run(user: User): (User, Response) = {
-    val resource = layer.cells.find(x => x.resource.exists(y => y.id == resourceId))
     val facilityT = layer.facilities.find(x => x.name == facilityName)
-    resource.map(x => user.storage.findOutpost(x.resource.get) match {
-      case Some(v) => Left(Response(s"Resource with id=$resourceId is already claimed"))
-      case None => facilityT.map(y => Outpost(user.localIdGen.next, y.name, x.resource.get, y.cost)) match {
-        case Some(v) => Right(User(user.id, user.name, Storage(user.storage.resources, v :: user.storage.producers), user.lastAction)) //TODO check if other user claimed resource
-        case None => Left(Response(s"Unable to claim resource with id=$resourceId by $facilityName"))
-      }
+    val resource = layer.map.find(cell)
+    (resource match {
+      case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
+        facilityT.map(y => Outpost(user.localIdGen.next, y.name, x.resource.get, y.cost)) match {
+          case Some(v) => Right(User(user.id, user.name, Storage(user.storage.resources, v :: user.storage.producers), user.lastAction))
+          case None => Left(Response(s"Unable to claim resource in [${cell.x},${cell.y}] by $facilityName"))
+        }
+      case Some(x) if x.owner.nonEmpty => Left(Response(s"[${cell.x},${cell.y}] is already claimed"))
+      case Some(x) => Left(Response(s"[${cell.x},${cell.y}] doesn't have a resource"))
+      case None => Left(Response(s"Unable to find [${cell.x},${cell.y}]"))
     }) match {
-      case Some(v) => v match {
-        case Left(l) => (user, l)
-        case Right(r) => (r, ResponseOk)
-      }
-      case None => (user, Response(s"Resource with id=$resourceId doesn't exists on this layer"))
+      case Left(v) => (user, v)
+      case Right(r) => (r, ResponseOk)
     }
   }
 }

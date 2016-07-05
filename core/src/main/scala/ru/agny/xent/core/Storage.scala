@@ -31,9 +31,6 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
           case _ => bb
         })), producers))
     }
-
-  //TODO: find a more proper way
-  def findOutpost(res: Extractable): Option[Facility] = producers.collect { case x: Outpost => x }.find(x => x.resource.id == res.id)
 }
 
 object Storage {

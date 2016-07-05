@@ -1,6 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
+import ru.agny.xent.core.WorldCell
 import ru.agny.xent.utils.IdGen
 
 object Server {
@@ -16,8 +17,8 @@ object Server {
     ResponseOk
   }
 
-  def claimResource(user: UserId, layer: String, facility: String, resourceId: Long): Response = {
-    LayerRuntime.queue(ResourceClaimMessage(user, layer, facility, resourceId))
+  def claimResource(user: UserId, layer: String, facility: String, cell: WorldCell): Response = {
+    LayerRuntime.queue(ResourceClaimMessage(user, layer, facility, cell))
     ResponseOk
   }
 }

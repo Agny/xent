@@ -1,6 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
+import ru.agny.xent.core.WorldCell
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,4 +17,4 @@ trait Message {
 case class EmptyMessage(user: UserId) extends Message
 case class NewUserMessage(user: UserId, name:String, layer: String) extends Message
 case class LayerUpMessage(user: UserId, layerFrom:String, layerTo: String) extends Message
-case class ResourceClaimMessage(user: UserId, layer: String, facility: String, resourceId: Long) extends Message
+case class ResourceClaimMessage(user: UserId, layer: String, facility: String, cell: WorldCell) extends Message
