@@ -18,16 +18,16 @@ object LayerGenerator {
   private def facilityGen(layerLvl: Int): List[FacilityTemplate] = TemplateLoader.loadFacility(layerLvl.toString)
 
   private def generateMap(size: Int, resources: List[ResourceTemplate]): LayerMap = {
-    def genByX(x: Int)(y: Int, acc: List[WorldCell]): List[WorldCell] = {
+    def genByY(y: Int)(x: Int, acc: List[WorldCell]): List[WorldCell] = {
 //      val mbRes = mbResource(resources)
       val mbRes =
         if (x == 1 && y == 2) Some(Extractable(ids.next, "Copper", randomVolume(40), 200, Set.empty))            //test purposes
         else mbResource(resources)
-      if (x < size) genByX(x + 1)(y, WorldCell(x, y, mbRes) :: acc)
+      if (y < size) genByY(y + 1)(y, WorldCell(x, y, mbRes) :: acc)
       else WorldCell(x, y, mbRes) :: acc
     }
 
-    LayerMap((0 to size).map(y => genByX(0)(y, List.empty).reverse.toVector).toVector)
+    LayerMap((0 to size).map(x => genByY(0)(x, List.empty).reverse.toVector).toVector)
   }
 
   private def mbResource(seed: List[ResourceTemplate]): Option[Extractable] = {

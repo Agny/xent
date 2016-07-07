@@ -7,9 +7,13 @@ import ru.agny.xent.core.utils.FacilityTemplate
 case class Layer(id: String, level: Int, users: Seq[User], map: LayerMap, facilities: List[FacilityTemplate]) {
 
   def tick(action: (Message, Action)): Layer = {
-    val (acted, idle) = users.span(x => x.id == action._1.user)
-    val updated = acted.map(x => x.work(action._1, action._2))
-    Layer(id, level, idle ++ updated, map, facilities)
+    val (acted, idle) = users.partition(x => x.id == action._1.user)
+    val (msg, a) = action
+    a match {
+      case ua: UserAction =>
+        val updated = acted.map(x => x.work(msg, ua))
+        Layer(id, level, idle ++ updated, map, facilities)
+    }
   }
 
   def join(added: User): (Layer, User) = {

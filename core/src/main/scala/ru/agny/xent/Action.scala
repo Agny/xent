@@ -3,14 +3,25 @@ package ru.agny.xent
 import ru.agny.xent.core.{WorldCell, Storage, Outpost}
 
 trait Action {
-  def run(user: User): (User, Response)
+  type T
+  def run(e: T): (T, Response)
 }
 
-object DoNothing extends Action {
+trait UserAction extends Action {
+  type T = User
+  override def run(user: T): (T, Response)
+}
+
+trait LayerAction extends Action {
+  type T = Layer
+  override def run(layer: T): (T, Response)
+}
+
+object DoNothing extends UserAction {
   override def run(user: User): (User, Response) = (user, ResponseOk)
 }
 
-case class ResourceClaim(facilityName: String, layer: Layer, cell: WorldCell) extends Action {
+case class ResourceClaim(facilityName: String, layer: Layer, cell: WorldCell) extends UserAction {
   override def run(user: User): (User, Response) = {
     val facilityT = layer.facilities.find(x => x.name == facilityName)
     val resource = layer.map.find(cell)

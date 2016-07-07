@@ -12,7 +12,7 @@ case class User(id: UserId, name: String, storage: Storage, lastAction: Long) {
   val localIdGen = IdGen()
   //  implicit var rates: Map[Facility, Int] = Map(() -> 1) //very stronk formula from current layer/science/etc
 
-  def work(msg: Message, a: Action): User = {
+  def work(msg: Message, a: UserAction): User = {
     val (user, resp) = a.run(User(id, name, storage.tick(lastAction)))
     msg.reply(resp)
     user
