@@ -1,6 +1,6 @@
 package ru.agny.xent
 
-import ru.agny.xent.core.Storage
+import ru.agny.xent.core.{WorldCell, Storage}
 import ru.agny.xent.core.utils.LayerGenerator
 
 object LayerRuntime {
@@ -47,7 +47,11 @@ object LayerRuntime {
             from :: to :: idle
           case x: ResourceClaimMessage =>
             val (active, idle) = layers.span(l => l.id == x.layer)
-            active.map(y => y.tick((x, ResourceClaim(x.facility, y, x.resourceId)))) ::: idle
+            active.map(y => {
+              val l = y.tick((x, ResourceClaim(x.facility, y, x.cell)))
+              val cu = y.map.find(x.cell).get //TODO crying for refactoring
+              l.updateMap(WorldCell(cu.x,cu.y,cu.resource,Some(x.user)))
+            }) ::: idle
           case _ => layers
         }
         rec(rez, t)
