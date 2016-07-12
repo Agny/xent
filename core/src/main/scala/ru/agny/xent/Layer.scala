@@ -1,6 +1,5 @@
 package ru.agny.xent
 
-import ru.agny.xent.UserType.UserId
 import ru.agny.xent.core.WorldCell
 import ru.agny.xent.core.utils.FacilityTemplate
 
@@ -14,16 +13,6 @@ case class Layer(id: String, level: Int, users: Seq[User], map: LayerMap, facili
         val updated = acted.map(x => x.work(msg, ua))
         Layer(id, level, idle ++ updated, map, facilities)
     }
-  }
-
-  def join(added: User): (Layer, User) = {
-    (Layer(id, level, users :+ added, map, facilities), added)
-  }
-
-  def leave(left: UserId): (Layer, User) = {
-    tick((EmptyMessage(left), DoNothing))
-    val user = users.find(x => x.id == left).get
-    (Layer(id, level, users.diff(Seq(user)), map, facilities), user)
   }
 
   def updateMap(cell: WorldCell): Layer = {

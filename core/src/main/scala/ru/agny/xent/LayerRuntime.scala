@@ -1,6 +1,6 @@
 package ru.agny.xent
 
-import ru.agny.xent.core.{WorldCell, Storage}
+import ru.agny.xent.core.WorldCell
 import ru.agny.xent.core.utils.LayerGenerator
 
 object LayerRuntime {
@@ -33,24 +33,25 @@ object LayerRuntime {
     messages match {
       case h :: t =>
         val rez = h match {
+            //TODO need some kind of abstraction for this handling
           case x: NewUserMessage =>
-            val (_, idle) = layers.span(l => l.id == x.layer)
             val layerTo = layers.find(l => l.id == x.layer).get
-            val (to, _) = layerTo.join(User(x.user, x.name, Storage.empty(), System.currentTimeMillis()))
-            to :: idle
+            val (updated, msg) = NewUser(x.user,x.name).run(layerTo)
+            x.reply(msg)
+            updated :: layers.diff(List(layerTo))
           case x: LayerUpMessage =>
-            val (_, idle) = layers.span(l => l.id == x.layerFrom || l.id == x.layerTo)
-            val layerFrom = layers.find(l => l.id == x.layerFrom).get
-            val layerTo = layers.find(l => l.id == x.layerTo).get
-            val (from, left) = layerFrom.leave(x.user)
-            val (to, _) = layerTo.join(left)
-            from :: to :: idle
+            val (active, idle) = layers.partition(l => l.id == x.layerFrom || l.id == x.layerTo)
+            val from = active.find(l => l.id == x.layerFrom).get
+            val to = active.find(l => l.id == x.layerTo).get
+            val (updated, msg) = LayerChange(x.user).run(from,to)
+            x.reply(msg)
+            List(updated._1, updated._2) ::: idle
           case x: ResourceClaimMessage =>
             val (active, idle) = layers.span(l => l.id == x.layer)
             active.map(y => {
               val l = y.tick((x, ResourceClaim(x.facility, y, x.cell)))
-              val cu = y.map.find(x.cell).get //TODO crying for refactoring
-              l.updateMap(WorldCell(cu.x,cu.y,cu.resource,Some(x.user)))
+              val cu = y.map.find(x.cell).get
+              l.updateMap(WorldCell(cu.x, cu.y, cu.resource, Some(x.user)))
             }) ::: idle
           case _ => layers
         }
