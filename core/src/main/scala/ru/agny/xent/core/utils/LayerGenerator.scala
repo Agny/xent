@@ -1,8 +1,8 @@
 package ru.agny.xent.core.utils
 
-import ru.agny.xent.core.{Extractable, WorldCell}
+import ru.agny.xent.core.{CellsMap, Extractable, WorldCell}
 import ru.agny.xent.utils.IdGen
-import ru.agny.xent.{LayerMap, Layer}
+import ru.agny.xent.Layer
 
 import scala.util.Random
 
@@ -11,13 +11,13 @@ object LayerGenerator {
   private val layerSize = 30
   val ids = IdGen()
 
-  def setupLayers(): List[Layer] = (for (i <- 1 to 1) yield Layer(i.toString, i, Seq.empty, generateMap(layerSize, resourceGen(i)), facilityGen(i))).toList
+  def setupLayers(): List[Layer] = (for (i <- 1 to 1) yield Layer(i.toString, i, Seq.empty, generateWorldMap(layerSize, resourceGen(i)), facilityGen(i))).toList
 
   private def resourceGen(layerLvl: Int): List[ResourceTemplate] = TemplateLoader.loadResource(layerLvl.toString)
 
   private def facilityGen(layerLvl: Int): List[FacilityTemplate] = TemplateLoader.loadFacility(layerLvl.toString)
 
-  private def generateMap(size: Int, resources: List[ResourceTemplate]): LayerMap = {
+  private def generateWorldMap(size: Int, resources: List[ResourceTemplate]): CellsMap[WorldCell] = {
     def genByY(y: Int)(x: Int, acc: List[WorldCell]): List[WorldCell] = {
 //      val mbRes = mbResource(resources)
       val mbRes =
@@ -27,7 +27,7 @@ object LayerGenerator {
       else WorldCell(x, y, mbRes) :: acc
     }
 
-    LayerMap((0 to size).map(x => genByY(0)(x, List.empty).reverse.toVector).toVector)
+    CellsMap((0 to size).map(x => genByY(0)(x, List.empty).reverse.toVector).toVector)
   }
 
   private def mbResource(seed: List[ResourceTemplate]): Option[Extractable] = {

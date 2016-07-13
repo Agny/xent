@@ -38,7 +38,7 @@ case class ResourceClaim(facilityName: String, layer: Layer, cell: WorldCell) ex
     (resource match {
       case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
         facilityT.map(y => Outpost(user.localIdGen.next, y.name, x.resource.get, y.cost)) match {
-          case Some(v) => Right(User(user.id, user.name, Storage(user.storage.resources, v :: user.storage.producers), user.lastAction))
+          case Some(v) => Right(user.copy(storage =  Storage(user.storage.resources, v :: user.storage.producers)))
           case None => Left(Response(s"Unable to claim resource in [${cell.x},${cell.y}] by $facilityName"))
         }
       case Some(x) if x.owner.nonEmpty => Left(Response(s"[${cell.x},${cell.y}] is already claimed"))
@@ -51,8 +51,8 @@ case class ResourceClaim(facilityName: String, layer: Layer, cell: WorldCell) ex
   }
 }
 
-case class NewUser(id:UserId, name:String) extends LayerAction {
-  override def run(layer: Layer): (Layer, Response) = (layer.copy(users = layer.users :+ User(id,name)), ResponseOk)
+case class NewUser(id: UserId, name: String) extends LayerAction {
+  override def run(layer: Layer): (Layer, Response) = (layer.copy(users = layer.users :+ User(id, name, City.empty)), ResponseOk)
 }
 
 case class LayerChange(user: UserId) extends Layer2Action {

@@ -34,5 +34,5 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
 }
 
 object Storage {
-  def empty(): Storage = Storage(List.empty, List.empty)
+  def empty: Storage = Storage(List.empty, List.empty)
 }

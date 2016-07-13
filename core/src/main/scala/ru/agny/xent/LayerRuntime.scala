@@ -49,9 +49,9 @@ object LayerRuntime {
           case x: ResourceClaimMessage =>
             val (active, idle) = layers.span(l => l.id == x.layer)
             active.map(y => {
-              val l = y.tick((x, ResourceClaim(x.facility, y, x.cell)))
-              val cu = y.map.find(x.cell).get
-              l.updateMap(WorldCell(cu.x, cu.y, cu.resource, Some(x.user)))
+              val layer = y.tick((x, ResourceClaim(x.facility, y, x.cell)))
+              val cellToUpdate = y.map.find(x.cell).get
+              layer.updateMap(cellToUpdate.copy(owner = Some(x.user)))
             }) ::: idle
           case _ => layers
         }
@@ -64,7 +64,7 @@ object LayerRuntime {
 
   def queue(msg: Message): List[Message] = {
     messages = messages :+ msg
-    println("messages committed" + messages)
+    println("messages committed " + messages)
     messages
   }
 

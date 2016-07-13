@@ -8,12 +8,11 @@ object UserType {
   type UserId = Long
 }
 
-case class User(id: UserId, name: String, storage: Storage, lastAction: Long) {
+case class User(id: UserId, name: String, city: City, storage: Storage, lastAction: Long) {
   val localIdGen = IdGen()
-  //  implicit var rates: Map[Facility, Int] = Map(() -> 1) //very stronk formula from current layer/science/etc
 
   def work(msg: Message, a: UserAction): User = {
-    val (user, resp) = a.run(User(id, name, storage.tick(lastAction)))
+    val (user, resp) = a.run(User(id, name, city, storage.tick(lastAction)))
     msg.reply(resp)
     user
   }
@@ -22,7 +21,7 @@ case class User(id: UserId, name: String, storage: Storage, lastAction: Long) {
 }
 
 object User {
-  def apply(id: UserId, name: String): User = User(id, name, Storage.empty(), System.currentTimeMillis())
+  def apply(id: UserId, name: String, city: City): User = User(id, name, city, Storage.empty, System.currentTimeMillis())
 
-  def apply(id: UserId, name: String, storage: Storage): User = User(id, name, storage, System.currentTimeMillis())
+  def apply(id: UserId, name: String, city: City, storage: Storage): User = User(id, name, city, storage, System.currentTimeMillis())
 }
