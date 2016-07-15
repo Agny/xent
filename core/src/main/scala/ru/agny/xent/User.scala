@@ -11,10 +11,8 @@ object UserType {
 case class User(id: UserId, name: String, city: City, storage: Storage, lastAction: Long) {
   val localIdGen = IdGen()
 
-  def work(msg: Message, a: UserAction): User = {
-    val (user, resp) = a.run(User(id, name, city, storage.tick(lastAction)))
-    msg.reply(resp)
-    user
+  def work(a: UserAction): Either[Response, User] = {
+    a.run(User(id, name, city, storage.tick(lastAction)))
   }
 
   override def toString = s"id=$id name=$name time=$lastAction"

@@ -15,6 +15,7 @@ trait Message {
   }
 }
 case class EmptyMessage(user: UserId) extends Message
-case class NewUserMessage(user: UserId, name:String, layer: String) extends Message
-case class LayerUpMessage(user: UserId, layerFrom:String, layerTo: String) extends Message
+case class NewUserMessage(user: UserId, name: String, layer: String) extends Message
+case class LayerUpMessage(user: UserId, layerFrom: String, layerTo: String) extends Message
 case class ResourceClaimMessage(user: UserId, layer: String, facility: String, cell: WorldCell) extends Message
+case class BuildingConstructionMessage(user: UserId) extends Message

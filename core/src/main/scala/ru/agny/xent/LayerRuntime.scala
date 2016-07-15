@@ -1,6 +1,5 @@
 package ru.agny.xent
 
-import ru.agny.xent.core.WorldCell
 import ru.agny.xent.core.utils.LayerGenerator
 
 object LayerRuntime {
@@ -33,26 +32,29 @@ object LayerRuntime {
     messages match {
       case h :: t =>
         val rez = h match {
-            //TODO need some kind of abstraction for this handling
+          //TODO need some kind of abstraction for this handling
           case x: NewUserMessage =>
             val layerTo = layers.find(l => l.id == x.layer).get
-            val (updated, msg) = NewUser(x.user,x.name).run(layerTo)
-            x.reply(msg)
-            updated :: layers.diff(List(layerTo))
+            NewUser(x.user, x.name).run(layerTo) match {
+              case Left(v) => x.reply(v); layers
+              case Right(v) => v :: layers.diff(List(layerTo))
+            }
           case x: LayerUpMessage =>
             val (active, idle) = layers.partition(l => l.id == x.layerFrom || l.id == x.layerTo)
             val from = active.find(l => l.id == x.layerFrom).get
             val to = active.find(l => l.id == x.layerTo).get
-            val (updated, msg) = LayerChange(x.user).run(from,to)
-            x.reply(msg)
-            List(updated._1, updated._2) ::: idle
+            LayerChange(x.user).run(from, to) match {
+              case Left(v) => x.reply(v); layers
+              case Right(v) => List(v._1, v._2) ::: idle
+            }
           case x: ResourceClaimMessage =>
-            val (active, idle) = layers.span(l => l.id == x.layer)
-            active.map(y => {
-              val layer = y.tick((x, ResourceClaim(x.facility, y, x.cell)))
-              val cellToUpdate = y.map.find(x.cell).get
-              layer.updateMap(cellToUpdate.copy(owner = Some(x.user)))
-            }) ::: idle
+            layers.find(l => l.id == x.layer) match {
+              case Some(layer) => layer.tick(ResourceClaim(x.facility, x.user, x.cell)) match {
+                case Left(v) => x.reply(v); layers
+                case Right(v) => v :: layers.diff(Seq(layer))
+              }
+              case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
+            }
           case _ => layers
         }
         rec(rez, t)
