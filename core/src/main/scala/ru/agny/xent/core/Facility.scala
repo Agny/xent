@@ -12,7 +12,7 @@ sealed trait Facility {
 
   def tick(fromTime: Long): Storage => Storage
 }
-case class Outpost(id: Int, name: String, resource: Extractable, cost: List[ResourceUnit]) extends Facility {
+case class Outpost(id: Int, name: String, resource: Extractable, cost: List[ResourceUnit]) extends Facility with Cost {
   override def tick(fromTime: Long): Storage => Storage = {
     storage => storage.add(extract(System.currentTimeMillis() - fromTime + progress, ResourceUnit(0, resource.name)))
   }
@@ -28,7 +28,7 @@ case class Outpost(id: Int, name: String, resource: Extractable, cost: List[Reso
   }
 
 }
-case class Building(id: Int, name: String, resources: List[Producible], cost: List[ResourceUnit]) extends Facility {
+case class Building(id: Int, name: String, resources: List[Producible], cost: List[ResourceUnit]) extends Facility with Cost {
   private var queue = ProductionQueue(Queue.empty)
 
   override def tick(fromTime: Long): Storage => Storage = storage => {

@@ -22,7 +22,7 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
       case None => Storage(r :: resources, producers)
     }
 
-  def spend(recipe: Recipe): Either[Response, Storage] =
+  def spend(recipe: Cost): Either[Response, Storage] =
     recipe.cost.find(x => !resources.exists(y => x.res == y.res && y.value >= x.value)) match {
       case Some(v) => Left(Response(s"There isn't enough of ${v.res}"))
       case None =>
