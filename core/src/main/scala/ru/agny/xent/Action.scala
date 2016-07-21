@@ -39,9 +39,9 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: WorldCell) 
       case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
         (layer.users.find(x => x.id == userId) match {
           case Some(u) => facilityT.map(y => Outpost(u.localIdGen.next, y.name, x.resource.get, y.cost)) match {
-            case Some(outpost) => u.storage.spend(outpost) match {
+            case Some(outpost) => u.spend(outpost) match {
               case Left(l) => Left(l)
-              case Right(r) => Right(u.copy(storage = Storage(r.resources, outpost :: r.producers)))
+              case Right(r) => Right(r.addFacility(outpost))
             }
             case None => Left(Response(s"Unable to claim resource in [${cell.x},${cell.y}] by $facilityName"))
           }

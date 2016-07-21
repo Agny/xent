@@ -1,0 +1,13 @@
+{
+  "name": "Coppice",
+  "resources": [
+    "Wood"
+  ],
+  "cost": [
+    {
+      "value": 2,
+      "res": "Wood"
+    }
+  ],
+  "since": ""
+}

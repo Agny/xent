@@ -53,7 +53,3 @@ case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
   }
 
 }
-
-object CellsMap {
-  def localDefault(): CellsMap[LocalCell] = CellsMap(0 to 2 map (x => 0 to 2 map (y => LocalCell(x, y)) toVector) toVector)
-}

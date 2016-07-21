@@ -1,5 +1,6 @@
 package ru.agny.xent
 
+import ru.agny.xent.core.utils.CityGenerator
 import ru.agny.xent.core.{CellsMap, LocalCell}
 
 /**
@@ -10,5 +11,5 @@ import ru.agny.xent.core.{CellsMap, LocalCell}
 case class City(map: CellsMap[LocalCell])
 
 object City {
-  def empty: City = City(CellsMap.localDefault())
+  def empty: City = CityGenerator.initCity()
 }

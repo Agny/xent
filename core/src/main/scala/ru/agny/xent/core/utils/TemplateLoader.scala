@@ -12,10 +12,16 @@ object TemplateLoader {
   implicit val formats = DefaultFormats
 
   //load resource templates in path
-  def loadResource(layer: String): List[ResourceTemplate] = {
-    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/resource").toURI)
+  def loadExtractables(layer: String): List[ExtractableTemplate] = {
+    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/resource/extract").toURI)
     val s = resourcesDir.listFiles().toList
-    s.map(f => parse(io.Source.fromFile(f).mkString).extract[ResourceTemplate])
+    s.map(f => parse(io.Source.fromFile(f).mkString).extract[ExtractableTemplate])
+  }
+
+  def loadProducibles(layer: String): List[ProducibleTemplate] = {
+    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/resource/produce").toURI)
+    val s = resourcesDir.listFiles().toList
+    s.map(f => parse(io.Source.fromFile(f).mkString).extract[ProducibleTemplate])
   }
 
   def loadFacility(layer: String): List[FacilityTemplate] = {
@@ -25,14 +31,20 @@ object TemplateLoader {
     val buildingsTemp = buildingsDir.listFiles().toList.map(f => parse(io.Source.fromFile(f).mkString).extract[BuildingTemplate])
     outpostsTemp ::: buildingsTemp
   }
+
+  def loadBuildings(layer:String):List[BuildingTemplate] = {
+    val buildingsDir = new File(getClass.getResource(s"/layers/$layer/facility/building").toURI)
+    buildingsDir.listFiles().toList.map(f => parse(io.Source.fromFile(f).mkString).extract[BuildingTemplate])
+  }
 }
 
-case class ResourceTemplate(name: String, baseVolume: Int, yieldTime:Long, since: String)
+//TODO since
+case class ExtractableTemplate(name: String, baseVolume: Int, yieldTime: Long, since: String)
+case class ProducibleTemplate(name: String, cost: List[ResourceUnit], yieldTime: Long, since: String)
 sealed trait FacilityTemplate {
   val name: String
   val cost: List[ResourceUnit]
   val since: String
 }
-case class RecipeTemplate(producible:String, cost:List[ResourceUnit])
 case class OutpostTemplate(name: String, resource: String, cost: List[ResourceUnit], since: String) extends FacilityTemplate
 case class BuildingTemplate(name: String, resources: List[String], cost: List[ResourceUnit], since: String) extends FacilityTemplate

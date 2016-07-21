@@ -19,7 +19,7 @@ case class Extractable(id: Long, name: String, var volume: Int, yieldTime: Long,
 
   override def toString = s"$name[$volume]"
 }
-case class Producible(name: String, recipe: Recipe, yieldTime: Long, since: Set[Prereq]) extends Resource {
+case class Producible(name: String, cost: List[ResourceUnit], yieldTime: Long, since: Set[Prereq]) extends Resource with Cost {
   override def out(): ResourceUnit = ResourceUnit(defaultYield, this.name)
 }
 

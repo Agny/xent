@@ -13,11 +13,11 @@ object LayerGenerator {
 
   def setupLayers(): List[Layer] = (for (i <- 1 to 1) yield Layer(i.toString, i, Seq.empty, generateWorldMap(layerSize, resourceGen(i)), facilityGen(i))).toList
 
-  private def resourceGen(layerLvl: Int): List[ResourceTemplate] = TemplateLoader.loadResource(layerLvl.toString)
+  private def resourceGen(layerLvl: Int): List[ExtractableTemplate] = TemplateLoader.loadExtractables(layerLvl.toString)
 
   private def facilityGen(layerLvl: Int): List[FacilityTemplate] = TemplateLoader.loadFacility(layerLvl.toString)
 
-  private def generateWorldMap(size: Int, resources: List[ResourceTemplate]): CellsMap[WorldCell] = {
+  private def generateWorldMap(size: Int, resources: List[ExtractableTemplate]): CellsMap[WorldCell] = {
     def genByY(y: Int)(x: Int, acc: List[WorldCell]): List[WorldCell] = {
 //      val mbRes = mbResource(resources)
       val mbRes =
@@ -30,7 +30,7 @@ object LayerGenerator {
     CellsMap((0 to size).map(x => genByY(0)(x, List.empty).reverse.toVector).toVector)
   }
 
-  private def mbResource(seed: List[ResourceTemplate]): Option[Extractable] = {
+  private def mbResource(seed: List[ExtractableTemplate]): Option[Extractable] = {
     val threshold = 94
     Random.nextInt(100) match {
       case c if c > threshold => Some(chooseResource(seed))
@@ -38,7 +38,7 @@ object LayerGenerator {
     }
   }
 
-  private def chooseResource(from: List[ResourceTemplate]): Extractable = {
+  private def chooseResource(from: List[ExtractableTemplate]): Extractable = {
     val n = Random.nextInt(from.size)
     val chosen = from(n)
     Extractable(ids.next, chosen.name, randomVolume(chosen.baseVolume), chosen.yieldTime, Set.empty) //TODO since
