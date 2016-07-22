@@ -7,7 +7,7 @@ object CityGenerator {
 
   private val initBuilding = "Coppice"
 
-  private def resourceGen(layerLvl: Int): List[ProducibleTemplate] = TemplateLoader.loadProducibles(layerLvl.toString)
+  private def resourceGen(layerLvl: Int): List[Resource] = TemplateLoader.loadObtainables(layerLvl.toString)
 
   private def buildingGen(layerLvl: Int): List[BuildingTemplate] = TemplateLoader.loadBuildings(layerLvl.toString)
 

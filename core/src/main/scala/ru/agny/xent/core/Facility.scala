@@ -3,38 +3,21 @@ package ru.agny.xent.core
 import ru.agny.xent.Response
 import scala.collection.immutable.Queue
 
-sealed trait Facility {
-  val id: Int
-  val name: String
-  val cost: List[ResourceUnit]
-  var progress: ProductionProgressTime = 0
+case class Facility(id: Int, name: String, resources: List[Resource], cost: List[ResourceUnit]) extends Cost {
+  private var progress: ProductionProgressTime = 0   //TODO common progress for queued and simple items
+  private var queue = ProductionQueue(Queue.empty)
   type ProductionProgressTime = Long
 
-  def tick(fromTime: Long): Storage => Storage
-}
-case class Outpost(id: Int, name: String, resource: Extractable, cost: List[ResourceUnit]) extends Facility with Cost {
-  override def tick(fromTime: Long): Storage => Storage = {
-    storage => storage.add(extract(System.currentTimeMillis() - fromTime + progress, ResourceUnit(0, resource.name)))
-  }
-
-  private def extract(remindedTime: Long, extracted: ResourceUnit): ResourceUnit = {
-    if(resource.volume == 0) extracted
-    else if (remindedTime < resource.yieldTime) {
-      progress = remindedTime
-      extracted
+  def tick(fromTime: Long): Storage => Storage = storage => {
+    if (queue.isEmpty) {
+      resources.collect { case x: Simple => x }.foldRight(storage)((res,s) =>
+        s.add(extract(res, System.currentTimeMillis() - fromTime + progress, ResourceUnit(0, res.name)))
+      )
     } else {
-      extract(remindedTime - resource.yieldTime, ResourceUnit(extracted.value + resource.out().value, extracted.res))
+      val (updatedQueue, production) = queue.out(fromTime)
+      queue = updatedQueue
+      storage.add(production)
     }
-  }
-
-}
-case class Building(id: Int, name: String, resources: List[Producible], cost: List[ResourceUnit]) extends Facility with Cost {
-  private var queue = ProductionQueue(Queue.empty)
-
-  override def tick(fromTime: Long): Storage => Storage = storage => {
-    val (updatedQueue, production) = queue.out(fromTime)
-    queue = updatedQueue
-    storage.add(production)
   }
 
   def addToQueue(item: (Recipe, Int)): Storage => Either[Response, (Recipe, Int)] = storage => {
@@ -43,9 +26,25 @@ case class Building(id: Int, name: String, resources: List[Producible], cost: Li
       case Right(s) => queue = queue.in(item._1, item._2); Right(item)
     }
   }
+
+  private def extract(res: Resource, remindedTime: Long, extracted: ResourceUnit): ResourceUnit = {
+    res match {
+      case x: Finite if x.volume == 0 => extracted
+      case x => extract_rec(res, remindedTime, extracted)
+    }
+  }
+
+  private def extract_rec(res: Resource, remindedTime: Long, extracted: ResourceUnit): ResourceUnit = {
+    if (remindedTime < res.yieldTime) {
+      progress = remindedTime
+      extracted
+    } else {
+      extract_rec(res, remindedTime - res.yieldTime, ResourceUnit(extracted.value + res.out().value, extracted.res))
+    }
+  }
 }
 
-case class ProductionQueue(content: Seq[(Recipe, Int)]) {
+case class ProductionQueue(private val content: Seq[(Recipe, Int)]) {
 
   def in(item: Recipe, count: Int): ProductionQueue = {
     ProductionQueue(content :+(item, count))
@@ -57,6 +56,8 @@ case class ProductionQueue(content: Seq[(Recipe, Int)]) {
     val (updatedContent, production) = handle(content, progress, List.empty)
     (ProductionQueue(updatedContent), production)
   }
+
+  def isEmpty = content.isEmpty
 
   private def handle(items: Seq[(Recipe, Int)], remindedTime: Long, production: List[ResourceUnit]): (Seq[(Recipe, Int)], List[ResourceUnit]) = {
     items match {

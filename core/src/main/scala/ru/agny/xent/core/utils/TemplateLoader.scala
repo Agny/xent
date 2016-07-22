@@ -2,7 +2,9 @@ package ru.agny.xent.core.utils
 
 import java.io.File
 
-import ru.agny.xent.core.ResourceUnit
+import ru.agny.xent.core._
+
+import scala.util.Random
 
 object TemplateLoader {
 
@@ -11,18 +13,34 @@ object TemplateLoader {
 
   implicit val formats = DefaultFormats
 
-  //load resource templates in path
-  def loadExtractables(layer: String): List[ExtractableTemplate] = {
-    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/resource/extract").toURI)
+  def loadProducibles(layer: String): List[Resource] = {
+    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/resource/composite").toURI)
     val s = resourcesDir.listFiles().toList
-    s.map(f => parse(io.Source.fromFile(f).mkString).extract[ExtractableTemplate])
+    s.map(f => {
+      val t = parse(io.Source.fromFile(f).mkString).extract[ProducibleTemplate]
+      Producible(t.name, t.cost, t.yieldTime, Set.empty)
+    })
   }
 
-  def loadProducibles(layer: String): List[ProducibleTemplate] = {
-    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/resource/produce").toURI)
+  def loadObtainables(layer: String): List[Resource] = {
+    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/resource/simple").toURI)
     val s = resourcesDir.listFiles().toList
-    s.map(f => parse(io.Source.fromFile(f).mkString).extract[ProducibleTemplate])
+    s.map(f => {
+      val t = parse(io.Source.fromFile(f).mkString).extract[SimpleTemplate]
+      Obtainable(t.name, t.yieldTime, Set.empty)
+    })
   }
+
+  def loadExtractables(layer: String): List[Finite] = {
+    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/resource/simple/finite").toURI)
+    val s = resourcesDir.listFiles().toList
+    s.map(f => {
+      val t = parse(io.Source.fromFile(f).mkString).extract[FiniteTemplate]
+      Extractable(t.name, randomVolume(t.baseVolume), t.yieldTime, Set.empty)
+    })
+  }
+
+  private def randomVolume(base: Int): Int = (base * Random.nextDouble()).toInt
 
   def loadFacility(layer: String): List[FacilityTemplate] = {
     val outpostsDir = new File(getClass.getResource(s"/layers/$layer/facility/outpost").toURI)
@@ -32,14 +50,15 @@ object TemplateLoader {
     outpostsTemp ::: buildingsTemp
   }
 
-  def loadBuildings(layer:String):List[BuildingTemplate] = {
+  def loadBuildings(layer: String): List[BuildingTemplate] = {
     val buildingsDir = new File(getClass.getResource(s"/layers/$layer/facility/building").toURI)
     buildingsDir.listFiles().toList.map(f => parse(io.Source.fromFile(f).mkString).extract[BuildingTemplate])
   }
 }
 
 //TODO since
-case class ExtractableTemplate(name: String, baseVolume: Int, yieldTime: Long, since: String)
+case class FiniteTemplate(name: String, baseVolume: Int, yieldTime: Long, since: String)
+case class SimpleTemplate(name: String, yieldTime: Long, since: String)
 case class ProducibleTemplate(name: String, cost: List[ResourceUnit], yieldTime: Long, since: String)
 sealed trait FacilityTemplate {
   val name: String

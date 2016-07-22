@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.{WorldCell, Storage, Outpost}
+import ru.agny.xent.core.{Facility, WorldCell}
 
 trait Action {
   type T
@@ -38,7 +38,7 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: WorldCell) 
     resource match {
       case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
         (layer.users.find(x => x.id == userId) match {
-          case Some(u) => facilityT.map(y => Outpost(u.localIdGen.next, y.name, x.resource.get, y.cost)) match {
+          case Some(u) => facilityT.map(y => Facility(u.localIdGen.next, y.name, x.resource.get, y.cost)) match {
             case Some(outpost) => u.spend(outpost) match {
               case Left(l) => Left(l)
               case Right(r) => Right(r.addFacility(outpost))
