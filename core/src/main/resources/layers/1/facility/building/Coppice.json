@@ -1,8 +1,9 @@
 {
   "name": "Coppice",
-  "resources": [
+  "obtainable": [
     "Wood"
   ],
+  "producible": [],
   "cost": [
     {
       "value": 2,

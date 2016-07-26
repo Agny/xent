@@ -14,15 +14,15 @@ sealed trait Resource {
 trait Simple {
   self: Resource =>
 }
-trait Finite {
-  self: Simple =>
+trait Finite extends Simple {
+  self: Resource =>
   var volume: Int
 }
 trait Composite extends Cost {
   self: Resource =>
 }
 
-case class Extractable(name: String, var volume: Int, yieldTime: Long, since: Set[Prereq]) extends Resource with Simple with Finite {
+case class Extractable(name: String, var volume: Int, yieldTime: Long, since: Set[Prereq]) extends Resource with Finite {
   override def out(): ResourceUnit = {
     val resultYield = if (volume > 0) defaultYield else 0
     volume = volume - resultYield

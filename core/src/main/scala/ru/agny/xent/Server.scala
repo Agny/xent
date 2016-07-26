@@ -21,4 +21,9 @@ object Server {
     LayerRuntime.queue(ResourceClaimMessage(user, layer, facility, cell))
     ResponseOk
   }
+
+  def emptyMessage(user: UserId, layer: String): Response = {
+    LayerRuntime.queue(EmptyMessage(user, layer))
+    ResponseOk
+  }
 }

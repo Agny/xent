@@ -3,9 +3,14 @@ package ru.agny.xent.core
 import ru.agny.xent.Response
 import scala.collection.immutable.Queue
 
-case class Facility(id: Int, name: String, resources: List[Resource], cost: List[ResourceUnit]) extends Cost {
-  private var progress: ProductionProgressTime = 0   //TODO common progress for queued and simple items
-  private var queue = ProductionQueue(Queue.empty)
+trait Facility extends Cost {
+  val id: Int
+  val name: String
+  val resources: List[Resource]
+  val cost: List[ResourceUnit]
+  protected var progress: ProductionProgressTime = 0
+  //TODO common progress for queued and simple items
+  protected var queue = ProductionQueue(Queue.empty)
   type ProductionProgressTime = Long
 
   def tick(fromTime: Long): Storage => Storage = storage => {
@@ -27,19 +32,33 @@ case class Facility(id: Int, name: String, resources: List[Resource], cost: List
     }
   }
 
-  private def extract(res: Resource, remindedTime: Long, extracted: ResourceUnit): ResourceUnit = {
+  protected def extract(res: Resource, reminded: ProductionProgressTime, extracted: ResourceUnit): ResourceUnit = {
     res match {
       case x: Finite if x.volume == 0 => extracted
-      case x => extract_rec(res, remindedTime, extracted)
+      case x => extract_rec(res, reminded, extracted)
     }
   }
 
-  private def extract_rec(res: Resource, remindedTime: Long, extracted: ResourceUnit): ResourceUnit = {
-    if (remindedTime < res.yieldTime) {
-      progress = remindedTime
+  private def extract_rec(res: Resource, reminded: ProductionProgressTime, extracted: ResourceUnit): ResourceUnit = {
+    if (reminded < res.yieldTime) {
+      progress = reminded
       extracted
     } else {
-      extract_rec(res, remindedTime - res.yieldTime, ResourceUnit(extracted.value + res.out().value, extracted.res))
+      extract_rec(res, reminded - res.yieldTime, ResourceUnit(extracted.value + res.out().value, extracted.res))
+    }
+  }
+}
+
+case class Building(id: Int, name: String, resources: List[Resource], cost: List[ResourceUnit]) extends Facility
+case class Outpost(id: Int, name: String, main: Extractable, resources: List[Resource], cost: List[ResourceUnit]) extends Facility {
+
+  override def tick(fromTime: ProductionProgressTime): (Storage) => Storage = storage => {
+    if (queue.isEmpty) {
+      storage.add(extract(main,  System.currentTimeMillis() - fromTime + progress, ResourceUnit(0, main.name)))
+    } else {
+      val (updatedQueue, production) = queue.out(fromTime)
+      queue = updatedQueue
+      storage.add(production)
     }
   }
 }

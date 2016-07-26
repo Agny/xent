@@ -6,7 +6,7 @@ import ru.agny.xent.UserType.UserId
 sealed trait Cell {
   val x, y: Int
 }
-case class WorldCell(x: Int, y: Int, resource: Option[Finite] = None, city: Option[City] = None, owner: Option[UserId] = None) extends Cell
+case class WorldCell(x: Int, y: Int, resource: Option[Extractable] = None, city: Option[City] = None, owner: Option[UserId] = None) extends Cell
 case class LocalCell(x: Int, y: Int, building: Option[Facility] = None) extends Cell
 
 case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {

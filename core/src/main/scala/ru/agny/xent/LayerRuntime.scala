@@ -34,10 +34,12 @@ object LayerRuntime {
         val rez = h match {
           //TODO need some kind of abstraction for this handling
           case x: NewUserMessage =>
-            val layerTo = layers.find(l => l.id == x.layer).get
-            NewUser(x.user, x.name).run(layerTo) match {
-              case Left(v) => x.reply(v); layers
-              case Right(v) => v :: layers.diff(List(layerTo))
+            layers.find(l => l.id == x.layer) match {
+              case Some(layer) => layer.tick(NewUser(x.user, x.name)) match {
+                case Left(v) => x.reply(v); layers
+                case Right(v) => v :: layers.diff(Seq(layer))
+              }
+              case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
           case x: LayerUpMessage =>
             val (active, idle) = layers.partition(l => l.id == x.layerFrom || l.id == x.layerTo)
@@ -50,6 +52,14 @@ object LayerRuntime {
           case x: ResourceClaimMessage =>
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(ResourceClaim(x.facility, x.user, x.cell)) match {
+                case Left(v) => x.reply(v); layers
+                case Right(v) => v :: layers.diff(Seq(layer))
+              }
+              case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
+            }
+          case x: EmptyMessage =>
+            layers.find(l => l.id == x.layer) match {
+              case Some(layer) => layer.tick(Idle(x.user), x.user) match {
                 case Left(v) => x.reply(v); layers
                 case Right(v) => v :: layers.diff(Seq(layer))
               }

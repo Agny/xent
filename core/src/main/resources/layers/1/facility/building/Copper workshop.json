@@ -1,6 +1,7 @@
 {
   "name": "Copper workshop",
-  "resources": [
+  "obtainable": [],
+  "producible": [
     "Copper sheet",
     "Copper shield",
     "Copper sword"

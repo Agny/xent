@@ -1,6 +1,8 @@
 {
   "name": "Copper mine",
-  "resource": "Copper",
+  "extractable": "Copper",
+  "obtainable": [],
+  "producible": [],
   "cost": [
     {
       "value": 5,

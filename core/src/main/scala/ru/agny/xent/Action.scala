@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.{Facility, WorldCell}
+import ru.agny.xent.core.{Outpost, WorldCell}
 
 trait Action {
   type T
@@ -38,7 +38,7 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: WorldCell) 
     resource match {
       case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
         (layer.users.find(x => x.id == userId) match {
-          case Some(u) => facilityT.map(y => Facility(u.localIdGen.next, y.name, x.resource.get, y.cost)) match {
+          case Some(u) => facilityT.map(y => Outpost(u.localIdGen.next, y.name, x.resource.get, y.resources, y.cost)) match {
             case Some(outpost) => u.spend(outpost) match {
               case Left(l) => Left(l)
               case Right(r) => Right(r.addFacility(outpost))
@@ -49,7 +49,7 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: WorldCell) 
         }) match {
           case Left(v) => Left(v)
           case Right(v) =>
-            val layerToUpdate = layer.copy(users = layer.users.diff(Seq(v)) :+ v)
+            val layerToUpdate = layer.copy(users = layer.users.filterNot(_.id == v.id) :+ v)
             val cellToUpdate = layer.map.find(cell).get
             Right(layerToUpdate.updateMap(cellToUpdate.copy(owner = Some(v.id))))
         }
@@ -65,7 +65,7 @@ case class NewUser(id: UserId, name: String) extends LayerAction {
 }
 
 case class LayerChange(user: UserId) extends Layer2Action {
-  override def run(layers: (Layer, Layer)): Either[Response,(Layer, Layer)] = {
+  override def run(layers: (Layer, Layer)): Either[Response, (Layer, Layer)] = {
     val from = layers._1
     val to = layers._2
     from.users.find(x => x.id == user) match {
@@ -80,4 +80,8 @@ case class LayerChange(user: UserId) extends Layer2Action {
       case None => Left(Response(s"There is no user with id[$user] in the layer[${from.id}]"))
     }
   }
+}
+
+case class Idle(user: UserId) extends UserAction {
+  override def run(user: User): Either[Response, User] = Right(user)
 }

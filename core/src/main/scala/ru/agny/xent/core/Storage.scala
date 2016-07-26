@@ -26,9 +26,7 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
 
   def spend(recipe: Cost): Either[Response, Storage] =
     recipe.cost.find(x => !resources.exists(y => x.res == y.res && y.value >= x.value)) match {
-      case Some(v) =>
-        println(this)
-        Left(Response(s"There isn't enough of ${v.res}"))
+      case Some(v) => Left(Response(s"There isn't enough of ${v.res}"))
       case None =>
         Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.res match {
           case a.res => ResourceUnit(bb.value - a.value, a.res)
