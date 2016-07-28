@@ -1,15 +1,13 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.{Facility, Cost, Storage}
-import ru.agny.xent.utils.IdGen
+import ru.agny.xent.core._
 
 object UserType {
   type UserId = Long
 }
 
 case class User(id: UserId, name: String, city: City, private val storage: Storage, lastAction: Long) {
-  val localIdGen = IdGen()
 
   def work(a: UserAction): Either[Response, User] = {
     a.run(User(id, name, city, storage.tick(lastAction)))
@@ -33,12 +31,17 @@ case class User(id: UserId, name: String, city: City, private val storage: Stora
     }
   }
 
+  def addBuilding(buildingCell: LocalCell): User = {
+    addFacility(buildingCell.building.get)
+    copy(city = city.update(buildingCell))
+  }
+
   override def toString = s"id=$id name=$name time=$lastAction"
 }
 
 object User {
   def apply(id: UserId, name: String, city: City): User = {
-    val defaultBuildings = city.map.flatMap(c => c.building)
+    val defaultBuildings = city.flatMap(c => c.building)
     User(id, name, city, Storage.empty.copy(producers = defaultBuildings), System.currentTimeMillis())
   }
 

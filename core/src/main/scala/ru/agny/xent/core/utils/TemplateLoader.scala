@@ -71,7 +71,7 @@ object TemplateLoader {
 case class FiniteTemplate(name: String, baseVolume: Int, yieldTime: Long, since: String)
 case class SimpleTemplate(name: String, yieldTime: Long, since: String)
 case class ProducibleTemplate(name: String, cost: List[ResourceUnit], yieldTime: Long, since: String)
-sealed trait FacilityTemplate {
+sealed trait FacilityTemplate extends Cost{
   val name: String
   val resources: List[Resource]
   val cost: List[ResourceUnit]

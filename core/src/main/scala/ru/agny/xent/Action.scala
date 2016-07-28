@@ -9,12 +9,6 @@ trait Action {
   def run(e: T): Either[Response, T]
 }
 
-trait UserAction extends Action {
-  type T = User
-
-  override def run(user: T): Either[Response, T]
-}
-
 trait LayerAction extends Action {
   type T = Layer
 
@@ -27,10 +21,6 @@ trait Layer2Action extends Action {
   override def run(layers: T): Either[Response, T]
 }
 
-object DoNothing extends UserAction {
-  override def run(user: User): Either[Response, User] = Right(user)
-}
-
 case class ResourceClaim(facilityName: String, userId: UserId, cell: WorldCell) extends LayerAction {
   override def run(layer: Layer): Either[Response, Layer] = {
     val facilityT = layer.facilities.find(x => x.name == facilityName)
@@ -38,12 +28,12 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: WorldCell) 
     resource match {
       case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
         (layer.users.find(x => x.id == userId) match {
-          case Some(u) => facilityT.map(y => Outpost(u.localIdGen.next, y.name, x.resource.get, y.resources, y.cost)) match {
-            case Some(outpost) => u.spend(outpost) match {
+          case Some(u) => facilityT.map(y => Outpost(y.name, x.resource.get, y.resources)) match {
+            case Some(outpost) => u.spend(facilityT.get) match {
               case Left(l) => Left(l)
               case Right(r) => Right(r.addFacility(outpost))
             }
-            case None => Left(Response(s"Unable to claim resource in [${cell.x},${cell.y}] by $facilityName"))
+            case None => Left(Response(s"Unable to claim resource in $cell by $facilityName"))
           }
           case None => Left(Response(s"User with id=$userId isn't found in this layer"))
         }) match {
@@ -53,9 +43,9 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: WorldCell) 
             val cellToUpdate = layer.map.find(cell).get
             Right(layerToUpdate.updateMap(cellToUpdate.copy(owner = Some(v.id))))
         }
-      case Some(x) if x.owner.nonEmpty => Left(Response(s"[${cell.x},${cell.y}] is already claimed"))
-      case Some(x) => Left(Response(s"[${cell.x},${cell.y}] doesn't have a resource"))
-      case None => Left(Response(s"Unable to find [${cell.x},${cell.y}]"))
+      case Some(x) if x.owner.nonEmpty => Left(Response(s"$cell is already claimed"))
+      case Some(x) => Left(Response(s"$cell doesn't have a resource"))
+      case None => Left(Response(s"Unable to find $cell"))
     }
   }
 }
@@ -80,8 +70,4 @@ case class LayerChange(user: UserId) extends Layer2Action {
       case None => Left(Response(s"There is no user with id[$user] in the layer[${from.id}]"))
     }
   }
-}
-
-case class Idle(user: UserId) extends UserAction {
-  override def run(user: User): Either[Response, User] = Right(user)
 }

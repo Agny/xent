@@ -57,6 +57,14 @@ object LayerRuntime {
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
+          case x: BuildingConstructionMessage =>
+            layers.find(l => l.id == x.layer) match {
+              case Some(layer) => layer.tick(PlaceBuilding(x.building,layer,x.cell), x.user) match {
+                case Left(v) => x.reply(v); layers
+                case Right(v) => v :: layers.diff(Seq(layer))
+              }
+              case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
+            }
           case x: EmptyMessage =>
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(Idle(x.user), x.user) match {

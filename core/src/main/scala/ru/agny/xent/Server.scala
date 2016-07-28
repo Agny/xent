@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.WorldCell
+import ru.agny.xent.core.{LocalCell, WorldCell}
 import ru.agny.xent.utils.IdGen
 
 object Server {
@@ -19,6 +19,11 @@ object Server {
 
   def claimResource(user: UserId, layer: String, facility: String, cell: WorldCell): Response = {
     LayerRuntime.queue(ResourceClaimMessage(user, layer, facility, cell))
+    ResponseOk
+  }
+
+  def constructBuilding(user: UserId, layer: String, facility: String, cell: LocalCell): Response = {
+    LayerRuntime.queue(BuildingConstructionMessage(user,layer, facility, cell))
     ResponseOk
   }
 

@@ -3,11 +3,9 @@ package ru.agny.xent.core
 import ru.agny.xent.Response
 import scala.collection.immutable.Queue
 
-trait Facility extends Cost {
-  val id: Int
+trait Facility {
   val name: String
   val resources: List[Resource]
-  val cost: List[ResourceUnit]
   protected var progress: ProductionProgressTime = 0
   //TODO common progress for queued and simple items
   protected var queue = ProductionQueue(Queue.empty)
@@ -49,8 +47,8 @@ trait Facility extends Cost {
   }
 }
 
-case class Building(id: Int, name: String, resources: List[Resource], cost: List[ResourceUnit]) extends Facility
-case class Outpost(id: Int, name: String, main: Extractable, resources: List[Resource], cost: List[ResourceUnit]) extends Facility {
+case class Building(name: String, resources: List[Resource]) extends Facility
+case class Outpost(name: String, main: Extractable, resources: List[Resource]) extends Facility {
 
   override def tick(fromTime: ProductionProgressTime): (Storage) => Storage = storage => {
     if (queue.isEmpty) {

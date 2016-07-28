@@ -5,6 +5,8 @@ import ru.agny.xent.UserType.UserId
 
 sealed trait Cell {
   val x, y: Int
+
+  override def toString: String = s"[$x,$y]"
 }
 case class WorldCell(x: Int, y: Int, resource: Option[Extractable] = None, city: Option[City] = None, owner: Option[UserId] = None) extends Cell
 case class LocalCell(x: Int, y: Int, building: Option[Facility] = None) extends Cell
