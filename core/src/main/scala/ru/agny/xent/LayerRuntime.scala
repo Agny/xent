@@ -1,25 +1,15 @@
 package ru.agny.xent
 
-import ru.agny.xent.core.utils.LayerGenerator
-
-object LayerRuntime {
-  private val init = LayerGenerator.setupLayers()
-  //TODO concurrency?
+class LayerRuntime(queue: MessageQueue) {
   private var lastState: List[Layer] = List.empty
-  private var messages: List[Message] = List.empty
 
   private def run(initialState: List[Layer]): List[Layer] = {
     lastState = initialState
-    def handleMessages(): List[Message] = {
-      val tmpMessages = messages
-      messages = List.empty
-      tmpMessages
-    }
 
     new Thread(new Runnable {
       override def run(): Unit = {
         while (true) {
-          lastState = rec(lastState, handleMessages())
+          lastState = rec(lastState, queue.take())
           Thread.sleep(1000)
         }
       }
@@ -47,21 +37,21 @@ object LayerRuntime {
             val to = active.find(l => l.id == x.layerTo).get
             LayerChange(x.user).run(from, to) match {
               case Left(v) => x.reply(v); layers
-              case Right(v) => List(v._1, v._2) ::: idle
+              case Right(v) => x.reply(ResponseOk);List(v._1, v._2) ::: idle
             }
           case x: ResourceClaimMessage =>
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(ResourceClaim(x.facility, x.user, x.cell)) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => v :: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk);v :: layers.diff(Seq(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
           case x: BuildingConstructionMessage =>
             layers.find(l => l.id == x.layer) match {
-              case Some(layer) => layer.tick(PlaceBuilding(x.building,layer,x.cell), x.user) match {
+              case Some(layer) => layer.tick(PlaceBuilding(x.building, layer, x.cell), x.user) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => v :: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk);v :: layers.diff(Seq(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
@@ -69,7 +59,7 @@ object LayerRuntime {
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(Idle(x.user), x.user) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => v :: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk);v :: layers.diff(Seq(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
@@ -81,13 +71,12 @@ object LayerRuntime {
   }
 
   def get = lastState
+}
 
-  def queue(msg: Message): List[Message] = {
-    messages = messages :+ msg
-    println("messages committed " + messages)
-    messages
+object LayerRuntime {
+  def run(layers:List[Layer], queue: MessageQueue) = {
+    val runtime = new LayerRuntime(queue)
+    runtime.run(layers)
+    runtime
   }
-
-  run(init)
-
 }

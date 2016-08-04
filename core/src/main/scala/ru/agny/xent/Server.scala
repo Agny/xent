@@ -1,34 +1,39 @@
 package ru.agny.xent
 
+import java.util.concurrent.atomic.AtomicLong
+
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.core.{LocalCell, WorldCell}
 import ru.agny.xent.utils.IdGen
 
-object Server {
+class Server(layers:List[Layer], queue: MessageQueue) {
   val idGen = IdGen()
+  val last: AtomicLong = new AtomicLong(0)
+
+  val state = LayerRuntime.run(layers, queue)
 
   def newUser(name: String, layer: String): Response = {
-    LayerRuntime.queue(NewUserMessage(idGen.next, name, layer))
+    queue.push(NewUserMessage(idGen.next, name, layer), last.incrementAndGet())
     ResponseOk
   }
 
   def layerUp(user: UserId, layerFrom: String, layerTo: String): Response = {
-    LayerRuntime.queue(LayerUpMessage(user, layerFrom, layerTo))
+    queue.push(LayerUpMessage(user, layerFrom, layerTo), last.incrementAndGet())
     ResponseOk
   }
 
   def claimResource(user: UserId, layer: String, facility: String, cell: WorldCell): Response = {
-    LayerRuntime.queue(ResourceClaimMessage(user, layer, facility, cell))
+    queue.push(ResourceClaimMessage(user, layer, facility, cell), last.incrementAndGet())
     ResponseOk
   }
 
   def constructBuilding(user: UserId, layer: String, facility: String, cell: LocalCell): Response = {
-    LayerRuntime.queue(BuildingConstructionMessage(user,layer, facility, cell))
+    queue.push(BuildingConstructionMessage(user,layer, facility, cell), last.incrementAndGet())
     ResponseOk
   }
 
   def emptyMessage(user: UserId, layer: String): Response = {
-    LayerRuntime.queue(EmptyMessage(user, layer))
+    queue.push(EmptyMessage(user, layer), last.incrementAndGet())
     ResponseOk
   }
 }
