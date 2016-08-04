@@ -1,0 +1,15 @@
+{
+  "name": "Copper shield",
+  "cost": [
+    {
+      "value": 2,
+      "res": "Copper sheet"
+    },
+    {
+      "value": 2,
+      "res": "Wood"
+    }
+  ],
+  "yieldTime": 60000,
+  "since": ""
+}
