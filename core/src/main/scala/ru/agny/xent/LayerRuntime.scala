@@ -27,7 +27,7 @@ class LayerRuntime(queue: MessageQueue) {
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(NewUser(x.user, x.name)) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => v :: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk);v :: layers.diff(Seq(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }

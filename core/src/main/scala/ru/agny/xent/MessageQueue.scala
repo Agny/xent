@@ -18,7 +18,7 @@ case class MessageQueue() {
     if (!last.compareAndSet(init, number))
       push_rec(msg, last.get(), number)
     else {
-      println(msg)
+      println(s"MESSAGE: $msg")
       messages = (msg, number) :: messages
       Future(number)
     }

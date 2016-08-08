@@ -3,7 +3,7 @@ package ru.agny.xent
 import java.util.concurrent.atomic.AtomicLong
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.{LocalCell, WorldCell}
+import ru.agny.xent.core.{ResourceUnit, LocalCell, WorldCell}
 import ru.agny.xent.utils.IdGen
 
 class Server(layers:List[Layer], queue: MessageQueue) {
@@ -29,6 +29,11 @@ class Server(layers:List[Layer], queue: MessageQueue) {
 
   def constructBuilding(user: UserId, layer: String, facility: String, cell: LocalCell): Response = {
     queue.push(BuildingConstructionMessage(user,layer, facility, cell), last.incrementAndGet())
+    ResponseOk
+  }
+
+  def produce(user: UserId, layer:String, facility:String, res: ResourceUnit): Response  = {
+    queue.push(AddProductionMessage(user, layer, facility, res), last.incrementAndGet())
     ResponseOk
   }
 

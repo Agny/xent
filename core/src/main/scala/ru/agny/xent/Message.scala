@@ -10,7 +10,7 @@ trait Message {
   val user: UserId
 
   def reply(value: Response): Future[Response] = Future {
-    println(s"$user-$value")
+    println(s"REPLY: $this-$value")
     value
   }
 }
