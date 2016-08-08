@@ -55,6 +55,14 @@ class LayerRuntime(queue: MessageQueue) {
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
+          case x: AddProductionMessage =>
+            layers.find(l => l.id == x.layer) match {
+              case Some(layer) => layer.tick(AddProduction(x.facility, x.res), x.user) match {
+                case Left(v) => x.reply(v); layers
+                case Right(v) => x.reply(ResponseOk);v :: layers.diff(Seq(layer))
+              }
+              case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
+            }
           case x: EmptyMessage =>
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(Idle(x.user), x.user) match {

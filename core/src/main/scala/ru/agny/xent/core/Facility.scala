@@ -23,10 +23,14 @@ trait Facility {
     }
   }
 
-  def addToQueue(item: (Recipe, Int)): Storage => Either[Response, (Recipe, Int)] = storage => {
-    storage.spend(Recipe(item._1.product, item._1.price(item._2))) match {
-      case Left(s) => Left(s)
-      case Right(s) => queue = queue.in(item._1, item._2); Right(item)
+  def addToQueue(item: ResourceUnit): Storage => Either[Response, Storage] = storage => {
+    resources.find(_.name==item.res) match {
+      case Some(v:Producible) =>
+        storage.spend(Recipe(v, v.price(item.value))) match {
+          case Left(s) => Left(s)
+          case Right(s) => queue = queue.in(v, item.value); Right(s)
+        }
+      case _ => Left(Response(s"Facility $name cannot produce ${item.res}"))
     }
   }
 
@@ -61,9 +65,9 @@ case class Outpost(name: String, main: Extractable, resources: List[Resource]) e
   }
 }
 
-case class ProductionQueue(private val content: Seq[(Recipe, Int)]) {
+case class ProductionQueue(private val content: Seq[(Producible, Int)]) {
 
-  def in(item: Recipe, count: Int): ProductionQueue = {
+  def in(item: Producible, count: Int): ProductionQueue = {
     ProductionQueue(content :+(item, count))
   }
 
@@ -76,9 +80,9 @@ case class ProductionQueue(private val content: Seq[(Recipe, Int)]) {
 
   def isEmpty = content.isEmpty
 
-  private def handle(items: Seq[(Recipe, Int)], remindedTime: Long, production: List[ResourceUnit]): (Seq[(Recipe, Int)], List[ResourceUnit]) = {
+  private def handle(items: Seq[(Producible, Int)], remindedTime: Long, production: List[ResourceUnit]): (Seq[(Producible, Int)], List[ResourceUnit]) = {
     items match {
-      case x :: xs => handle(x, remindedTime, ResourceUnit(0, x._1.product.name)) match {
+      case x :: xs => handle(x, remindedTime, ResourceUnit(0, x._1.name)) match {
         case (0, time, prod) => handle(items, time, prod :: production)
         case (count, time, prod) => ((x._1, count) :: xs, prod :: production)
       }
@@ -86,10 +90,10 @@ case class ProductionQueue(private val content: Seq[(Recipe, Int)]) {
     }
   }
 
-  private def handle(item: (Recipe, Int), remindedTime: Long, production: ResourceUnit): (Int, Long, ResourceUnit) =
+  private def handle(item: (Producible, Int), remindedTime: Long, production: ResourceUnit): (Int, Long, ResourceUnit) =
     (item, remindedTime) match {
       case ((_, 0), time) => (0, time, production)
-      case ((v, count), time) if time < v.product.yieldTime => (count, time, production)
-      case ((v, count), time) => handle((v, count - 1), time - v.product.yieldTime, ResourceUnit(production.value + 1, v.product.name))
+      case ((v, count), time) if time < v.yieldTime => (count, time, production)
+      case ((v, count), time) => handle((v, count - 1), time - v.yieldTime, ResourceUnit(production.value + 1, v.name))
     }
 }

@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType._
-import ru.agny.xent.core.{Building, LocalCell}
+import ru.agny.xent.core.{ResourceUnit, Building, LocalCell}
 
 trait UserAction extends Action {
   type T = User
@@ -17,9 +17,9 @@ case class Idle(user: UserId) extends UserAction {
   override def run(user: User): Either[Response, User] = Right(user)
 }
 
-case class PlaceBuilding(facilityName: String, layer: Layer, cell: LocalCell) extends UserAction {
+case class PlaceBuilding(facility: String, layer: Layer, cell: LocalCell) extends UserAction {
   override def run(user: User): Either[Response, User] = {
-    layer.facilities.find(ft => ft.name == facilityName) match {
+    layer.facilities.find(ft => ft.name == facility) match {
       case Some(ft) => user.city.find(cell) match {
         case Some(lc) if lc.building.nonEmpty => Left(Response(s"Cell $cell already contains building"))
         case Some(lc) => user.spend(ft) match {
@@ -28,7 +28,19 @@ case class PlaceBuilding(facilityName: String, layer: Layer, cell: LocalCell) ex
         }
         case None => Left(Response(s"Cell $cell doesn't exist"))
       }
-      case None => Left(Response(s"Unable to build $facilityName"))
+      case None => Left(Response(s"Unable to build $facility"))
+    }
+  }
+}
+
+case class AddProduction(facility: String, res: ResourceUnit) extends UserAction {
+  override def run(user: User): Either[Response, User] = {
+    user.findFacility(facility) match {
+      case Some(v) => user.addToQueue(v, res) match {
+        case Left(l) => Left(l)
+        case Right(r) => Right(user.copy(storage = r))
+      }
+      case None => Left(Response(s"Unable to find $facility"))
     }
   }
 }

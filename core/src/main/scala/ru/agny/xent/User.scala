@@ -13,6 +13,10 @@ case class User(id: UserId, name: String, city: City, private val storage: Stora
     a.run(User(id, name, city, storage.tick(lastAction)))
   }
 
+  def addToQueue(facility: Facility, res: ResourceUnit) = {
+    facility.addToQueue(res)(storage)
+  }
+
   def spend(recipe: Cost): Either[Response, User] = {
     work(DoNothing) match {
       case Left(v) => Left(v)
@@ -33,6 +37,10 @@ case class User(id: UserId, name: String, city: City, private val storage: Stora
 
   def addBuilding(buildingCell: LocalCell): User = {
     addFacility(buildingCell.building.get).copy(city = city.update(buildingCell))
+  }
+
+  def findFacility(producer: String): Option[Facility] = {
+    storage.producers.find(_.name == producer)
   }
 
   override def toString = s"id=$id name=$name time=$lastAction"
