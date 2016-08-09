@@ -4,16 +4,15 @@ import java.util.concurrent.atomic.AtomicLong
 
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.core.{ResourceUnit, LocalCell, WorldCell}
-import ru.agny.xent.utils.IdGen
 
 class Server(layers:List[Layer], queue: MessageQueue) {
-  val idGen = IdGen()
-  val last: AtomicLong = new AtomicLong(0)
+  val idGen = new AtomicLong(0)
+  val last = new AtomicLong(0)
 
   val state = LayerRuntime.run(layers, queue)
 
   def newUser(name: String, layer: String): Response = {
-    queue.push(NewUserMessage(idGen.next, name, layer), last.incrementAndGet())
+    queue.push(NewUserMessage(idGen.incrementAndGet(), name, layer), last.incrementAndGet())
     ResponseOk
   }
 

@@ -1,7 +1,6 @@
 package ru.agny.xent.core.utils
 
 import ru.agny.xent.core._
-import ru.agny.xent.utils.IdGen
 import ru.agny.xent.Layer
 
 import scala.util.Random
@@ -9,7 +8,6 @@ import scala.util.Random
 object LayerGenerator {
 
   private val layerSize = 30
-  val ids = IdGen()
 
   def setupLayers(): List[Layer] = (for (i <- 1 to 1) yield Layer(i.toString, i, Seq.empty, generateWorldMap(layerSize, resourceGen(i)), facilityGen(i))).toList
 
