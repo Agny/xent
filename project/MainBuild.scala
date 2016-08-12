@@ -12,7 +12,7 @@ object MainBuild extends Build {
 
   lazy val core = project.settings(commonSettings: _*).settings(libraryDependencies ++= coreDeps)
 
-  lazy val web = project.settings(commonSettings: _*)
+  lazy val web = project.settings(commonSettings: _*).settings(libraryDependencies ++= webDeps)
 
   lazy val root = project.in(file(".")).settings(commonSettings: _*).aggregate(core, web)
 }
