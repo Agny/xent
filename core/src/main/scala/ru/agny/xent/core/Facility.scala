@@ -1,6 +1,6 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.Response
+import ru.agny.xent.{ResourceUnit, Response}
 import scala.collection.immutable.Queue
 
 trait Facility {

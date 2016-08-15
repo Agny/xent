@@ -9,7 +9,7 @@ trait LayerAction extends Action {
   override def run(layer: T): Either[Response, T]
 }
 
-case class ResourceClaim(facilityName: String, userId: UserId, cell: WorldCell) extends LayerAction {
+case class ResourceClaim(facilityName: String, userId: UserId, cell: Cell) extends LayerAction {
   override def run(layer: Layer): Either[Response, Layer] = {
     val facilityT = layer.facilities.find(x => x.name == facilityName)
     val resource = layer.map.find(cell)

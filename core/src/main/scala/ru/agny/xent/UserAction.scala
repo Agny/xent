@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType._
-import ru.agny.xent.core.{ResourceUnit, Building, LocalCell}
+import ru.agny.xent.core.{Building, LocalCell}
 
 trait UserAction extends Action {
   type T = User
@@ -17,7 +17,7 @@ case class Idle(user: UserId) extends UserAction {
   override def run(user: User): Either[Response, User] = Right(user)
 }
 
-case class PlaceBuilding(facility: String, layer: Layer, cell: LocalCell) extends UserAction {
+case class PlaceBuilding(facility: String, layer: Layer, cell: Cell) extends UserAction {
   override def run(user: User): Either[Response, User] = {
     layer.facilities.find(ft => ft.name == facility) match {
       case Some(ft) => user.city.find(cell) match {

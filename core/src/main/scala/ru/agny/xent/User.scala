@@ -3,10 +3,6 @@ package ru.agny.xent
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.core._
 
-object UserType {
-  type UserId = Long
-}
-
 case class User(id: UserId, name: String, city: City, private val storage: Storage, lastAction: Long) {
 
   def work(a: UserAction): Either[Response, User] = {

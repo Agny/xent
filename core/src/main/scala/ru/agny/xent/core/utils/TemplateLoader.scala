@@ -1,7 +1,8 @@
 package ru.agny.xent.core.utils
 
-import java.io.{FileFilter, File}
+import java.io.File
 
+import ru.agny.xent.ResourceUnit
 import ru.agny.xent.core._
 
 import scala.util.Random

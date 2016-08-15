@@ -1,5 +1,7 @@
 package ru.agny.xent.core
 
+import ru.agny.xent.ResourceUnit
+
 sealed trait Resource {
   val name: String
   val since: Set[Prereq]

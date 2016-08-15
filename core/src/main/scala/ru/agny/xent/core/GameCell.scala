@@ -1,19 +1,14 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.City
+import ru.agny.xent.{Cell, City}
 import ru.agny.xent.UserType.UserId
 
-sealed trait Cell {
-  val x, y: Int
-
-  override def toString: String = s"[$x,$y]"
-}
 case class WorldCell(x: Int, y: Int, resource: Option[Extractable] = None, city: Option[City] = None, owner: Option[UserId] = None) extends Cell
 case class LocalCell(x: Int, y: Int, building: Option[Facility] = None) extends Cell
 
 case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
 
-  def find(c: T): Option[T] = {
+  def find[A <: Cell](c: A): Option[T] = {
     (c.x, c.y) match {
       case (x, y) if (x >= 0 && x < cells.length) && (y >= 0 && y < cells(x).length) => Some(cells(x)(y))
       case _ => None

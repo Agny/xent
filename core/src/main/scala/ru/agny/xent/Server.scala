@@ -3,7 +3,7 @@ package ru.agny.xent
 import java.util.concurrent.atomic.AtomicLong
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.{ResourceUnit, LocalCell, WorldCell}
+import ru.agny.xent.core.{LocalCell, WorldCell}
 
 class Server(layers:List[Layer], queue: MessageQueue) {
   val idGen = new AtomicLong(0)
@@ -21,12 +21,12 @@ class Server(layers:List[Layer], queue: MessageQueue) {
     ResponseOk
   }
 
-  def claimResource(user: UserId, layer: String, facility: String, cell: WorldCell): Response = {
+  def claimResource(user: UserId, layer: String, facility: String, cell: Cell): Response = {
     queue.push(ResourceClaimMessage(user, layer, facility, cell), last.incrementAndGet())
     ResponseOk
   }
 
-  def constructBuilding(user: UserId, layer: String, facility: String, cell: LocalCell): Response = {
+  def constructBuilding(user: UserId, layer: String, facility: String, cell: Cell): Response = {
     queue.push(BuildingConstructionMessage(user,layer, facility, cell), last.incrementAndGet())
     ResponseOk
   }
