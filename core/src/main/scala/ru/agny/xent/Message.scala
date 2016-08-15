@@ -1,6 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
+import ru.agny.xent.core.Cell
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

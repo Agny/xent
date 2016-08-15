@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.core.utils.CityGenerator
-import ru.agny.xent.core.{CellsMap, LocalCell}
+import ru.agny.xent.core.{Cell, CellsMap, LocalCell}
 
 /**
   * City takes only one cell of a world map

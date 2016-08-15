@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType._
-import ru.agny.xent.core.{Building, LocalCell}
+import ru.agny.xent.core.{Cell, Building, LocalCell}
 
 trait UserAction extends Action {
   type T = User

@@ -50,3 +50,7 @@ object User {
 
   def apply(id: UserId, name: String, city: City, storage: Storage): User = User(id, name, city, storage, System.currentTimeMillis())
 }
+
+object UserType {
+  type UserId = Long
+}
