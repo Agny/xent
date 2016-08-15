@@ -9,6 +9,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.ssl.{SslContextBuilder, SslContext}
 import io.netty.handler.ssl.util.SelfSignedCertificate
 import io.netty.util.concurrent.ImmediateEventExecutor
+import ru.agny.xent.core.utils.LayerGenerator
+import ru.agny.xent.{LayerRuntime, MessageQueue, MessageHandler}
 import ru.agny.xent.web.utils.GameServerInitializer
 
 case class GameServer(address: InetSocketAddress, context:SslContext) {
@@ -22,7 +24,12 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
     future.syncUninterruptibly()
   }
 
-  def createInitializer(group: ChannelGroup) = GameServerInitializer(channelGroup, context)
+  def createInitializer(group: ChannelGroup) = {
+    val queue = MessageQueue()
+    val messageHandler = MessageHandler(queue)
+    val layers = LayerRuntime.run(LayerGenerator.setupLayers(), queue)
+    GameServerInitializer(channelGroup, context, messageHandler)
+  }
 
   def destroy = {
     channelGroup.close()
