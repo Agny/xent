@@ -11,7 +11,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate
 import io.netty.util.concurrent.ImmediateEventExecutor
 import ru.agny.xent.core.utils.LayerGenerator
 import ru.agny.xent.{LayerRuntime, MessageQueue, MessageHandler}
-import ru.agny.xent.web.utils.GameServerInitializer
+import ru.agny.xent.web.utils.{GameServerHttpInitializer, GameServerInitializer}
 
 case class GameServer(address: InetSocketAddress, context:SslContext) {
   val channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE)
@@ -21,6 +21,7 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
     val bootstrap = new ServerBootstrap().group(eventGroup)
       .channel(classOf[NioServerSocketChannel]).childHandler(createInitializer(channelGroup))
     val future = bootstrap.bind(address)
+    print(s"Socket listener at $address")
     future.syncUninterruptibly()
   }
 
@@ -28,7 +29,8 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
     val queue = MessageQueue()
     val messageHandler = MessageHandler(queue)
     val layers = LayerRuntime.run(LayerGenerator.setupLayers(), queue)
-    GameServerInitializer(channelGroup, context, messageHandler)
+    GameServerHttpInitializer(context, messageHandler)
+//    GameServerInitializer(channelGroup, context, messageHandler)
   }
 
   def destroy = {
@@ -38,11 +40,12 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
 }
 
 object GameServer {
+  val port = 8888
 
   def run = {
     val cert = new SelfSignedCertificate()
     val ctx = SslContextBuilder.forServer(cert.certificate(),cert.privateKey()).build()
-    val endpoint = new GameServer(new InetSocketAddress(8888), ctx)
+    val endpoint = new GameServer(new InetSocketAddress(port), ctx)
     val future = endpoint.start()
     Runtime.getRuntime.addShutdownHook(new Thread() {
       override def run(): Unit = {

@@ -15,7 +15,7 @@ case class HttpRequestHandler(index: File, wsUri: String) extends SimpleChannelI
       if (HttpUtil.is100ContinueExpected(msg)) send100Continue(ctx)
       val file = new RandomAccessFile(index, "r")
       val resp = new DefaultHttpResponse(msg.protocolVersion, HttpResponseStatus.OK)
-      resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8")
+      resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8")
       val keepAlive = HttpUtil.isKeepAlive(msg)
       if (keepAlive) {
         resp.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length())

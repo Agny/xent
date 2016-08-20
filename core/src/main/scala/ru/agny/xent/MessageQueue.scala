@@ -27,7 +27,6 @@ case class MessageQueue() {
   def take(): List[Message] = this.synchronized {
     val res = messages.map(_._1).reverse
     messages = List.empty
-    println(s"Messages to handle ${res.size}")
     res
   }
 }

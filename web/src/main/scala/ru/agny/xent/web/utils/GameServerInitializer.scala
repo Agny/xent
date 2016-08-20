@@ -22,5 +22,5 @@ case class GameServerInitializer(group: ChannelGroup, context: SslContext, handl
     pipeline.addLast(new TextWebSocketFrameHandler(group, handler))
   }
 
-  val indexFile = new File("pathtoindex")
+  val indexFile = new File(getClass.getClassLoader.getResource("test.html").toURI)
 }
