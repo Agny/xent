@@ -55,4 +55,7 @@ case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
     }
   }
 
+  //TODO add range parameter
+  def view = cells
+
 }

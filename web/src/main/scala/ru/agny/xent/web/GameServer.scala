@@ -28,8 +28,8 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
   def createInitializer(group: ChannelGroup) = {
     val queue = MessageQueue()
     val messageHandler = MessageHandler(queue)
-    val layers = LayerRuntime.run(LayerGenerator.setupLayers(), queue)
-    GameServerHttpInitializer(context, messageHandler)
+    val runtime = LayerRuntime.run(LayerGenerator.setupLayers(), queue)
+    GameServerHttpInitializer(context, messageHandler, runtime)
 //    GameServerInitializer(channelGroup, context, messageHandler)
   }
 
