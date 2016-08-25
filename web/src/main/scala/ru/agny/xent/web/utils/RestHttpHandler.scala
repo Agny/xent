@@ -3,12 +3,16 @@ package ru.agny.xent.web.utils
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
+import ru.agny.xent.core.Cell
 import ru.agny.xent.{LayerRuntime, MessageHandler}
 
 /*
 * Temporary handler for test purposes
 * */
 case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) extends SimpleChannelInboundHandler[FullHttpRequest] {
+
+  val loadPath = "/load"
+
   override def channelRead0(ctx: ChannelHandlerContext, msg: FullHttpRequest): Unit = {
     val buf = Unpooled.copiedBuffer(getResponse(msg, runtime))
     val resp = new DefaultFullHttpResponse(msg.protocolVersion, HttpResponseStatus.OK, buf)
@@ -25,18 +29,29 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
     }
   }
 
-  private def getResponse(in: FullHttpRequest, runtime:LayerRuntime): Array[Byte] = {
+  private def getResponse(in: FullHttpRequest, runtime: LayerRuntime): Array[Byte] = {
+    val uriDecoder = new QueryStringDecoder(in.uri())
     val rez = in.method() match {
-      case HttpMethod.GET =>
-        val layers = runtime.get
-        JsonOps.fromLayer(layers.head).getBytes("UTF-8")
+      case HttpMethod.GET if in.uri().startsWith(loadPath) =>
+        JsonOps.toString(loadMap(uriDecoder)).getBytes("UTF-8")
       case HttpMethod.POST =>
-        val value = JsonOps.toMessage(in.content().toString())
-        val ack = handler.sendTest(value)
+        val msg = JsonOps.toMessage(in.content().toString())
+        val ack = handler.sendTest(msg)
         ack.value.getBytes("UTF-8")
       case _ => "none".getBytes("UTF-8")
     }
     rez
+  }
+
+  private def loadMap(decoder: QueryStringDecoder): List[Cell] = {
+    val x = decoder.parameters().get("x").get(0)
+    val y = decoder.parameters().get("y").get(0)
+    val userId = decoder.parameters().get("user").get(0)
+    val layerId = decoder.parameters().get("layer").get(0)
+    runtime.get.find(_.id == layerId) match {
+      case Some(v) => v.map.view(x.toInt, y.toInt).filter(x => x.city.nonEmpty || x.resource.nonEmpty)
+      case None => List.empty
+    }
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {

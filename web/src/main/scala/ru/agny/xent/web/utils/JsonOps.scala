@@ -3,9 +3,10 @@ package ru.agny.xent.web.utils
 import java.util.concurrent.atomic.AtomicLong
 import ru.agny.xent._
 import org.json4s._
+//import org.json4s.JsonDSL._ can't do this. Somehow it produce error in scala implicits
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
-import ru.agny.xent.core.WorldCell
+import ru.agny.xent.core.{Cell, WorldCell}
 
 object JsonOps {
 
@@ -24,8 +25,13 @@ object JsonOps {
     }
   }
 
-  def fromLayer(layer: Layer): String = {
-    write(layer.map.view)
+  //TODO compact(render(fields)) with JsonDSL._
+  def toJson(fields:Map[String, String]):JValue = {
+    JObject(fields.toList.map { case (k, v) ⇒ JField(k, JString(v)) })
+  }
+
+  def toString(param: AnyRef): String = {
+    write(param)
   }
 
   case class WSMessage(tpe: String, body: String)

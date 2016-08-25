@@ -55,7 +55,23 @@ case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
     }
   }
 
-  //TODO add range parameter
-  def view = cells
+  //TODO extract visible range parameters
+  private val xScreen = 12
+  private val yScreen = 8
+
+  def view(x: Int, y: Int) = {
+    val (fx,tx) = getRange(x, xScreen)
+    val (fy,ty) = getRange(y, yScreen)
+    val xInRange = isInRange(fx,tx) _
+    val yInRange = isInRange(fy,ty) _
+    filter(c => xInRange(c.x) && yInRange(c.y))
+  }
+
+  //TODO lower bound exclusive
+  private def isInRange(from: Int, to: Int)(i: Int) = i > from && i <= to
+
+  private def getRange(i: Int, range: Int) = {
+    (i - range / 2, i + range / 2)
+  }
 
 }

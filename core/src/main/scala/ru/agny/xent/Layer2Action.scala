@@ -19,7 +19,7 @@ case class LayerChange(user: UserId) extends Layer2Action {
           case Left(cantbe) => Left(cantbe)
           case Right(moving) =>
             val toUsers = to.users :+ moving
-            Right((Layer(from.id, from.level, fromUsers, from.map, from.facilities), Layer(to.id, to.level, toUsers, to.map, to.facilities)))
+            Right((from.copy(users = fromUsers), to.copy(users = toUsers)))
         }
       case None => Left(Response(s"There is no user with id[$user] in the layer[${from.id}]"))
     }

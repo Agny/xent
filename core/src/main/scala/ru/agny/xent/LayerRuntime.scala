@@ -32,8 +32,8 @@ class LayerRuntime(queue: MessageQueue) {
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
           case x: LayerUpMessage =>
-            val (active, idle) = layers.partition(l => l.id == x.layerFrom || l.id == x.layerTo)
-            val from = active.find(l => l.id == x.layerFrom).get
+            val (active, idle) = layers.partition(l => l.id == x.layer || l.id == x.layerTo)
+            val from = active.find(l => l.id == x.layer).get
             val to = active.find(l => l.id == x.layerTo).get
             LayerChange(x.user).run(from, to) match {
               case Left(v) => x.reply(v); layers
