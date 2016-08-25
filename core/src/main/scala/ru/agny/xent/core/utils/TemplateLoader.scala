@@ -5,8 +5,6 @@ import java.io.File
 import ru.agny.xent.ResourceUnit
 import ru.agny.xent.core._
 
-import scala.util.Random
-
 object TemplateLoader {
 
   import org.json4s._
@@ -37,11 +35,9 @@ object TemplateLoader {
     val s = resourcesDir.listFiles().toList.filter(_.isFile)
     s.map(f => {
       val t = parse(io.Source.fromFile(f).mkString).extract[FiniteTemplate]
-      Extractable(t.name, randomVolume(t.baseVolume), t.yieldTime, Set.empty)
+      Extractable(t.name, t.baseVolume, t.yieldTime, Set.empty)
     })
   }
-
-  private def randomVolume(base: Int): Int = (base * Random.nextDouble()).toInt
 
   def loadOutposts(layer: String): List[OutpostTemplate] = {
     val producibles = loadProducibles(layer)

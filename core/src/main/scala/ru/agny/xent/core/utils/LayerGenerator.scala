@@ -38,6 +38,14 @@ object LayerGenerator {
 
   private def chooseResource(from: List[Extractable]): Extractable = {
     val n = Random.nextInt(from.size)
-    from(n)
+    val res = from(n)
+    res.copy(volume = randomVolume(res.volume))
+  }
+
+  // not less than 20% of base value
+  private def randomVolume(base: Int): Int = {
+    var k = Random.nextDouble()
+    if (k < 0.2) k = 0.2
+    (base * k).toInt
   }
 }
