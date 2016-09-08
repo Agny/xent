@@ -13,10 +13,11 @@ case class WorldCell(x: Int, y: Int, resource: Option[Extractable] = None, city:
 case class LocalCell(x: Int, y: Int, building: Option[Facility] = None) extends Cell
 
 case class CellsMap[T <: Cell](private val cells: Seq[Seq[T]]) {
+  private val length = cells.length
 
   def find[A <: Cell](c: A): Option[T] = {
     (c.x, c.y) match {
-      case (x, y) if (x >= 0 && x < cells.length) && (y >= 0 && y < cells(x).length) => Some(cells(x)(y))
+      case (x, y) if (x >= 0 && x < length) && (y >= 0 && y < length) => Some(cells(x)(y))
       case _ => None
     }
   }
@@ -60,7 +61,6 @@ case class CellsMap[T <: Cell](private val cells: Seq[Seq[T]]) {
   private val yScreen = 5
 
   def view(x: Int, y: Int) = {
-    cells.length
     val (fx, tx) = getRange(x, xScreen)
     val (fy, ty) = getRange(y, yScreen)
     val xInRange = isInRange(fx, tx) _
@@ -68,8 +68,9 @@ case class CellsMap[T <: Cell](private val cells: Seq[Seq[T]]) {
     filter(c => xInRange(c.x) && yInRange(c.y))
   }
 
-  //TODO lower bound exclusive
-  private def isInRange(from: Int, to: Int)(i: Int) = i > from && i <= to
+  private def isInRange(from: Int, to: Int)(i: Int) =
+    i >= (from % length + length) % length &&
+      i <= (to % length + length) % length
 
   private def getRange(i: Int, range: Int) = {
     (i - range / 2, i + range / 2)
