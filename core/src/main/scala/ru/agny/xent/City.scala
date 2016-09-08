@@ -8,12 +8,14 @@ import ru.agny.xent.core.{Cell, CellsMap, LocalCell}
   * contains visual representation of buildings/storage
   */
 
-case class City(private val map: CellsMap[LocalCell]) {
-  def find(c:Cell): Option[LocalCell] = map.find(c)
+case class City(x: Int, y: Int, private val map: CellsMap[LocalCell]) {
+  def find(c: Cell): Option[LocalCell] = map.find(c)
+
   def flatMap[A](c: LocalCell => Option[A]): Seq[A] = map.flatMap(c)
-  def update(c:LocalCell):City = City(map.update(c))
+
+  def update(c: LocalCell): City = City(x, y, map.update(c))
 }
 
 object City {
-  def empty: City = CityGenerator.initCity()
+  def empty(x: Int, y: Int): City = CityGenerator.initCity(x, y)
 }

@@ -11,6 +11,7 @@ import ru.agny.xent.{LayerRuntime, MessageHandler}
 * */
 case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) extends SimpleChannelInboundHandler[FullHttpRequest] {
 
+  val initPath = "/init"
   val loadPath = "/load"
 
   override def channelRead0(ctx: ChannelHandlerContext, msg: FullHttpRequest): Unit = {
@@ -34,6 +35,8 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
     val rez = in.method() match {
       case HttpMethod.GET if in.uri().startsWith(loadPath) =>
         JsonOps.toString(loadMap(uriDecoder)).getBytes("UTF-8")
+      case HttpMethod.GET if in.uri().startsWith(initPath) =>
+        JsonOps.toString(initMap(uriDecoder)).getBytes("UTF-8")
       case HttpMethod.POST =>
         val msg = JsonOps.toMessage(in.content().toString())
         val ack = handler.sendTest(msg)
@@ -51,6 +54,19 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
     runtime.get.find(_.id == layerId) match {
       case Some(v) => v.map.view(x.toInt, y.toInt).filter(x => x.city.nonEmpty || x.resource.nonEmpty)
       case None => Seq.empty
+    }
+  }
+
+  private def initMap(decoder: QueryStringDecoder) = {
+    val userId = decoder.parameters().get("user").get(0).toLong
+    val layerId = decoder.parameters().get("layer").get(0)
+    runtime.get.find(_.id == layerId) match {
+      case Some(v) =>
+        v.users.find(u => u.id == userId) match {
+          case Some(user) => (user.city.x, user.city.y, v.map.length)
+          case None => (2, 4, v.map.length)
+        }
+      case None => (0, 0, -1)
     }
   }
 

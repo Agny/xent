@@ -13,7 +13,7 @@ case class WorldCell(x: Int, y: Int, resource: Option[Extractable] = None, city:
 case class LocalCell(x: Int, y: Int, building: Option[Facility] = None) extends Cell
 
 case class CellsMap[T <: Cell](private val cells: Seq[Seq[T]]) {
-  private val length = cells.length
+  val length = cells.length
 
   def find[A <: Cell](c: A): Option[T] = {
     (c.x, c.y) match {

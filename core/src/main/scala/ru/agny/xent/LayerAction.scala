@@ -38,6 +38,7 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: Cell) exten
   }
 }
 
+//TODO address city coordinates
 case class NewUser(id: UserId, name: String) extends LayerAction {
-  override def run(layer: Layer): Either[Response, Layer] = Right(layer.copy(users = layer.users :+ User(id, name, City.empty)))
+  override def run(layer: Layer): Either[Response, Layer] = Right(layer.copy(users = layer.users :+ User(id, name, City.empty(0, 0))))
 }
