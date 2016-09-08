@@ -43,14 +43,14 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
     rez
   }
 
-  private def loadMap(decoder: QueryStringDecoder): List[Cell] = {
+  private def loadMap(decoder: QueryStringDecoder): Seq[Cell] = {
     val x = decoder.parameters().get("x").get(0)
     val y = decoder.parameters().get("y").get(0)
     val userId = decoder.parameters().get("user").get(0)
     val layerId = decoder.parameters().get("layer").get(0)
     runtime.get.find(_.id == layerId) match {
       case Some(v) => v.map.view(x.toInt, y.toInt).filter(x => x.city.nonEmpty || x.resource.nonEmpty)
-      case None => List.empty
+      case None => Seq.empty
     }
   }
 

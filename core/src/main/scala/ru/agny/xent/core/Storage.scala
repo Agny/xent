@@ -2,13 +2,13 @@ package ru.agny.xent.core
 
 import ru.agny.xent.{ResourceUnit, Response}
 
-case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
+case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
 
   def tick(lastAction: Long): Storage = producers.foldRight(this)((f, s) => f.tick(lastAction)(s))
 
-  def add(r: List[ResourceUnit]): Storage =
+  def add(r: Seq[ResourceUnit]): Storage =
     r match {
-      case x :: xs => add(x); add(xs)
+      case Seq(h, t@_*) => add(h); add(t)
       case _ => this
     }
 
@@ -19,10 +19,10 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
           case x if x.res == r.res => ResourceUnit(x.value + r.value, r.res)
           case x => x
         }, producers)
-      case None => Storage(r :: resources, producers)
+      case None => Storage(r +: resources, producers)
     }
 
-  def add(facility: Facility) = this.copy(producers = facility :: producers)
+  def add(facility: Facility) = this.copy(producers = facility +: producers)
 
   def spend(recipe: Cost): Either[Response, Storage] =
     recipe.cost.find(x => !resources.exists(y => x.res == y.res && y.value >= x.value)) match {
@@ -36,5 +36,5 @@ case class Storage(resources: List[ResourceUnit], producers: List[Facility]) {
 }
 
 object Storage {
-  def empty: Storage = Storage(List.empty, List.empty)
+  def empty: Storage = Storage(Seq.empty, Seq.empty)
 }

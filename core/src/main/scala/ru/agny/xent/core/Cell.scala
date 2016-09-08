@@ -12,7 +12,7 @@ sealed trait Cell {
 case class WorldCell(x: Int, y: Int, resource: Option[Extractable] = None, city: Option[City] = None, owner: Option[UserId] = None) extends Cell
 case class LocalCell(x: Int, y: Int, building: Option[Facility] = None) extends Cell
 
-case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
+case class CellsMap[T <: Cell](private val cells: Seq[Seq[T]]) {
 
   def find[A <: Cell](c: A): Option[T] = {
     (c.x, c.y) match {
@@ -21,28 +21,28 @@ case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
     }
   }
 
-  def flatMap[A](c: T => Option[A]): List[A] = {
-    cells.flatMap(x => rec_flatmap(c)(x.toList, List.empty)).toList
+  def flatMap[A](c: T => Option[A]): Seq[A] = {
+    cells.flatMap(x => rec_flatmap(c)(x, Seq.empty))
   }
 
-  def filter(c: T => Boolean): List[T] = {
-    cells.flatMap(x => rec_filter(c)(x.toList, List.empty)).toList
+  def filter(c: T => Boolean): Seq[T] = {
+    cells.flatMap(x => rec_filter(c)(x, Seq.empty))
   }
 
-  private def rec_flatmap[A](c: T => Option[A])(elems: List[T], acc: List[A]): List[A] = {
+  private def rec_flatmap[A](c: T => Option[A])(elems: Seq[T], acc: Seq[A]): Seq[A] = {
     elems match {
-      case h :: t => c(h) match {
-        case Some(v) => rec_flatmap(c)(t, v :: acc)
+      case Seq(h, t@_*) => c(h) match {
+        case Some(v) => rec_flatmap(c)(t, v +: acc)
         case None => rec_flatmap(c)(t, acc)
       }
-      case Nil => acc
+      case Seq() => acc
     }
   }
 
-  private def rec_filter(c: T => Boolean)(elems: List[T], acc: List[T]): List[T] = {
+  private def rec_filter(c: T => Boolean)(elems: Seq[T], acc: Seq[T]): Seq[T] = {
     elems match {
-      case h :: t => if (c(h)) rec_filter(c)(t, h :: acc) else rec_filter(c)(t, acc)
-      case Nil => acc
+      case Seq(h, t@_*) => if (c(h)) rec_filter(c)(t, h +: acc) else rec_filter(c)(t, acc)
+      case Seq() => acc
     }
   }
 
@@ -56,14 +56,15 @@ case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
   }
 
   //TODO extract visible range parameters
-  private val xScreen = 12
-  private val yScreen = 8
+  private val xScreen = 7
+  private val yScreen = 5
 
   def view(x: Int, y: Int) = {
-    val (fx,tx) = getRange(x, xScreen)
-    val (fy,ty) = getRange(y, yScreen)
-    val xInRange = isInRange(fx,tx) _
-    val yInRange = isInRange(fy,ty) _
+    cells.length
+    val (fx, tx) = getRange(x, xScreen)
+    val (fy, ty) = getRange(y, yScreen)
+    val xInRange = isInRange(fx, tx) _
+    val yInRange = isInRange(fy, ty) _
     filter(c => xInRange(c.x) && yInRange(c.y))
   }
 

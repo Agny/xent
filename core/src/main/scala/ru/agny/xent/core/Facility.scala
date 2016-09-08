@@ -5,7 +5,7 @@ import scala.collection.immutable.Queue
 
 trait Facility {
   val name: String
-  val resources: List[Resource]
+  val resources: Seq[Resource]
   protected var progress: ProductionProgressTime = 0
   //TODO common progress for queued and simple items
   protected var queue = ProductionQueue(Queue.empty)
@@ -51,8 +51,8 @@ trait Facility {
   }
 }
 
-case class Building(name: String, resources: List[Resource]) extends Facility
-case class Outpost(name: String, main: Extractable, resources: List[Resource]) extends Facility {
+case class Building(name: String, resources: Seq[Resource]) extends Facility
+case class Outpost(name: String, main: Extractable, resources: Seq[Resource]) extends Facility {
 
   override def tick(fromTime: ProductionProgressTime): (Storage) => Storage = storage => {
     if (queue.isEmpty) {
@@ -71,20 +71,20 @@ case class ProductionQueue(private val content: Seq[(Producible, Int)]) {
     ProductionQueue(content :+(item, count))
   }
 
-  def out(fromTime: Long): (ProductionQueue, List[ResourceUnit]) = {
+  def out(fromTime: Long): (ProductionQueue, Seq[ResourceUnit]) = {
     val now = System.currentTimeMillis()
     val progress = now - fromTime
-    val (updatedContent, production) = handle(content, progress, List.empty)
+    val (updatedContent, production) = handle(content, progress, Seq.empty)
     (ProductionQueue(updatedContent), production)
   }
 
   def isEmpty = content.isEmpty
 
-  private def handle(items: Seq[(Producible, Int)], remindedTime: Long, production: List[ResourceUnit]): (Seq[(Producible, Int)], List[ResourceUnit]) = {
+  private def handle(items: Seq[(Producible, Int)], remindedTime: Long, production: Seq[ResourceUnit]): (Seq[(Producible, Int)], Seq[ResourceUnit]) = {
     items match {
-      case x :: xs => handle(x, remindedTime, ResourceUnit(0, x._1.name)) match {
-        case (0, time, prod) => handle(items, time, prod :: production)
-        case (count, time, prod) => ((x._1, count) :: xs, prod :: production)
+      case Seq(h, t@_*) => handle(h, remindedTime, ResourceUnit(0, h._1.name)) match {
+        case (0, time, prod) => handle(items, time, prod +: production)
+        case (count, time, prod) => ((h._1, count) +: t, prod +: production)
       }
       case _ => (items, production)
     }

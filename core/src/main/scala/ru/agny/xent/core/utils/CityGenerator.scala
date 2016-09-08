@@ -7,7 +7,7 @@ object CityGenerator {
 
   private val initBuilding = "Coppice"
 
-  private def buildingGen(layerLvl: Int): List[BuildingTemplate] = TemplateLoader.loadBuildings(layerLvl.toString)
+  private def buildingGen(layerLvl: Int): Seq[BuildingTemplate] = TemplateLoader.loadBuildings(layerLvl.toString)
 
   def initCity(): City = {
     val building = buildingGen(1)
@@ -16,7 +16,7 @@ object CityGenerator {
     val map = CellsMap(0 to 2 map (x => 0 to 2 map (y => {
       if (x == 1 && y == 1) LocalCell(x, y, mbBuilding)
       else LocalCell(x, y)
-    }) toVector) toVector)
+    })))
     City(map)
   }
 

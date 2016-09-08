@@ -7,7 +7,7 @@ import scala.concurrent.Future
 
 case class MessageQueue() {
 
-  var messages: List[(Message, Long)] = List.empty
+  var messages: Seq[(Message, Long)] = Seq.empty
   val last: AtomicLong = new AtomicLong(-1)
 
   def push(msg: Message, number: Long): Future[Long] = {
@@ -19,14 +19,14 @@ case class MessageQueue() {
       push_rec(msg, last.get(), number)
     else {
       println(s"MESSAGE: $msg")
-      messages = (msg, number) :: messages
+      messages = (msg, number) +: messages
       Future(number)
     }
   }
 
-  def take(): List[Message] = this.synchronized {
+  def take(): Seq[Message] = this.synchronized {
     val res = messages.map(_._1).reverse
-    messages = List.empty
+    messages = Seq.empty
     res
   }
 }

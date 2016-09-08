@@ -36,6 +36,6 @@ case class Extractable(name: String, var volume: Int, yieldTime: Long, since: Se
 case class Obtainable(name: String, yieldTime: Long, since: Set[Prereq]) extends Resource with Simple {
   override def out(): ResourceUnit = ResourceUnit(defaultYield, this.name)
 }
-case class Producible(name: String, cost: List[ResourceUnit], yieldTime: Long, since: Set[Prereq]) extends Resource with Composite {
+case class Producible(name: String, cost: Seq[ResourceUnit], yieldTime: Long, since: Set[Prereq]) extends Resource with Composite {
   override def out(): ResourceUnit = ResourceUnit(defaultYield, this.name)
 }
