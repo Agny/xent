@@ -1,31 +1,34 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.{ResourceUnit, Response}
-import scala.collection.immutable.Queue
+import ru.agny.xent.core.Progress.ProductionTime
 
-trait Facility {
+trait Facility extends DelayableItem {
   val name: String
   val resources: Seq[Resource]
-  protected var progress: ProductionProgressTime = 0
+  protected var progress: ProductionTime = 0
   //TODO common progress for queued and simple items
-  protected var queue = ProductionQueue(Queue.empty)
-  type ProductionProgressTime = Long
+  protected var queue: ProductionQueue = ProductionQueue.empty()
 
-  def tick(fromTime: Long): Storage => Storage = storage => {
+  def tick(fromTime: ProductionTime): Storage => Storage = storage => {
     if (queue.isEmpty) {
-      resources.collect { case x: Simple => x }.foldRight(storage)((res,s) =>
+      resources.collect { case x: Simple => x }.foldRight(storage)((res, s) =>
         s.add(extract(res, System.currentTimeMillis() - fromTime + progress, ResourceUnit(0, res.name)))
       )
     } else {
-      val (updatedQueue, production) = queue.out(fromTime)
-      queue = updatedQueue
-      storage.add(production)
+      queueTick(fromTime, storage)
     }
   }
 
+  protected def queueTick(fromTime: ProductionTime, storage: Storage): Storage = {
+    val (updatedQueue, production) = queue.out(fromTime)
+    queue = updatedQueue
+    storage.add(production.map(x => ResourceUnit(x._2, x._1.name)))
+  }
+
   def addToQueue(item: ResourceUnit): Storage => Either[Response, Storage] = storage => {
-    resources.find(_.name==item.res) match {
-      case Some(v:Producible) =>
+    resources.find(_.name == item.res) match {
+      case Some(v: Producible) =>
         storage.spend(Recipe(v, v.price(item.value))) match {
           case Left(s) => Left(s)
           case Right(s) => queue = queue.in(v, item.value); Right(s)
@@ -34,14 +37,14 @@ trait Facility {
     }
   }
 
-  protected def extract(res: Resource, reminded: ProductionProgressTime, extracted: ResourceUnit): ResourceUnit = {
+  protected def extract(res: Resource, reminded: ProductionTime, extracted: ResourceUnit): ResourceUnit = {
     res match {
       case x: Finite if x.volume == 0 => extracted
       case x => extract_rec(res, reminded, extracted)
     }
   }
 
-  private def extract_rec(res: Resource, reminded: ProductionProgressTime, extracted: ResourceUnit): ResourceUnit = {
+  private def extract_rec(res: Resource, reminded: ProductionTime, extracted: ResourceUnit): ResourceUnit = {
     if (reminded < res.yieldTime) {
       progress = reminded
       extracted
@@ -51,49 +54,22 @@ trait Facility {
   }
 }
 
-case class Building(name: String, resources: Seq[Resource]) extends Facility
-case class Outpost(name: String, main: Extractable, resources: Seq[Resource]) extends Facility {
+case class Building(name: String, resources: Seq[Resource], yieldTime: ProductionTime) extends Facility
+case class Outpost(name: String, main: Extractable, resources: Seq[Resource], yieldTime: ProductionTime) extends Facility {
 
-  override def tick(fromTime: ProductionProgressTime): (Storage) => Storage = storage => {
+  override def tick(fromTime: ProductionTime): Storage => Storage = storage => {
     if (queue.isEmpty) {
-      storage.add(extract(main,  System.currentTimeMillis() - fromTime + progress, ResourceUnit(0, main.name)))
+      storage.add(extract(main, System.currentTimeMillis() - fromTime + progress, ResourceUnit(0, main.name)))
     } else {
-      val (updatedQueue, production) = queue.out(fromTime)
-      queue = updatedQueue
-      storage.add(production)
+      queueTick(fromTime, storage)
     }
   }
 }
 
-case class ProductionQueue(private val content: Seq[(Producible, Int)]) {
-
-  def in(item: Producible, count: Int): ProductionQueue = {
-    ProductionQueue(content :+(item, count))
-  }
-
-  def out(fromTime: Long): (ProductionQueue, Seq[ResourceUnit]) = {
-    val now = System.currentTimeMillis()
-    val progress = now - fromTime
-    val (updatedContent, production) = handle(content, progress, Seq.empty)
-    (ProductionQueue(updatedContent), production)
-  }
-
-  def isEmpty = content.isEmpty
-
-  private def handle(items: Seq[(Producible, Int)], remindedTime: Long, production: Seq[ResourceUnit]): (Seq[(Producible, Int)], Seq[ResourceUnit]) = {
-    items match {
-      case Seq(h, t@_*) => handle(h, remindedTime, ResourceUnit(0, h._1.name)) match {
-        case (0, time, prod) => handle(items, time, prod +: production)
-        case (count, time, prod) => ((h._1, count) +: t, prod +: production)
-      }
-      case _ => (items, production)
-    }
-  }
-
-  private def handle(item: (Producible, Int), remindedTime: Long, production: ResourceUnit): (Int, Long, ResourceUnit) =
-    (item, remindedTime) match {
-      case ((_, 0), time) => (0, time, production)
-      case ((v, count), time) if time < v.yieldTime => (count, time, production)
-      case ((v, count), time) => handle((v, count - 1), time - v.yieldTime, ResourceUnit(production.value + 1, v.name))
-    }
+object Facility {
+  sealed trait State
+  case object InConstruction extends State
+  case object InProcess extends State
+  case object Idle extends State
+  val states = Seq(InConstruction, InProcess, Idle)
 }

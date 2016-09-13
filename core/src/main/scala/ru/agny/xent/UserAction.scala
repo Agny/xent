@@ -24,7 +24,7 @@ case class PlaceBuilding(facility: String, layer: Layer, cell: Cell) extends Use
         case Some(lc) if lc.building.nonEmpty => Left(Response(s"Cell $cell already contains building"))
         case Some(lc) => user.spend(ft) match {
           case Left(v) => Left(v)
-          case Right(v) => Right(v.addBuilding(LocalCell(lc.x,lc.y,Some(Building(ft.name,ft.resources)))))
+          case Right(v) => Right(v.build(LocalCell(lc.x, lc.y, Some(Building(ft.name, ft.resources, ft.buildTime)))))
         }
         case None => Left(Response(s"Cell $cell doesn't exist"))
       }
@@ -36,7 +36,7 @@ case class PlaceBuilding(facility: String, layer: Layer, cell: Cell) extends Use
 case class AddProduction(facility: String, res: ResourceUnit) extends UserAction {
   override def run(user: User): Either[Response, User] = {
     user.findFacility(facility) match {
-      case Some(v) => user.addToQueue(v, res) match {
+      case Some(v) => user.addProduction(v, res) match {
         case Left(l) => Left(l)
         case Right(r) => Right(user.copy(storage = r))
       }

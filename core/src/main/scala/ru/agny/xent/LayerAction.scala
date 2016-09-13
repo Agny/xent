@@ -16,20 +16,21 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: Cell) exten
     resource match {
       case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
         (layer.users.find(x => x.id == userId) match {
-          case Some(u) => facilityT.map(y => Outpost(y.name, x.resource.get, y.resources)) match {
+          case Some(u) => facilityT.map(y => Outpost(y.name, x.resource.get, y.resources, y.buildTime)) match {
             case Some(outpost) => u.spend(facilityT.get) match {
               case Left(l) => Left(l)
-              case Right(r) => Right(r.addFacility(outpost))
+              case Right(r) => Right((r, outpost))
             }
             case None => Left(Response(s"Unable to claim resource in $cell by $facilityName"))
           }
           case None => Left(Response(s"User with id=$userId isn't found in this layer"))
         }) match {
           case Left(v) => Left(v)
-          case Right(v) =>
-            val layerToUpdate = layer.copy(users = layer.users.filterNot(_.id == v.id) :+ v)
-            val cellToUpdate = layer.map.find(cell).get
-            Right(layerToUpdate.updateMap(cellToUpdate.copy(owner = Some(v.id))))
+          case Right((user, building)) =>
+            val updatedCell = x.copy(owner = Some(user.id), building = Some(building))
+            val updatedUser = user.build(updatedCell)
+            val updatedLayer = layer.copy(users = layer.users.filterNot(_.id == updatedUser.id) :+ updatedUser)
+            Right(updatedLayer.updateMap(updatedCell))
         }
       case Some(x) if x.owner.nonEmpty => Left(Response(s"$cell is already claimed"))
       case Some(x) => Left(Response(s"$cell doesn't have a resource"))

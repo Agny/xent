@@ -2,10 +2,9 @@ package ru.agny.xent.core
 
 import ru.agny.xent.ResourceUnit
 
-sealed trait Resource {
+sealed trait Resource extends DelayableItem {
   val name: String
   val since: Set[Prereq]
-  val yieldTime: Long
   val defaultYield = 1
 
   def out(): ResourceUnit
