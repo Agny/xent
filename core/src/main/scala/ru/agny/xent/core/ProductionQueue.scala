@@ -18,7 +18,8 @@ case class ProductionQueue(content: Seq[(DelayableItem, Int)]) {
   private def handle(items: Seq[(DelayableItem, Int)], remindedTime: Long, acc: Seq[(DelayableItem, Int)]): (Seq[(DelayableItem, Int)], Seq[(DelayableItem, Int)]) = {
     items match {
       case Seq(h, t@_*) => handle(h, remindedTime, (h._1, 0)) match {
-        case (0, time, prod) => handle(items, time, prod +: acc)
+        case (_, time, (item, 0)) => (items, Seq.empty)
+        case (0, time, prod) => handle(t, time, prod +: acc)
         case (count, time, prod) => ((h._1, count) +: t, prod +: acc)
       }
       case _ => (items, acc)
