@@ -33,6 +33,8 @@ case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
           case _ => bb
         })), producers))
     }
+
+  def get(resource: String):Option[ResourceUnit] = resources.find(_.res == resource)
 }
 
 object Storage {

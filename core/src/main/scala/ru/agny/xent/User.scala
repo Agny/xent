@@ -3,14 +3,13 @@ package ru.agny.xent
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.core._
 
-import scala.collection.immutable.Queue
-
-case class User(id: UserId, name: String, city: City, buildings: Map[(String, Facility.State), Cell], private val storage: Storage, private val queue: ProductionQueue, lastAction: Long) {
+case class User(id: UserId, name: String, city: City, buildings: Map[(String, Facility.State), Cell], storage: Storage, queue: ProductionQueue, lastAction: Long) {
 
   def work(a: UserAction): Either[Response, User] = {
+    val time = System.currentTimeMillis()
     val (q, prod) = queue.out(lastAction)
     val actualStorage = storage.tick(lastAction)
-    val actualUser = copy(storage = actualStorage, queue = q)
+    val actualUser = copy(storage = actualStorage, queue = q, lastAction = time)
     val updated = handleQueue(prod.map(_._1.asInstanceOf[Facility]), actualUser)
     a.run(updated)
   }
