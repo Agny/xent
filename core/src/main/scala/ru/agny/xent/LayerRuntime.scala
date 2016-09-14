@@ -18,10 +18,8 @@ class LayerRuntime(queue: MessageQueue) {
     lastState
   }
 
-  private def rec(layers: Seq[Layer], messages: Seq[Message]): Seq[Layer] = {
-    messages match {
-      case Seq(h, t@_*) =>
-        val rez = h match {
+  private def rec(startState: Seq[Layer], messages: Seq[Message]): Seq[Layer] = {
+    messages.foldLeft(startState)((layers, m) => m match {
           //TODO need some kind of abstraction for this handling
           case x: NewUserMessage =>
             layers.find(l => l.id == x.layer) match {
@@ -72,10 +70,7 @@ class LayerRuntime(queue: MessageQueue) {
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
           case _ => layers
-        }
-        rec(rez, t)
-      case Nil => layers
-    }
+        })
   }
 
   def get = lastState
