@@ -6,7 +6,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
 
   "ProductionQueue" should "add building item to content" in {
     val item = Outpost("test", Extractable("test", 0, 0, Set.empty), Seq.empty, 0)
-    val queue = ProductionQueue(Seq.empty)
+    val queue = ProductionQueue.empty()
     val updated = queue.in(item, 1)
     val expected = Seq((item,1))
     updated.content should be (expected)
@@ -68,6 +68,37 @@ class ProductionQueueTest extends FlatSpec with Matchers {
     val expectedRes = Seq((item2, 1), (item1,2))
     res should be (expectedRes)
     updated.content should be (expectedQueue)
+  }
+
+  it should "reduce time if item is not completed" in {
+    val item1 = Outpost("test1", Extractable("test1", 0, 0, Set.empty), Seq.empty, 1000)
+    val queue = ProductionQueue(Seq((item1, 1)))
+    val (updated1, _) = queue.out(System.currentTimeMillis() - 300)
+    val (updated2, _) = updated1.out(System.currentTimeMillis() - 300)
+    val (updated3, res) = updated2.out(System.currentTimeMillis() - 400)
+    val expectedQueue = Seq.empty
+    val expectedRes = Seq((item1,1))
+    updated3.content should be (expectedQueue)
+    res should be (expectedRes)
+  }
+
+  it should "not accumulate progress when content is empty" in {
+    val queue = ProductionQueue.empty()
+    val (updated, _) = queue.out(System.currentTimeMillis() - 1000)
+    val expectedQueue = Seq.empty
+    val expectedTime = 0
+    updated.content should be (expectedQueue)
+    updated.progress should be (expectedTime)
+  }
+
+  it should "not accumulate progress after content becomes empty" in {
+    val item1 = Outpost("test1", Extractable("test1", 0, 0, Set.empty), Seq.empty, 1000)
+    val queue = ProductionQueue(Seq((item1,1)))
+    val (updated, _) = queue.out(System.currentTimeMillis() - 1500)
+    val expectedQueue = Seq.empty
+    val expectedTime = 0
+    updated.content should be (expectedQueue)
+    updated.progress should be (expectedTime)
   }
 
 }
