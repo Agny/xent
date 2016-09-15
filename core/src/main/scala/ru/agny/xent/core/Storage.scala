@@ -4,11 +4,11 @@ import ru.agny.xent.{ResourceUnit, Response}
 
 case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
 
-  def tick(lastAction: Long): Storage = producers.foldRight(this)((f, s) => f.tick(lastAction)(s))
+  def tick(lastAction: Long): Storage = producers.foldLeft(this)((s, f) => f.tick(lastAction)(s))
 
   def add(r: Seq[ResourceUnit]): Storage =
     r match {
-      case Seq(h, t@_*) => add(h); add(t)
+      case Seq(h, t@_*) => add(h).add(t)
       case _ => this
     }
 
@@ -22,7 +22,9 @@ case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
       case None => Storage(r +: resources, producers)
     }
 
-  def add(facility: Facility) = this.copy(producers = facility +: producers)
+  def addProducer(facility: Facility) = copy(producers = facility +: producers)
+
+  def updateProducer(from: Facility, to: Facility): Storage = copy(producers = producers.map(x => if (x == from) to else x))
 
   def spend(recipe: Cost): Either[Response, Storage] =
     recipe.cost.find(x => !resources.exists(y => x.res == y.res && y.value >= x.value)) match {
@@ -34,7 +36,7 @@ case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
         })), producers))
     }
 
-  def get(resource: String):Option[ResourceUnit] = resources.find(_.res == resource)
+  def get(resource: String): Option[ResourceUnit] = resources.find(_.res == resource)
 }
 
 object Storage {

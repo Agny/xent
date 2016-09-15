@@ -43,10 +43,10 @@ case class User(id: UserId, name: String, city: City, buildings: Map[(String, Fa
           case c: LocalCell =>
             val cityMap = city.update(c)
             val updatedBuildings = updateBuildingState(h.name, Facility.InConstruction, Facility.Idle)
-            state.copy(city = cityMap, buildings = updatedBuildings, storage = storage.add(h))
+            state.copy(city = cityMap, buildings = updatedBuildings, storage = storage.addProducer(h))
           case c: WorldCell =>
             val updatedBuildings = updateBuildingState(h.name, Facility.InConstruction, Facility.Idle)
-            state.copy(buildings = updatedBuildings, storage = storage.add(h))
+            state.copy(buildings = updatedBuildings, storage = storage.addProducer(h))
         }
         handleQueue(t, update)
       case _ => state
