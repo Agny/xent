@@ -75,11 +75,11 @@ object Facility {
 }
 
 object Building {
-  def apply(name: String, resources: Seq[Resource], yieldTime: ProductionTime): Facility =
+  def apply(name: String, resources: Seq[Resource], yieldTime: ProductionTime): Building =
     Building(name, resources, ProductionQueue.empty(), yieldTime)
 }
 
 object Outpost {
-  def apply(name: String, main: Extractable, resources: Seq[Resource], yieldTime: ProductionTime): Facility =
+  def apply(name: String, main: Extractable, resources: Seq[Resource], yieldTime: ProductionTime): Outpost =
     Outpost(name, main, resources, ProductionQueue.empty(), yieldTime)
 }
