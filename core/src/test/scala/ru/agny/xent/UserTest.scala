@@ -5,7 +5,7 @@ import ru.agny.xent.core.utils.{OutpostTemplate, BuildingTemplate}
 import ru.agny.xent.core._
 
 class UserTest extends FlatSpec with Matchers with EitherValues {
-  val shape = SimpleShape(LocalCell(1,1), Seq(LocalCell(1,2),LocalCell(2,1),LocalCell(2,2)))
+  val shape = FourShape(LocalCell(0,0))
 
   "User" should "spend resources" in {
     val user = User(1, "test", City.empty(0, 0), Map.empty, Storage(Seq(ResourceUnit(10, "Wood")), Seq.empty), ProductionQueue.empty(), 0)
@@ -35,7 +35,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val bt = BuildingTemplate("Test", Seq.empty, Seq(ResourceUnit(7, "Wood")), 0, shape, "")
     val layer = Layer("", 1, Seq.empty, CellsMap(Seq.empty), Seq(bt))
     val user = User(1, "test", City.empty(0, 0))
-    val action = PlaceBuilding("Test", layer, LocalCell(1, 2))
+    val action = PlaceBuilding("Test", layer, LocalCell(2, 1))
     val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, "Wood")), user.storage.producers))
     val updated = userAndStorage.work(action)
     val expected = Seq(ResourceUnit(3, "Wood"))
@@ -62,7 +62,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(15, "Wood")), user.storage.producers))
     val layer = Layer("", 1, Seq(userAndStorage), CellsMap(Seq(Seq(), Seq(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Seq())), Seq(ot, bt))
     val resourceClaim = ResourceClaim("Out Test", 1, WorldCell(1, 2))
-    val placeBuilding = PlaceBuilding("Build Test", layer, LocalCell(1, 2))
+    val placeBuilding = PlaceBuilding("Build Test", layer, LocalCell(2, 1))
     val updated = layer.tick(resourceClaim)
     val lastUpdated = updated.right.value.tick(placeBuilding, userAndStorage.id)
     val expected = ResourceUnit(1, "Wood")

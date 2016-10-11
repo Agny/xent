@@ -27,7 +27,7 @@ trait Facility extends DelayableItem {
   protected def instance(queue: ProductionQueue): Facility
 }
 
-case class Building(name: String, resources: Seq[Resource], queue: ProductionQueue, yieldTime: ProductionTime) extends Facility {
+case class Building(name: String, resources: Seq[Resource], queue: ProductionQueue, yieldTime: ProductionTime, shape: Shape) extends Facility {
   override protected def instance(queue: ProductionQueue): Facility = copy(queue = queue)
 }
 case class Outpost(name: String, main: Extractable, resources: Seq[Resource], queue: ProductionQueue, yieldTime: ProductionTime) extends Facility {
@@ -43,8 +43,8 @@ object Facility {
 }
 
 object Building {
-  def apply(name: String, resources: Seq[Resource], yieldTime: ProductionTime): Building =
-    Building(name, resources, ProductionQueue.empty(), yieldTime)
+  def apply(name: String, resources: Seq[Resource], yieldTime: ProductionTime, shape: Shape): Building =
+    Building(name, resources, ProductionQueue.empty(), yieldTime, shape)
 }
 
 object Outpost {

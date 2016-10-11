@@ -4,13 +4,15 @@ trait Shape {
   val core: LocalCell
   val parts: Seq[LocalCell]
 
-  def building: Option[Building]
+  def form(around: LocalCell): Shape
 }
 
-case class BuildingShape(b: Building, core: LocalCell, parts: Seq[LocalCell]) extends Shape {
-  override def building: Option[Building] = Some(b)
-}
+case class FourShape(core: LocalCell) extends Shape {
+  val parts = Seq(
+    LocalCell(0 + core.x, 1 + core.y),
+    LocalCell(1 + core.x, 1 + core.y),
+    LocalCell(1 + core.x, 0 + core.y)
+  )
 
-case class SimpleShape(core: LocalCell, parts: Seq[LocalCell]) extends Shape {
-  override def building: Option[Building] = None
+  override def form(around: LocalCell): Shape = FourShape(around)
 }

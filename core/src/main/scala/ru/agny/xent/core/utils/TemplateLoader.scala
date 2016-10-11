@@ -77,7 +77,7 @@ sealed trait FacilityTemplate extends Cost{
   val since: String
 }
 case class OutpostTemplate(name: String, extractable: String, resources: Seq[Resource], cost: Seq[ResourceUnit], buildTime: Long, since: String) extends FacilityTemplate
-case class BuildingTemplate(name: String, resources: Seq[Resource], cost: Seq[ResourceUnit], buildTime: Long, shape: SimpleShape, since: String) extends FacilityTemplate
+case class BuildingTemplate(name: String, resources: Seq[Resource], cost: Seq[ResourceUnit], buildTime: Long, shape: FourShape, since: String) extends FacilityTemplate
 
 case class OutpostTemplateJson(name: String, extractable: String, obtainable: Seq[String], producible: Seq[String], cost: Seq[ResourceUnit], buildTime: Long, since: String)
-case class BuildingTemplateJson(name: String, obtainable: Seq[String], producible: Seq[String], cost: Seq[ResourceUnit], buildTime: Long, shape: SimpleShape, since: String)
+case class BuildingTemplateJson(name: String, obtainable: Seq[String], producible: Seq[String], cost: Seq[ResourceUnit], buildTime: Long, shape: FourShape, since: String)
