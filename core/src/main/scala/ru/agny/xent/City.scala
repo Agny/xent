@@ -9,9 +9,9 @@ import ru.agny.xent.core._
   */
 
 case class City(x: Int, y: Int, private val map: ShapeMap) {
-  def lookAt(c: Cell): Shape = map.find(c)
+  def isEnoughSpace(s: Shape): Boolean = map.isAvailable(s)
 
-  def buildings(): Seq[Building] = map.filter(c)
+  def buildings(): Seq[Shape] = map.filter(_.building.nonEmpty)
 
   def build(c: LocalCell, b: Building): City = ???
 }

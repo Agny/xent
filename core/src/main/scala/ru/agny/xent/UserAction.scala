@@ -1,6 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType._
+import ru.agny.xent.core.utils.BuildingTemplate
 import ru.agny.xent.core.{Cell, Building, LocalCell}
 
 trait UserAction extends Action {
@@ -19,15 +20,13 @@ case class Idle(user: UserId) extends UserAction {
 
 case class PlaceBuilding(facility: String, layer: Layer, cell: Cell) extends UserAction {
   override def run(user: User): Either[Response, User] = {
-    layer.facilities.find(ft => ft.name == facility) match {
-      case Some(ft) => user.city.lookAt(cell) match {
-        case Some(lc) if lc.building.nonEmpty => Left(Response(s"Cell $cell already contains building"))
-        case Some(lc) => user.spend(ft) match {
+    layer.facilities.collectFirst { case bt: BuildingTemplate if bt.name == facility => bt } match {
+      case ft: Some[BuildingTemplate] if user.city.isEnoughSpace(ft.get.shape) =>
+        user.spend(ft.get) match {
           case Left(v) => Left(v)
-          case Right(v) => Right(v.build(LocalCell(lc.x, lc.y, Some(Building(ft.name, ft.resources, ft.buildTime)))))
+          case Right(v) => Right(v.build(LocalCell(cell.x, cell.y, Some(Building(ft.get.name, ft.get.resources, ft.get.buildTime)))))
         }
-        case None => Left(Response(s"Cell $cell doesn't exist"))
-      }
+      case Some(ft) => Left(Response(s"${ft.name} can't be placed in $cell"))
       case None => Left(Response(s"Unable to build $facility"))
     }
   }

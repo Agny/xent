@@ -60,7 +60,7 @@ object TemplateLoader {
       val json = parse(fromFile(f).mkString).extract[BuildingTemplateJson]
       val pres = json.producible.flatMap(res => producibles.find(x => x.name == res).map(x => x))
       val ores = json.obtainable.flatMap(res => obtainables.find(x => x.name == res).map(x => x))
-      BuildingTemplate(json.name, pres ++ ores, json.cost, json.buildTime, json.since)
+      BuildingTemplate(json.name, pres ++ ores, json.cost, json.buildTime, json.shape, json.since)
     })
   }
 }
@@ -77,7 +77,7 @@ sealed trait FacilityTemplate extends Cost{
   val since: String
 }
 case class OutpostTemplate(name: String, extractable: String, resources: Seq[Resource], cost: Seq[ResourceUnit], buildTime: Long, since: String) extends FacilityTemplate
-case class BuildingTemplate(name: String, resources: Seq[Resource], cost: Seq[ResourceUnit], buildTime: Long, since: String) extends FacilityTemplate
+case class BuildingTemplate(name: String, resources: Seq[Resource], cost: Seq[ResourceUnit], buildTime: Long, shape: SimpleShape, since: String) extends FacilityTemplate
 
 case class OutpostTemplateJson(name: String, extractable: String, obtainable: Seq[String], producible: Seq[String], cost: Seq[ResourceUnit], buildTime: Long, since: String)
-case class BuildingTemplateJson(name: String, obtainable: Seq[String], producible: Seq[String], cost: Seq[ResourceUnit], buildTime: Long, since: String)
+case class BuildingTemplateJson(name: String, obtainable: Seq[String], producible: Seq[String], cost: Seq[ResourceUnit], buildTime: Long, shape: SimpleShape, since: String)
