@@ -67,7 +67,7 @@ case class User(id: UserId, name: String, city: City, buildings: Map[(String, Fa
 object User {
   def apply(id: UserId, name: String, city: City): User = {
     val idle: Facility.State = Facility.Idle
-    val defaultBuildings = city.filter(_.building.nonEmpty).map(x => (x.building.get.name, idle) -> x).toMap
+    val defaultBuildings = city.buildings(_.building.nonEmpty).map(x => (x.building.get.name, idle) -> x).toMap
     val storageEmpty = Storage.empty.copy(producers = city.flatMap(_.building))
     User(id, name, city, defaultBuildings, storageEmpty, ProductionQueue.empty(), System.currentTimeMillis())
   }

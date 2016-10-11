@@ -20,7 +20,7 @@ case class Idle(user: UserId) extends UserAction {
 case class PlaceBuilding(facility: String, layer: Layer, cell: Cell) extends UserAction {
   override def run(user: User): Either[Response, User] = {
     layer.facilities.find(ft => ft.name == facility) match {
-      case Some(ft) => user.city.find(cell) match {
+      case Some(ft) => user.city.lookAt(cell) match {
         case Some(lc) if lc.building.nonEmpty => Left(Response(s"Cell $cell already contains building"))
         case Some(lc) => user.spend(ft) match {
           case Left(v) => Left(v)
