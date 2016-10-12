@@ -10,6 +10,8 @@ case class ShapeMap(private val cellsMap: CellsMap[LocalCell]) {
     (s.parts :+ s.core).forall(c => !withBuildings.exists(b => b.x == c.x && b.y == c.y))
   }
 
+  def update(c:LocalCell):ShapeMap = ShapeMap(cellsMap.update(c))
+
   private def toShape(cells: Seq[LocalCell]): Seq[Shape] = {
     cells.foldLeft(Seq.empty[Shape])((s, c) => c.building match {
       case Some(v) => s :+ v.shape.form(c)

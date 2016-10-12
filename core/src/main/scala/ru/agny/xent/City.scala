@@ -13,7 +13,7 @@ case class City(x: Int, y: Int, private val map: ShapeMap) {
 
   def buildings(): Seq[LocalCell] = map.filter(_.building.nonEmpty).map(x => x.core)
 
-  def build(c: LocalCell, b: Building): City = ???
+  def build(c: LocalCell, b: Building): City = copy(map = map.update(c.copy(building = Some(b))))
 }
 
 object City {

@@ -42,6 +42,25 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     updated.right.value.storage.resources should be(expected)
   }
 
+  "PlaceBuildingAction" should "add building to city" in {
+    val buildingConstructionTime = 10
+    val bt = BuildingTemplate("Test", Seq.empty, Seq(ResourceUnit(7, "Wood")), buildingConstructionTime, shape, "")
+    val layer = Layer("", 1, Seq.empty, CellsMap(Seq.empty), Seq(bt))
+    val user = User(1, "test", City.empty(0, 0))
+    val bCell = LocalCell(2, 1)
+    val action = PlaceBuilding("Test", layer, bCell)
+    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, "Wood")), user.storage.producers))
+    val updated = userAndStorage.work(action).right.value
+
+    Thread.sleep(buildingConstructionTime)
+    val userWithBuilding = updated.work(DoNothing).right.value
+    val expected = bt.name
+    val updatedCell = userWithBuilding.city.buildings().find(c => c.x == bCell.x && c.y == bCell.y)
+    updatedCell.isEmpty shouldBe false
+    updatedCell.get.building.isEmpty shouldBe false
+    updatedCell.get.building.get.name should be (expected)
+  }
+
   "ResourceClaimAction" should "spend resources" in {
     val bt = OutpostTemplate("Test", "Test res", Seq.empty, Seq(ResourceUnit(7, "Wood")), 0, "")
     val user = User(1, "test", City.empty(0, 0))
