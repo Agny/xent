@@ -23,7 +23,7 @@ case class MessageQueue() {
     else {
       println(s"MESSAGE: $msg")
       val rLock = lock.readLock()
-      while (!rLock.tryLock()) {}
+      while (!rLock.tryLock()) Thread.sleep(10)
       messages = (msg, number) +: messages
       rLock.unlock()
       Future(number)
@@ -32,7 +32,7 @@ case class MessageQueue() {
 
   def take(): Seq[Message] = {
     val res = messages.map(_._1).reverse
-    lock.writeLock().tryLock() // #take should not depend on push calls
+    lock.writeLock().tryLock()
     messages = Seq.empty
     lock.writeLock().unlock()
     res
