@@ -4,8 +4,10 @@ import Dependencies._
 
 object Resolvers {
   val artimarepo = "Artima Maven Repository" at "http://repo.artima.com/releases"
+  val sonatype = "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 
   val scalatest = Seq(artimarepo)
+  val scredis = Seq(sonatype)
 }
 
 object MainBuild extends Build {
@@ -20,5 +22,5 @@ object MainBuild extends Build {
 
   lazy val web = project.settings(commonSettings: _*).settings(libraryDependencies ++= webDeps).dependsOn(core)
 
-  lazy val root = project.in(file(".")).settings(resolvers := scalatest).settings(commonSettings: _*).aggregate(web)
+  lazy val root = project.in(file(".")).settings(resolvers := (scalatest ++ scredis)).settings(commonSettings: _*).aggregate(web)
 }
