@@ -10,24 +10,19 @@ import scala.concurrent.Future
 case class MessageQueue() {
 
   var messages: Seq[(Message, Long)] = Seq.empty
-  val last = new AtomicLong(-1)
   val lock = new ReentrantReadWriteLock()
 
   def push(msg: Message, number: Long): Future[Long] = {
-    pushUntilSuccess(msg, last.get(), number)
+    pushUntilSuccess(msg, number)
   }
 
-  private def pushUntilSuccess(msg: Message, init: Long, number: Long): Future[Long] = {
-    if (!last.compareAndSet(init, number))
-      pushUntilSuccess(msg, last.get(), number)
-    else {
-      println(s"MESSAGE: $msg")
-      val rLock = lock.readLock()
-      while (!rLock.tryLock()) Thread.sleep(10)
-      messages = (msg, number) +: messages
-      rLock.unlock()
-      Future(number)
-    }
+  private def pushUntilSuccess(msg: Message, number: Long): Future[Long] = Future {
+    println(s"MESSAGE: $msg")
+    val rLock = lock.readLock()
+    while (!rLock.tryLock()) Thread.sleep(10)
+    messages = (msg, number) +: messages
+    rLock.unlock()
+    number
   }
 
   def take(): Seq[Message] = {
