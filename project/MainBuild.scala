@@ -15,10 +15,13 @@ object MainBuild extends Build {
   lazy val commonSettings = Seq(
     organization := "ru.agny",
     version := "0.1.0",
-    scalaVersion := "2.11.8"
+    scalaVersion := "2.11.8",
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
   )
 
-  lazy val core = project.settings(commonSettings: _*).settings(libraryDependencies ++= coreDeps)
+  lazy val macros = project.settings(commonSettings: _*).settings(libraryDependencies ++= macrosDeps)
+
+  lazy val core = project.settings(commonSettings: _*).settings(libraryDependencies ++= coreDeps).dependsOn(macros)
 
   lazy val web = project.settings(commonSettings: _*).settings(libraryDependencies ++= webDeps).dependsOn(core)
 
