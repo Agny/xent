@@ -1,5 +1,7 @@
 package ru.agny.xent.persistence
 
+import java.util.concurrent.atomic.AtomicLong
+
 import scala.annotation.StaticAnnotation
 import scala.language.experimental.macros
 import scala.reflect.api.Trees
@@ -11,7 +13,7 @@ class RedisEntity(collection: String, idField: String, key: String) extends Stat
 
 object RedisEntity {
 
-  var prims = List("String", "Long", "Double")
+  var prims = List("String", "Long", "Double", "Int")
 
   def impl(c: blackbox.Context)(annottees: c.Expr[Any]*) = {
     import c.universe._
@@ -42,39 +44,58 @@ object RedisEntity {
               case Ident(TypeName(v)) =>
                 val baseType = c.typecheck(tq"$tp", c.TYPEmode).tpe.erasure
                 (basicTypes :+ baseType.toString, complexTypes :+ baseType, names :+ name)
-              case tq"$tpt[..$tpts]" => c.abort(c.enclosingPosition,"sffup" + tpt.toString)  //TODO think about it
+              case tq"$tpt[..$tpts]" => c.abort(c.enclosingPosition, "sffup" + tpt.toString) //TODO think about it
             }
         }
       }
 
-    def extractParametersFromMembers(params: MemberScope) =
-      (params.find(_.name == termNames.CONSTRUCTOR).get match {
+    def extractParametersFromMembers(params: MemberScope, methodName: TermName) =
+      params.find(_.name == methodName).map {
         case m: MethodSymbol =>
           m.paramLists.flatten.map(x => {
             val t = x.asTerm
             (t.info.toString, t.info, t.name)
           })
-      }).toSeq
+      }
+
+    val globalId = new AtomicLong(-1)
 
     def getConstructorParamsExpr(constructor: TermName, basicTypes: Seq[String], types: Seq[Type], names: Seq[TermName], shift: Int): Tree = {
-      var throughIdx = shift
       val params = for (i <- basicTypes.indices) yield {
         if (prims.contains(basicTypes(i))) {
-          getPrimitiveExpr(basicTypes, names, i, throughIdx)
+          getPrimitiveExpr(basicTypes, names, i)
         } else {
-          throughIdx = i + shift
-          val (s, bt, tn) = extractParametersFromMembers(types(i).members).unzip3
-          val shortName = types(i).typeSymbol.name match {
+          val tpe = types(i)
+          val shortName = tpe.typeSymbol.name match {
             case TypeName(v) => TermName(v)
           }
-          getConstructorParamsExpr(shortName, s, bt, tn, throughIdx)
+          val defaultConstructor = extractParametersFromMembers(tpe.members, termNames.CONSTRUCTOR).flatMap(_.unzip3 match {
+            case (s, bt, tn) if s.nonEmpty => Some(getConstructorParamsExpr(shortName, s, bt, tn, shift + i))
+            case _ => None
+          })
+          val companionConstructor = extractParametersFromMembers(tpe.companion.members, TermName("apply")).flatMap(_.unzip3 match {
+            case (_, _, tn) if tn.nonEmpty =>
+              val s = tpe.typeArgs.map(_.toString)
+              val bt = tpe.typeArgs
+              Some(getConstructorParamsExpr(shortName, s, bt, tn, shift + i))
+            case _ => None
+          })
+          defaultConstructor.getOrElse(companionConstructor.get)
         }
       }
       q"$constructor(..$params)"
     }
 
-    def getPrimitiveExpr(basicTypes: Seq[String], names: Seq[TermName], localIdx: Int, globalIdx: Int) =
-      q"${names(localIdx)} = ${c.parse(s"result(${localIdx + globalIdx}).asInstanceOf[ru.agny.xent.persistence.tokens.Primitive[${basicTypes(localIdx)}]].k")}"
+    def getPrimitiveExpr(basicTypes: Seq[String], names: Seq[TermName], i: Int) = {
+      //https://issues.scala-lang.org/browse/SI-4388
+      val toIntBridge = if (basicTypes(i) == "Int") {
+        ".asInstanceOf[Primitive[Long]].k.toInt"
+      } else {
+        s".asInstanceOf[Primitive[${basicTypes(i)}]].k"
+      }
+      val code = s"result(${globalId.incrementAndGet()})$toIntBridge"
+      q"${names(i)} = ${c.parse(code)}"
+    }
 
     val (collection, idField, key) = extractAnnotationParameters(c.prefix.tree)
     val result = {
@@ -90,8 +111,10 @@ object RedisEntity {
             val toPersist = toString()
           }
           object $companionName {
+            import ru.agny.xent.persistence.tokens._
+
             def gen(v:String):$tpname = {
-              val result = ru.agny.xent.persistence.tokens.Parser.extract(v, Seq.empty)._1
+              val result = Parser.extract(v, Seq.empty)._1
               ${getConstructorParamsExpr(companionName, basic, constr, names, 0)}
             }
           }"""
