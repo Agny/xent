@@ -3,7 +3,7 @@ package ru.agny.xent
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.core._
 
-case class User(id: UserId, name: String, city: City, facilities: Map[(String, Facility.State), Cell], storage: Storage, queue: ProductionQueue, lastAction: Long) {
+case class User(id: UserId, name: String, city: City, facilities: Map[(String, Facility.State), ContainerCell], storage: Storage, queue: ProductionQueue, lastAction: Long) {
 
   def work(a: UserAction): Either[Response, User] = {
     val time = System.currentTimeMillis()
@@ -18,7 +18,7 @@ case class User(id: UserId, name: String, city: City, facilities: Map[(String, F
     facility.addToQueue(res)(storage)
   }
 
-  def build(cell: Cell): User = {
+  def build(cell: ContainerCell): User = {
     val facility = cell.building.get
     val b = facilities + ((facility.name, Facility.InConstruction) -> cell)
     val q = queue.in(facility, 1)

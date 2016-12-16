@@ -5,13 +5,17 @@ import ru.agny.xent.UserType._
 
 sealed trait Cell {
   val x, y: Int
-  val building: Option[Facility]
-
-  override def toString: String = s"[$x,$y]"
 }
 
-case class WorldCell(x: Int, y: Int, building: Option[Outpost] = None, resource: Option[Extractable] = None, city: Option[City] = None, owner: Option[UserId] = None) extends Cell
-case class LocalCell(x: Int, y: Int, building: Option[Building] = None) extends Cell
+sealed trait Container {
+  val building: Option[Facility]
+}
+
+sealed trait ContainerCell extends Cell with Container
+
+case class WorldCell(x: Int, y: Int, building: Option[Outpost] = None, resource: Option[Extractable] = None, city: Option[City] = None, owner: Option[UserId] = None) extends ContainerCell
+case class LocalCell(x: Int, y: Int, building: Option[Building] = None) extends ContainerCell
+case class Coordinate(x: Int, y: Int) extends Cell
 
 object WorldCell {
   def apply(x: Int, y: Int, mbRes: Option[Extractable]): WorldCell = WorldCell(x, y, None, mbRes)

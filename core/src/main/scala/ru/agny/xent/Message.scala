@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.{LocalCell, Cell}
+import ru.agny.xent.core.Coordinate
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -18,6 +18,6 @@ trait Message {
 case class EmptyMessage(user: UserId, layer: String) extends Message
 case class NewUserMessage(user: UserId, name: String, layer: String) extends Message
 case class LayerUpMessage(user: UserId, layer: String, layerTo: String) extends Message
-case class ResourceClaimMessage(user: UserId, layer: String, facility: String, cell: Cell) extends Message
-case class BuildingConstructionMessage(user: UserId, layer: String, building: String, cell: LocalCell) extends Message
+case class ResourceClaimMessage(user: UserId, layer: String, facility: String, cell: Coordinate) extends Message
+case class BuildingConstructionMessage(user: UserId, layer: String, building: String, cell: Coordinate) extends Message
 case class AddProductionMessage(user: UserId, layer: String, facility: String, res: ResourceUnit) extends Message

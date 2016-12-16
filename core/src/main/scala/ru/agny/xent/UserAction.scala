@@ -2,7 +2,7 @@ package ru.agny.xent
 
 import ru.agny.xent.UserType._
 import ru.agny.xent.core.utils.BuildingTemplate
-import ru.agny.xent.core.{Building, LocalCell}
+import ru.agny.xent.core.{Cell, Building, LocalCell}
 
 trait UserAction extends Action {
   type T = User
@@ -18,11 +18,11 @@ case class Idle(user: UserId) extends UserAction {
   override def run(user: User): Either[Response, User] = Right(user)
 }
 
-case class PlaceBuilding(facility: String, layer: Layer, cell: LocalCell) extends UserAction {
+case class PlaceBuilding(facility: String, layer: Layer, cell: Cell) extends UserAction {
   override def run(user: User): Either[Response, User] = {
     val bt = layer.facilities.collectFirst { case bt: BuildingTemplate if bt.name == facility => bt }
     bt.map(x => {
-      val shape = x.shape.form(cell)
+      val shape = x.shape.form(LocalCell(cell.x, cell.y))
       if (user.city.isEnoughSpace(shape))
         user.spend(x) match {
           case Left(v) => Left(v)

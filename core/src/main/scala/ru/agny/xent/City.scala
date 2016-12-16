@@ -11,7 +11,7 @@ import ru.agny.xent.core._
 case class City(x: Int, y: Int, private val map: ShapeMap) {
   def isEnoughSpace(s: Shape): Boolean = map.isAvailable(s)
 
-  def buildings(): Seq[LocalCell] = map.filter(_.building.nonEmpty).map(x => x.core)
+  def buildings(): Seq[ContainerCell] = map.filter(_.building.nonEmpty).map(x => x.core)
 
   def build(c: LocalCell, b: Building): City = copy(map = map.update(c.copy(building = Some(b))))
 }
