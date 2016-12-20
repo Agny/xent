@@ -1,5 +1,6 @@
 package ru.agny.xent.persistence.tokens
 
+//TODO replace by scala parser combinators?
 object Parser {
 
   val caseClass = """^(\w+)\((.*\))""".r
@@ -20,10 +21,7 @@ object Parser {
         val pValue = LongValue(value.toLong)
         extract(tail, acc :+ pValue)
       case string(value, tail) =>
-        val pValue = value match {
-          //          case "None" => NoneValue
-          case v@_ => StringValue(v)
-        }
+        val pValue = StringValue(value)
         extract(tail, acc :+ pValue)
       case caseClassTale(tail) => (acc, tail)
       case s if s.isEmpty => (acc, s)

@@ -8,6 +8,3 @@ trait Primitive[T] extends Node {
 case class StringValue(k: String) extends Primitive[String]
 case class LongValue(k: Long) extends Primitive[Long]
 case class DoubleValue(k: Double) extends Primitive[Double]
-//case object NoneValue extends Primitive[Nothing] {
-//  val k = Nothing
-//}
