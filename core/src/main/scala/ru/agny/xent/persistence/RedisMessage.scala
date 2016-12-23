@@ -6,8 +6,8 @@ package ru.agny.xent.persistence
   */
 
 trait RedisMessage {
-  val collectionId: String
-  val key: String
+  def collectionId: String
+  def key: String
 
   def toPersist: String
 }
