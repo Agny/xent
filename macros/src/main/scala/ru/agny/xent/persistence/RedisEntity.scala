@@ -2,11 +2,12 @@ package ru.agny.xent.persistence
 
 import java.util.concurrent.atomic.AtomicLong
 
-import scala.annotation.StaticAnnotation
+import scala.annotation.{compileTimeOnly, StaticAnnotation}
 import scala.language.experimental.macros
 import scala.reflect.api.Trees
 import scala.reflect.macros.blackbox
 
+@compileTimeOnly("enable macro paradise to expand macro annotations")
 class RedisEntity(collection: String, idField: String, key: String) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Unit = macro RedisEntity.impl
 }
@@ -25,20 +26,25 @@ object RedisEntity {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { ..$body }" :: Nil =>
           val companionName = tpname.toTermName
           val (constr, names) = helper.extractParametersFromTrees(paramss)
+          val parsedTree = helper.getConstructorParamsExpr(companionName, constr.map(_.toString), constr, names, 0)
           //TODO missing #toPersist actual implementation
           q"""$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents {
             ..$body
             val collectionId = $collection + "#" + $idField
             val key = $key
             val toPersist = toString()
+            private val forcedCompanion = $companionName
           }
           object $companionName {
             import ru.agny.xent.persistence.tokens._
+            import ru.agny.xent.persistence.MessageHandler
 
             def create(v:String):RedisMessage = {
               val result = Parser.extract(v, Seq.empty)._1
-              ${helper.getConstructorParamsExpr(companionName, constr.map(_.toString), constr, names, 0)}
+              $parsedTree
             }
+
+            MessageHandler.register(${companionName.toString}, create)
           }"""
         case b => c.abort(c.enclosingPosition, s"Annotation @RedisEntity can be used only with classes without companion objects")
       }
@@ -78,7 +84,7 @@ class Helper[C <: blackbox.Context](val c: C) {
             case Ident(TypeName(v)) =>
               val baseType = c.typecheck(tq"$tp", c.TYPEmode).tpe.erasure
               (complexTypes :+ baseType, names :+ name)
-            case m@tq"$tpt[..$tpts]" => c.abort(c.enclosingPosition, s"Type classes are not supported yet: $name:$m") //TODO think about it
+            case m@tq"$tpt[..$tpts]" => c.abort(c.enclosingPosition, s"Type classes are not supported yet $name:$m") //TODO think about it
           }
         case _ => c.abort(c.enclosingPosition, s"Can't extract ValDef from $params")
       }
@@ -89,7 +95,7 @@ class Helper[C <: blackbox.Context](val c: C) {
       case m: MethodSymbol =>
         m.paramLists.flatten.map(x => {
           val t = x.asTerm
-          (t.info.toString, t.info, t.name)
+          (t.info.erasure.toString, t.info, t.name)
         })
     }
 
