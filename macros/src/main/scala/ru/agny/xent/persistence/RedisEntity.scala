@@ -37,6 +37,7 @@ object RedisEntity {
           }
           object $companionName {
             import ru.agny.xent.persistence.tokens._
+            import ru.agny.xent.persistence.tokens.Nodes._
             import ru.agny.xent.persistence.MessageHandler
 
             def create(v:String):RedisMessage = {
@@ -128,13 +129,7 @@ class Helper[C <: blackbox.Context](val c: C) {
   }
 
   def getPrimitiveExpr(basicTypes: Seq[String], names: Seq[TermName], i: Int) = {
-    //https://issues.scala-lang.org/browse/SI-4388
-    val toIntBridge = if (basicTypes(i) == "Int") {
-      ".asInstanceOf[Primitive[Long]].k.toInt"
-    } else {
-      s".asInstanceOf[Primitive[${basicTypes(i)}]].k"
-    }
-    val code = s"result(${globalId.incrementAndGet()})$toIntBridge"
+    val code = s"result(${globalId.incrementAndGet()}).materialize[${basicTypes(i)}]"
     q"${names(i)} = ${c.parse(code)}"
   }
 }
