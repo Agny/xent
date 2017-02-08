@@ -12,5 +12,6 @@ trait Summon extends Magic {
 }
 //trait Unique extends Attribute
 
-trait Offensive
-trait Defensive
+trait Equippable
+trait Offensive extends Equippable
+trait Defensive extends Equippable

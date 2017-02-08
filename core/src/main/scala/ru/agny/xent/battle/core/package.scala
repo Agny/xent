@@ -17,6 +17,7 @@ package object attributes {
   case class Wind(value: Int) extends Magic
   case class Light(value: Int) extends Magic
   case class Dark(value: Int) extends Magic
+  case class Void(value: Int) extends Magic
   case class SummonSpirit(value: Int, power: Int) extends Summon
   case class SummonThing(value: Int, power: Int) extends Summon
 }
