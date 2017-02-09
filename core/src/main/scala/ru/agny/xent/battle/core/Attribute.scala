@@ -1,6 +1,8 @@
 package ru.agny.xent.battle.core
 
 sealed trait Attribute {
+  //TODO name?
+  val name: String = getClass.getSimpleName
   val value: Int
 }
 
@@ -12,6 +14,9 @@ trait Summon extends Magic {
 }
 //trait Unique extends Attribute
 
-trait Equippable
+trait Equippable {
+  val name: String
+  val attrs: Seq[Attribute]
+}
 trait Offensive extends Equippable
 trait Defensive extends Equippable
