@@ -76,4 +76,5 @@ object User {
 
 object UserType {
   type UserId = Long
+  type ObjectId = Long
 }

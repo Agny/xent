@@ -1,9 +1,9 @@
 package ru.agny.xent.battle.core
 
 sealed trait Attribute
-trait Kinetic extends Attribute
-trait Magic extends Attribute
-trait Summon extends Attribute
+sealed trait Kinetic extends Attribute
+sealed trait Magic extends Attribute
+sealed trait Summon extends Attribute
 //trait Unique extends Attribute
 
 package object attributes {

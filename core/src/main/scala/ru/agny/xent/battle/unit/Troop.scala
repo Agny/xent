@@ -1,13 +1,25 @@
 package ru.agny.xent.battle.unit
 
-case class Troop(units: Seq[Unit]) {
+import ru.agny.xent.UserType.ObjectId
+import ru.agny.xent.battle.core.Damage
+
+case class Troop(units: Seq[Soul]) {
 
   def attack(other: Troop): (Troop, Troop) = {
-    val (u, t) = units.foldLeft((Seq.empty[Unit], other))(handleBattle)
+    val (u, t) = units.foldLeft((Seq.empty[Soul], other))(handleBattle)
     (Troop(u), t)
   }
 
-  private def handleBattle(state: (Seq[Unit], Troop), attacker: Unit): (Seq[Unit], Troop) = {
+  def underAttack(d: Damage): Troop = underAttack(d, Seq(units.head.id))
+
+  def underAttack(d: Damage, targeted: Seq[ObjectId]): Troop = Troop {
+    units.map {
+      case u if targeted.contains(u.id) => u.underAttack(d)
+      case unharmed => unharmed
+    }
+  }
+
+  private def handleBattle(state: (Seq[Soul], Troop), attacker: Soul): (Seq[Soul], Troop) = {
     val (unitState, newTroopState) = attacker.attack(state._2)
     (state._1 :+ unitState, newTroopState)
   }
