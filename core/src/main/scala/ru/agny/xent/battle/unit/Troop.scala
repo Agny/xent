@@ -10,11 +10,11 @@ case class Troop(units: Seq[Soul]) {
     (Troop(u), t)
   }
 
-  def underAttack(d: Damage): Troop = underAttack(d, Seq(units.head.id))
+  def receiveDamage(d: Damage): Troop = receiveDamage(d, Seq(units.head.id))
 
-  def underAttack(d: Damage, targeted: Seq[ObjectId]): Troop = Troop {
+  def receiveDamage(d: Damage, targeted: Seq[ObjectId]): Troop = Troop {
     units.map {
-      case u if targeted.contains(u.id) => u.underAttack(d)
+      case u if targeted.contains(u.id) => u.receiveDamage(d)
       case unharmed => unharmed
     }
   }

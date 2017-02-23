@@ -5,32 +5,19 @@ import ru.agny.xent.battle.core._
 
 case class Soul(id: ObjectId, level: LevelBar, spirit: SpiritBar, equip: Equipment, speed: Speed, skills: Seq[Skill]) {
 
-  //  private val choosing = {u:Unit =>
-  //    val sk = skills.collect{case s:Offensive => s}
-  //    u.equip.eq.foldLeft(u.equip.eq.head)((a,b) => {
-  //      a.a
-  //    })
-  //  }
-  //
   def defensePotential = Potential(equip.props(Defensive))
 
   def attackPotential = Potential(equip.props(Offensive))
 
   def attack(target: Troop): (Soul, Troop) = {
     val attackBy = attackPotential.strongestRaw
-    val res = target.underAttack(Damage(attackBy.attr, attackBy.value))
+    val res = target.receiveDamage(Damage(attackBy.attr, attackBy.value))
 
     (this, res)
   }
 
-  //  private def dealDamage(enemy: Soul): Soul = {
-  //    val r = enemy.defensePotential.weakestTo(attackPotential.stats)
-  //    enemy.getDamage(r._1, r._2)
-  //  }
-  //
-  def underAttack(d: Damage) = {
-    val s = spirit.change(defensePotential.to(d.by) - d.amount)
-    copy(spirit = s)
+  def receiveDamage(d: Damage) = {
+    copy(spirit = spirit.change(defensePotential.to(d.by) - d.amount))
   }
 }
 
