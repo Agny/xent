@@ -11,6 +11,10 @@ trait Equippable {
   val attrs: Seq[Property]
 }
 
+trait Weapon extends Equippable {
+  val damage: Dice
+}
+
 sealed trait Mode
 case object Offensive extends Mode
 case object Defensive extends Mode
