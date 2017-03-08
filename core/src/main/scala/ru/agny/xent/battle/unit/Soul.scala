@@ -2,6 +2,7 @@ package ru.agny.xent.battle.unit
 
 import ru.agny.xent.UserType.ObjectId
 import ru.agny.xent.battle.core._
+import ru.agny.xent.battle.unit.inventory.Equipment
 
 case class Soul(id: ObjectId, level: LevelBar, spirit: SpiritBar, equip: Equipment, speed: Int, skills: Seq[Skill]) {
 
