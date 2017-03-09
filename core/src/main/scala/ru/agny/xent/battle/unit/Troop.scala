@@ -1,7 +1,7 @@
 package ru.agny.xent.battle.unit
 
 import ru.agny.xent.UserType.ObjectId
-import ru.agny.xent.battle.core.Damage
+import ru.agny.xent.battle.core.OutcomeDamage
 
 case class Troop(units: Seq[Soul]) {
 
@@ -10,9 +10,9 @@ case class Troop(units: Seq[Soul]) {
     (Troop(u), t)
   }
 
-  def receiveDamage(d: Damage): Troop = receiveDamage(d, Seq(units.head.id))
+  def receiveDamage(d: OutcomeDamage): Troop = receiveDamage(d, Seq(units.head.id))
 
-  def receiveDamage(d: Damage, targeted: Seq[ObjectId]): Troop = Troop {
+  def receiveDamage(d: OutcomeDamage, targeted: Seq[ObjectId]): Troop = Troop {
     units.map {
       case u if targeted.contains(u.id) => u.receiveDamage(d)
       case unharmed => unharmed

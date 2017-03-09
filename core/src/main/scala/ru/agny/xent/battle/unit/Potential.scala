@@ -4,7 +4,7 @@ import ru.agny.xent.battle.core.{Attribute, Property}
 
 case class Potential(stats: Seq[Property]) {
 
-  def to(attribute: Attribute): Int = stats.find(x => x.attr == attribute) match {
+  def to(attribute: Attribute): Double = stats.find(x => x.attr == attribute) match {
     case Some(v) => v.value
     case None => 0
   }

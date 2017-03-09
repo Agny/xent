@@ -8,8 +8,11 @@ trait Tactic {
 
 case class BasicTactic(u: Soul) extends Tactic {
   def execute(target: Troop): (Soul, Troop) = {
-    val attackBy = u.attackPotential.strongestRaw
-    val res = target.receiveDamage(Damage(attackBy.attr, attackBy.value))
+    val weapon = u.equip.weapons.maxBy(_.damage)
+    val attackBy = u.attackPotential(weapon).strongestRaw
+    val cast = weapon.damage.cast
+    val damage = OutcomeDamage(attackBy, cast)
+    val res = target.receiveDamage(damage)
     //TODO fightback
     (u, res)
   }
