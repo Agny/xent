@@ -18,7 +18,7 @@ object TemplateLoader {
     val s = resourcesDir.listFiles().toSeq.filter(_.isFile)
     s.map(f => {
       val t = parse(fromFile(f).mkString).extract[ProducibleTemplate]
-      Producible(t.name, t.cost, t.yieldTime, Set.empty)
+      Producible(t.name, ProductionSchema(t.yieldTime, t.cost, Set.empty))
     })
   }
 

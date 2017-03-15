@@ -1,10 +1,12 @@
 package ru.agny.xent.battle.unit.inventory
 
 import ru.agny.xent.battle.core.Property
+import ru.agny.xent.core.ProductionSchema
 
 trait Accessory extends Equippable
 
 case object DefaultAccessory extends Accessory {
-  override val name: String = "Default"
+  override val name = "Default"
   override val attrs: Seq[Property] = Seq.empty
+  override val schema: ProductionSchema = ProductionSchema.default()
 }

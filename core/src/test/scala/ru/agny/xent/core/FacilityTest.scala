@@ -7,7 +7,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
   val shape = FourShape(LocalCell(1,1))
 
   "Building" should "produce resource in queue" in {
-    val res = Producible("Test res", Seq(ResourceUnit(5, "Wood")), 1000, Set.empty)
+    val res = Producible("Test res", ProductionSchema(1000, Seq(ResourceUnit(5, "Wood")), Set.empty))
     val facility = Building("test", Seq(res), 0, shape)
     val storage = Storage(Seq(ResourceUnit(10, "Wood")), Seq(facility))
     val afterSpend = facility.addToQueue(ResourceUnit(1, res.name))(storage)
