@@ -20,8 +20,9 @@ case class Troop(units: Seq[Soul]) {
   }
 
   private def handleBattle(state: (Seq[Soul], Troop), attacker: Soul): (Seq[Soul], Troop) = {
-    val (unitState, newTroopState) = attacker.attack(state._2)
-    (state._1 :+ unitState, newTroopState)
+    val (oldSate, troop) = state
+    val (unitState, newTroopState) = attacker.attack(troop)
+    (oldSate :+ unitState, newTroopState)
   }
 
 }

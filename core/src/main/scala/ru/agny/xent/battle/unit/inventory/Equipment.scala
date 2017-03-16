@@ -18,7 +18,7 @@ case class Equipment(private val mainHand: Weapon = DefaultWeapon,
         Seq(armor, accessory).foldLeft(wpnAttrs)((a, b) =>
           b.attrs.foldLeft(a)(collectSpecifiedPotential)
         )
-    }).map(x => Property(x._1, x._2, mode)).toSeq
+    }).map{case (attr, power) => Property(attr, power, mode)}.toSeq
 
   def weapons = Seq(mainHand, offHand)
 

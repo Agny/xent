@@ -10,8 +10,7 @@ trait Layer2Action extends Action {
 
 case class LayerChange(user: UserId) extends Layer2Action {
   override def run(layers: (Layer, Layer)): Either[Response, (Layer, Layer)] = {
-    val from = layers._1
-    val to = layers._2
+    val (from, to) = layers
     from.users.find(x => x.id == user) match {
       case Some(v) =>
         val fromUsers = from.users.diff(Seq(user))

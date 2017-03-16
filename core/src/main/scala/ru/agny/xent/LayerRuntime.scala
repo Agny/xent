@@ -35,7 +35,7 @@ class LayerRuntime(queue: MessageQueue) {
             val to = active.find(l => l.id == x.layerTo).get
             LayerChange(x.user).run(from, to) match {
               case Left(v) => x.reply(v); layers
-              case Right(v) => x.reply(ResponseOk); Seq(v._1, v._2) ++ idle
+              case Right((layerFrom, layerTo)) => x.reply(ResponseOk); Seq(layerFrom, layerTo) ++ idle
             }
           case x: ResourceClaimMessage =>
             layers.find(l => l.id == x.layer) match {

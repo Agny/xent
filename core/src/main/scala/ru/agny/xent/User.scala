@@ -10,7 +10,7 @@ case class User(id: UserId, name: String, city: City, facilities: Map[(String, F
     val (q, prod) = queue.out(lastAction)
     val actualStorage = storage.tick(lastAction)
     val actualUser = copy(storage = actualStorage, queue = q, lastAction = time)
-    val updated = handleQueue(prod.map(_._1.asInstanceOf[Facility]), actualUser)
+    val updated = handleQueue(prod.map { case (item, amount) => item.asInstanceOf[Facility] }, actualUser)
     a.run(updated)
   }
 
@@ -55,7 +55,7 @@ case class User(id: UserId, name: String, city: City, facilities: Map[(String, F
   }
 
   private def updateBuildingState(f: String, from: Facility.State, to: Facility.State) = {
-    facilities.map(b => if (b._1 ==(f, from)) (f, to) -> b._2 else b)
+    facilities.map { case facility@(facilityToUpdate, cell) => if (facilityToUpdate ==(f, from)) (f, to) -> cell else facility }
   }
 
   def findFacility(producer: String): Option[Facility] = {

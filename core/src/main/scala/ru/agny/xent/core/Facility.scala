@@ -10,7 +10,7 @@ trait Facility extends DelayableItem {
 
   def tick(fromTime: ProductionTime): Storage => Storage = storage => {
     val (q, prod) = queue.out(fromTime)
-    storage.updateProducer(this, instance(q)).add(prod.map(x => ResourceUnit(x._2, x._1.name)))
+    storage.updateProducer(this, instance(q)).add(prod.map { case (res, amount) => ResourceUnit(amount, res.name) })
   }
 
   def addToQueue(item: ResourceUnit): Storage => Either[Response, Storage] = storage => {
