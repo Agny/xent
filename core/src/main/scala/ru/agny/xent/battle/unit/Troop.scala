@@ -10,8 +10,6 @@ case class Troop(units: Seq[Soul]) {
     (Troop(u), t)
   }
 
-  def receiveDamage(d: OutcomeDamage): Troop = receiveDamage(d, Seq(units.head.id))
-
   def receiveDamage(d: OutcomeDamage, targeted: Seq[ObjectId]): Troop = Troop {
     units.map {
       case u if targeted.contains(u.id) => u.receiveDamage(d)
