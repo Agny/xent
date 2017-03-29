@@ -4,8 +4,11 @@ import org.scalatest.{Matchers, FlatSpec}
 
 class ProductionQueueTest extends FlatSpec with Matchers {
 
+  val extrId1 = 1
+  val extrId2 = 2
+
   "ProductionQueue" should "add building item to content" in {
-    val item = Outpost("test", Extractable("test", 0, 0, Set.empty), Seq.empty, 0)
+    val item = Outpost(1, "test", Extractable(extrId1, "test", 0, 0, Set.empty), Seq.empty, 0)
     val queue = ProductionQueue.empty()
     val updated = queue.in(item, 1)
     val expected = Seq((item,1))
@@ -13,7 +16,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "return item if it is done" in {
-    val item = Outpost("test", Extractable("test", 0, 0, Set.empty), Seq.empty, 0)
+    val item = Outpost(1, "test", Extractable(extrId1, "test", 0, 0, Set.empty), Seq.empty, 0)
     val queue = ProductionQueue(Seq((item, 1)))
     val (_, res) = queue.out(System.currentTimeMillis())
     val expected = Seq((item,1))
@@ -21,7 +24,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "return Seq.empty if there is no completed items" in {
-    val item = Outpost("test", Extractable("test", 0, 0, Set.empty), Seq.empty, 1000)
+    val item = Outpost(1, "test", Extractable(extrId1, "test", 0, 0, Set.empty), Seq.empty, 1000)
     val queue = ProductionQueue(Seq((item, 1)))
     val (updated, res) = queue.out(System.currentTimeMillis())
     val expectedQueue = Seq((item,1))
@@ -31,7 +34,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "remove item from content if it is done" in {
-    val item = Outpost("test", Extractable("test", 0, 0, Set.empty), Seq.empty, 0)
+    val item = Outpost(1, "test", Extractable(extrId1, "test", 0, 0, Set.empty), Seq.empty, 0)
     val queue = ProductionQueue(Seq((item, 1)))
     val (updated, _) = queue.out(System.currentTimeMillis())
     val expected = Seq.empty
@@ -39,7 +42,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "reduce content by completed and returned items" in {
-    val item = Outpost("test", Extractable("test", 0, 0, Set.empty), Seq.empty, 1000)
+    val item = Outpost(1, "test", Extractable(extrId1, "test", 0, 0, Set.empty), Seq.empty, 1000)
     val queue = ProductionQueue(Seq((item, 2)))
     val (updated, res) = queue.out(System.currentTimeMillis() - 1000)
     val expectedQueue = Seq((item,1))
@@ -49,8 +52,8 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "reduce content by completed and returned items with different entries in ordered fashion" in {
-    val item1 = Outpost("test1", Extractable("test1", 0, 0, Set.empty), Seq.empty, 1000)
-    val item2 = Outpost("test2", Extractable("test2", 0, 0, Set.empty), Seq.empty, 1000)
+    val item1 = Outpost(1, "test1", Extractable(extrId1, "test1", 0, 0, Set.empty), Seq.empty, 1000)
+    val item2 = Outpost(2, "test2", Extractable(extrId2, "test2", 0, 0, Set.empty), Seq.empty, 1000)
     val queue = ProductionQueue(Seq((item1, 2),(item2, 3)))
     val (updated, res) = queue.out(System.currentTimeMillis() - 1000)
     val expectedQueue = Seq((item1,1),(item2, 3))
@@ -60,8 +63,8 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "reduce content by completed and returned items with different entries" in {
-    val item1 = Outpost("test1", Extractable("test1", 0, 0, Set.empty), Seq.empty, 1000)
-    val item2 = Outpost("test2", Extractable("test2", 0, 0, Set.empty), Seq.empty, 1000)
+    val item1 = Outpost(1, "test1", Extractable(extrId1, "test1", 0, 0, Set.empty), Seq.empty, 1000)
+    val item2 = Outpost(2, "test2", Extractable(extrId2, "test2", 0, 0, Set.empty), Seq.empty, 1000)
     val queue = ProductionQueue(Seq((item1, 2),(item2, 3)))
     val (updated, res) = queue.out(System.currentTimeMillis() - 3000)
     val expectedQueue = Seq((item2, 2))
@@ -71,7 +74,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "reduce time if item is not completed" in {
-    val item1 = Outpost("test1", Extractable("test1", 0, 0, Set.empty), Seq.empty, 1000)
+    val item1 = Outpost(1, "test1", Extractable(extrId1, "test1", 0, 0, Set.empty), Seq.empty, 1000)
     val queue = ProductionQueue(Seq((item1, 1)))
     val (updated1, _) = queue.out(System.currentTimeMillis() - 300)
     val (updated2, _) = updated1.out(System.currentTimeMillis() - 300)
@@ -92,7 +95,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "not accumulate progress after content becomes empty" in {
-    val item1 = Outpost("test1", Extractable("test1", 0, 0, Set.empty), Seq.empty, 1000)
+    val item1 = Outpost(1, "test1", Extractable(extrId1, "test1", 0, 0, Set.empty), Seq.empty, 1000)
     val queue = ProductionQueue(Seq((item1,1)))
     val (updated, _) = queue.out(System.currentTimeMillis() - 1500)
     val expectedQueue = Seq.empty

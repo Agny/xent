@@ -19,7 +19,7 @@ object LayerGenerator {
     def genByY(y: Int)(x: Int, acc: Seq[WorldCell]): Seq[WorldCell] = {
 //      val mbRes = mbResource(resources)
       val mbRes =
-        if (x == 1 && y == 2) Some(Extractable("Copper", 51, 3000, Set.empty))            //test purposes
+        if (x == 1 && y == 2) Some(Extractable(1, "Copper", 51, 3000, Set.empty))            //test purposes
         else mbResource(resources)
       if (y < size) genByY(y + 1)(x, WorldCell(x, y, mbRes) +: acc)
       else WorldCell(x, y, mbRes) +: acc

@@ -1,13 +1,14 @@
 {
+  "id": 101,
   "name": "Copper shield",
   "cost": [
     {
-      "value": 2,
-      "res": "Copper sheet"
+      "stackValue": 2,
+      "id": 100
     },
     {
-      "value": 2,
-      "res": "Wood"
+      "stackValue": 2,
+      "id": 1
     }
   ],
   "yieldTime": 60000,

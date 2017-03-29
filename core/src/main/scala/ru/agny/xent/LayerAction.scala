@@ -16,7 +16,7 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: Cell) exten
     resource match {
       case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
         (layer.users.find(x => x.id == userId) match {
-          case Some(u) => facilityT.map(y => Outpost(y.name, x.resource.get, y.resources, y.buildTime)) match {
+          case Some(u) => facilityT.map(y => Outpost(y.id, y.name, x.resource.get, y.resources, y.buildTime)) match {
             case Some(outpost) => u.spend(facilityT.get) match {
               case Left(l) => Left(l)
               case Right(r) => Right((r, outpost))

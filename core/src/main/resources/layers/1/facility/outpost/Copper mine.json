@@ -1,12 +1,13 @@
 {
+  "id": 3,
   "name": "Copper mine",
   "extractable": "Copper",
   "obtainable": [],
   "producible": [],
   "cost": [
     {
-      "value": 5,
-      "res": "Wood"
+      "stackValue": 5,
+      "id": 1
     }
   ],
   "buildTime": 20000,
