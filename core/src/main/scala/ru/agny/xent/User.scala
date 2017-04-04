@@ -3,7 +3,7 @@ package ru.agny.xent
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.core._
 
-case class User(id: UserId, name: String, city: City, facilities: Map[(String, Facility.State), ContainerCell], storage: Storage, queue: ProductionQueue, lastAction: Long) {
+case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, lastAction: Long) {
 
   def work(a: UserAction): Either[Response, User] = {
     val time = System.currentTimeMillis()
@@ -19,11 +19,13 @@ case class User(id: UserId, name: String, city: City, facilities: Map[(String, F
   }
 
   def build(cell: ContainerCell): User = {
-    val facility = cell.building.get
-    val b = facilities + ((facility.name, Facility.InConstruction) -> cell)
+    val facility = cell.building.get match {
+      case x: Building => x.copy(state = Facility.InConstruction)
+      case x: Outpost => x.copy(state = Facility.InConstruction)
+    }
     val q = queue.in(facility, 1)
     //TODO modify citymap
-    copy(facilities = b, queue = q)
+    copy(queue = q)
   }
 
   def spend(recipe: Cost): Either[Response, User] = {
@@ -40,22 +42,13 @@ case class User(id: UserId, name: String, city: City, facilities: Map[(String, F
   private def handleQueue(items: Seq[Facility], state: User): User = {
     items match {
       case Seq(h, t@_*) =>
-        val update = facilities(h.name, Facility.InConstruction) match {
-          case c: LocalCell =>
-            val cityMap = city.build(c, c.building.get)
-            val updatedBuildings = updateBuildingState(h.name, Facility.InConstruction, Facility.Idle)
-            state.copy(city = cityMap, facilities = updatedBuildings, storage = storage.addProducer(h))
-          case c: WorldCell =>
-            val updatedBuildings = updateBuildingState(h.name, Facility.InConstruction, Facility.Idle)
-            state.copy(facilities = updatedBuildings, storage = storage.addProducer(h))
+        val update = h match {
+          case x: Building => state.copy(city = city.build(x), storage = storage.addProducer(x))
+          case x: Outpost => state.copy(lands = lands.add(x), storage = storage.addProducer(x))
         }
         handleQueue(t, update)
       case _ => state
     }
-  }
-
-  private def updateBuildingState(f: String, from: Facility.State, to: Facility.State) = {
-    facilities.map(b => if (b._1 ==(f, from)) (f, to) -> b._2 else b)
   }
 
   def findFacility(producer: String): Option[Facility] = {
@@ -65,12 +58,18 @@ case class User(id: UserId, name: String, city: City, facilities: Map[(String, F
   override def toString = s"id=$id name=$name time=$lastAction"
 }
 
+case class Lands(outposts: Seq[Outpost]) {
+  def add(outpost: Outpost): Lands = Lands(outposts :+ outpost)
+}
+
+object Lands {
+  def empty() = Lands(Seq.empty)
+}
+
 object User {
   def apply(id: UserId, name: String, city: City): User = {
-    val idle: Facility.State = Facility.Idle
-    val defaultBuildings = city.buildings().map(x => (x.building.get.name, idle) -> x).toMap
     val storageEmpty = Storage.empty.copy(producers = city.buildings().map(_.building.get))
-    User(id, name, city, defaultBuildings, storageEmpty, ProductionQueue.empty(), System.currentTimeMillis())
+    User(id, name, city, Lands.empty(), storageEmpty, ProductionQueue.empty(), System.currentTimeMillis())
   }
 }
 

@@ -11,9 +11,13 @@ import ru.agny.xent.core._
 case class City(x: Int, y: Int, private val map: ShapeMap) {
   def isEnoughSpace(s: Shape): Boolean = map.isAvailable(s)
 
-  def buildings(): Seq[ContainerCell] = map.filter(_.building.nonEmpty).map(x => x.core)
+  def buildings(): Seq[LocalCell] = map.filter(_.building.nonEmpty).map(x => x.core)
 
-  def build(c: LocalCell, b: Building): City = copy(map = map.update(c.copy(building = Some(b))))
+  def producers(): Seq[Building] = buildings().map(x => x.building.get)
+
+  def build(b: Building): City = copy(map = map.update(
+    b.shape.core.copy(building = Some(b.copy(state = Facility.Idle)))
+  ))
 }
 
 object City {

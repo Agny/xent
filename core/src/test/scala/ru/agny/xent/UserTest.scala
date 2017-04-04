@@ -10,7 +10,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   val buildingId = 1
 
   "User" should "spend resources" in {
-    val user = User(1, "test", City.empty(0, 0), Map.empty, Storage(Seq(ResourceUnit(10, woodId)), Seq.empty), ProductionQueue.empty(), 0)
+    val user = User(1, "test", City.empty(0, 0), Lands.empty(), Storage(Seq(ResourceUnit(10, woodId)), Seq.empty), ProductionQueue.empty(), 0)
     val bt = BuildingTemplate(buildingId, "Test", Seq.empty, Seq(ResourceUnit(7, woodId)), 0, shape, "")
     val updated = user.spend(bt)
     val expected = Storage(Seq(ResourceUnit(3, woodId)), Seq.empty)
@@ -18,7 +18,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   }
 
   it should "not spend any resources if there is not enough" in {
-    val user = User(1, "test", City.empty(0, 0), Map.empty, Storage(Seq(ResourceUnit(5, woodId)), Seq.empty), ProductionQueue.empty(), 0)
+    val user = User(1, "test", City.empty(0, 0), Lands.empty(), Storage(Seq(ResourceUnit(5, woodId)), Seq.empty), ProductionQueue.empty(), 0)
     val bt = BuildingTemplate(buildingId, "Test", Seq.empty, Seq(ResourceUnit(7, woodId)), 0, shape, "")
     val updated = user.spend(bt)
     updated.isLeft should be(true)
