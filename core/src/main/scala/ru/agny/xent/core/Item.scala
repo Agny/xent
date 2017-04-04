@@ -14,7 +14,7 @@ sealed trait StackableItem extends Item {
   val stackValue: Int
 }
 
-case class ResourceUnit(stackValue: Int, id: ItemId) extends StackableItem
+final case class ResourceUnit(stackValue: Int, id: ItemId) extends StackableItem
 
 object Progress {
   type ProductionTime = Long
