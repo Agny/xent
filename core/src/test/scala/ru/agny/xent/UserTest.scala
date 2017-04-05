@@ -10,15 +10,15 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   val buildingId = 1
 
   "User" should "spend resources" in {
-    val user = User(1, "test", City.empty(0, 0), Lands.empty(), Storage(Seq(ResourceUnit(10, woodId)), Seq.empty), ProductionQueue.empty(), 0)
+    val user = User(1, "test", City.empty(0, 0), Lands.empty, Storage(Seq(ResourceUnit(10, woodId))), ProductionQueue.empty, 0)
     val bt = BuildingTemplate(buildingId, "Test", Seq.empty, Seq(ResourceUnit(7, woodId)), 0, shape, "")
     val updated = user.spend(bt)
-    val expected = Storage(Seq(ResourceUnit(3, woodId)), Seq.empty)
+    val expected = Storage(Seq(ResourceUnit(3, woodId)))
     updated.right.value.storage should be(expected)
   }
 
   it should "not spend any resources if there is not enough" in {
-    val user = User(1, "test", City.empty(0, 0), Lands.empty(), Storage(Seq(ResourceUnit(5, woodId)), Seq.empty), ProductionQueue.empty(), 0)
+    val user = User(1, "test", City.empty(0, 0), Lands.empty, Storage(Seq(ResourceUnit(5, woodId))), ProductionQueue.empty, 0)
     val bt = BuildingTemplate(buildingId, "Test", Seq.empty, Seq(ResourceUnit(7, woodId)), 0, shape, "")
     val updated = user.spend(bt)
     updated.isLeft should be(true)
@@ -26,7 +26,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
 
   "Newly created user" should "spend resources" in {
     val user = User(1, "test", City.empty(0, 0))
-    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, woodId)), user.storage.producers))
+    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, woodId))))
     val bt = BuildingTemplate(buildingId, "Test", Seq.empty, Seq(ResourceUnit(7, woodId)), 0, shape, "")
     val updated = userAndStorage.spend(bt)
     val expected = Seq(ResourceUnit(3, woodId))
@@ -38,7 +38,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val layer = Layer("", 1, Seq.empty, CellsMap(Seq.empty), Seq(bt))
     val user = User(1, "test", City.empty(0, 0))
     val action = PlaceBuilding("Test", layer, LocalCell(2, 1))
-    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, woodId)), user.storage.producers))
+    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, woodId))))
     val updated = userAndStorage.work(action)
     val expected = Seq(ResourceUnit(3, woodId))
     updated.right.value.storage.resources should be(expected)
@@ -51,13 +51,13 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val user = User(1, "test", City.empty(0, 0))
     val bCell = LocalCell(2, 1)
     val action = PlaceBuilding("Test", layer, bCell)
-    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, woodId)), user.storage.producers))
+    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, woodId))))
     val updated = userAndStorage.work(action).right.value
 
     Thread.sleep(buildingConstructionTime)
     val userWithBuilding = updated.work(DoNothing).right.value
     val expected = bt.name
-    val updatedCell = userWithBuilding.city.buildings().find(c => c.x == bCell.x && c.y == bCell.y)
+    val updatedCell = userWithBuilding.city.buildings.find(c => c.x == bCell.x && c.y == bCell.y)
     updatedCell.isEmpty shouldBe false
     updatedCell.get.building.isEmpty shouldBe false
     updatedCell.get.building.get.name should be (expected)
@@ -67,7 +67,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val bt = OutpostTemplate(buildingId, "Test", "Test res", Seq.empty, Seq(ResourceUnit(7, woodId)), 0, "")
     val user = User(1, "test", City.empty(0, 0))
     val resourceToClaim = WorldCell(1, 2, Some(Extractable(1, "Test res", 10, 111, Set.empty)))
-    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, woodId)), user.storage.producers))
+    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(10, woodId))))
     val layer = Layer("", 1, Seq(userAndStorage), CellsMap(Seq(Seq(), Seq(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Seq())), Seq(bt))
     val action = ResourceClaim("Test", 1, WorldCell(1, 2))
     val updated = layer.tick(action)
@@ -80,7 +80,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val bt = BuildingTemplate(buildingId, "Build Test", Seq.empty, Seq(ResourceUnit(7, woodId)), 0, shape, "")
     val user = User(1, "test", City.empty(0, 0))
     val resourceToClaim = WorldCell(1, 2, Some(Extractable(1, "Test res", 10, 111, Set.empty)))
-    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(15, woodId)), user.storage.producers))
+    val userAndStorage = user.copy(storage = Storage(Seq(ResourceUnit(15, woodId))))
     val layer = Layer("", 1, Seq(userAndStorage), CellsMap(Seq(Seq(), Seq(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Seq())), Seq(ot, bt))
     val resourceClaim = ResourceClaim("Out Test", 1, WorldCell(1, 2))
     val placeBuilding = PlaceBuilding("Build Test", layer, LocalCell(2, 1))

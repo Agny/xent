@@ -37,5 +37,5 @@ case class ProductionQueue(content: Seq[(DelayableItem, Int)], progress: Product
 }
 
 object ProductionQueue {
-  def empty() = ProductionQueue(Seq.empty)
+  def empty = ProductionQueue(Seq.empty)
 }

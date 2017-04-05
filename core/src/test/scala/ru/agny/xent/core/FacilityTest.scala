@@ -10,12 +10,11 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
   "Building" should "produce resource in queue" in {
     val res = Producible(prodId, "Test res", Seq(ResourceUnit(5, woodId)), 1000, Set.empty)
     val facility = Building(1, "test", Seq(res), 0, shape)
-    val storage = Storage(Seq(ResourceUnit(10, woodId)), Seq(facility))
-    val afterSpend = facility.addToQueue(ResourceUnit(1, res.id))(storage)
-    val result = afterSpend.right.value.tick(System.currentTimeMillis() - 1000)
+    val storage = Storage(Seq(ResourceUnit(10, woodId)))
+    val (sAfterSpend, updatedFacilityQueue) = facility.addToQueue(ResourceUnit(1, res.id))(storage).right.value
+    val (result, _) = sAfterSpend.tick(System.currentTimeMillis() - 1000, Seq(updatedFacilityQueue))
     val expected = Seq(ResourceUnit(1, res.id), ResourceUnit(5, woodId))
     result.resources should be(expected)
-    result.producers.head should be (facility)
   }
 
 }

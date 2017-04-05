@@ -3,9 +3,13 @@ package ru.agny.xent.core
 import ru.agny.xent.Response
 import ru.agny.xent.core.Item.ItemId
 
-case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
+case class Storage(resources: Seq[ResourceUnit]) {
 
-  def tick(lastAction: Long): Storage = producers.foldLeft(this)((s, f) => f.tick(lastAction)(s))
+  def tick(lastAction: Long, producers: Seq[Facility]): (Storage, Seq[Facility]) =
+    producers.foldLeft(this, Seq.empty[Facility])((s, f) => {
+      val (storage, updatedQueue) = f.tick(lastAction)(s._1)
+      (storage, s._2 :+ updatedQueue)
+    })
 
   def add(r: Seq[ResourceUnit]): Storage =
     r match {
@@ -19,13 +23,9 @@ case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
         Storage(resources.map {
           case x if x.id == r.id => ResourceUnit(x.stackValue + r.stackValue, r.id)
           case x => x
-        }, producers)
-      case None => Storage(r +: resources, producers)
+        })
+      case None => Storage(r +: resources)
     }
-
-  def addProducer(facility: Facility) = copy(producers = facility +: producers)
-
-  def updateProducer(from: Facility, to: Facility): Storage = copy(producers = producers.map(x => if (x == from) to else x))
 
   def spend(recipe: Cost): Either[Response, Storage] =
     recipe.cost.find(x => !resources.exists(y => x.id == y.id && y.stackValue >= x.stackValue)) match {
@@ -34,12 +34,12 @@ case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
         Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.id match {
           case a.id => ResourceUnit(bb.stackValue - a.stackValue, a.id)
           case _ => bb
-        })), producers))
+        }))))
     }
 
   def get(resource: ItemId): Option[ResourceUnit] = resources.find(_.id == resource)
 }
 
 object Storage {
-  def empty: Storage = Storage(Seq.empty, Seq.empty)
+  def empty: Storage = Storage(Seq.empty)
 }

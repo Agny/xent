@@ -6,7 +6,7 @@ sealed trait Resource extends DelayableItem with SingleItem {
   val name: String
   val since: Set[Prereq]
   val defaultYield = 1
-
+  //TODO usecases are lost!
   def out(): ResourceUnit
 
   override def toString = s"$name"

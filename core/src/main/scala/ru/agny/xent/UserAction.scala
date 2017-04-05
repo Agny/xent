@@ -38,7 +38,7 @@ case class AddProduction(facility: String, res: ResourceUnit) extends UserAction
     user.findFacility(facility) match {
       case Some(v) => user.addProduction(v, res) match {
         case Left(l) => Left(l)
-        case Right(r) => Right(user.copy(storage = r))
+        case Right(r) => Right(user.copy(storage = r._1))
       }
       case None => Left(Response(s"Unable to find $facility"))
     }

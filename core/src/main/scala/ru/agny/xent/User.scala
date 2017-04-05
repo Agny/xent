@@ -1,15 +1,19 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
+import ru.agny.xent.core.Facility.State
 import ru.agny.xent.core._
 
 case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, lastAction: Long) {
 
+  private lazy val producers = city.producers ++ lands.outposts
+
   def work(a: UserAction): Either[Response, User] = {
     val time = System.currentTimeMillis()
     val (q, prod) = queue.out(lastAction)
-    val actualStorage = storage.tick(lastAction)
-    val actualUser = copy(storage = actualStorage, queue = q, lastAction = time)
+    val (actualStorage, updatedFacilities) = storage.tick(lastAction, producers)
+    val (updatedCity, updatedLands) = updateByFacilitiesQueue(updatedFacilities)
+    val actualUser = copy(city = updatedCity, lands = updatedLands, storage = actualStorage, queue = q, lastAction = time)
     val updated = handleQueue(prod.map(_._1.asInstanceOf[Facility]), actualUser)
     a.run(updated)
   }
@@ -39,20 +43,28 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     }
   }
 
-  private def handleQueue(items: Seq[Facility], state: User): User = {
-    items match {
-      case Seq(h, t@_*) =>
-        val update = h match {
-          case x: Building => state.copy(city = city.build(x), storage = storage.addProducer(x))
-          case x: Outpost => state.copy(lands = lands.add(x), storage = storage.addProducer(x))
-        }
-        handleQueue(t, update)
-      case _ => state
-    }
+  def findFacility(producer: String): Option[Facility] = {
+    producers.find(_.name == producer)
   }
 
-  def findFacility(producer: String): Option[Facility] = {
-    storage.producers.find(_.name == producer)
+  private def handleQueue(items: Seq[Facility], state: User): User = items match {
+    case Seq(h, t@_*) =>
+      val update = h match {
+        case x: Building => state.copy(city = city.build(x))
+        case x: Outpost => state.copy(lands = lands.add(x))
+      }
+      handleQueue(t, update)
+    case _ => state
+  }
+
+  private def updateByFacilitiesQueue(f: Seq[Facility]): (City, Lands) = {
+    val (buildings, outposts) = f.foldLeft((Seq.empty[Building], Seq.empty[Outpost]))((s, x) => {
+      x match {
+        case a: Building => (s._1 :+ a, s._2)
+        case a: Outpost => (s._1, s._2 :+ a)
+      }
+    })
+    (city.update(buildings.map((_, Facility.InProcess))), Lands(outposts))
   }
 
   override def toString = s"id=$id name=$name time=$lastAction"
@@ -63,13 +75,12 @@ case class Lands(outposts: Seq[Outpost]) {
 }
 
 object Lands {
-  def empty() = Lands(Seq.empty)
+  def empty = Lands(Seq.empty)
 }
 
 object User {
   def apply(id: UserId, name: String, city: City): User = {
-    val storageEmpty = Storage.empty.copy(producers = city.buildings().map(_.building.get))
-    User(id, name, city, Lands.empty(), storageEmpty, ProductionQueue.empty(), System.currentTimeMillis())
+    User(id, name, city, Lands.empty, Storage.empty, ProductionQueue.empty, System.currentTimeMillis())
   }
 }
 

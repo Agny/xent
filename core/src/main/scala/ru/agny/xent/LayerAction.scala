@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType._
-import ru.agny.xent.core.{Cell, Outpost, WorldCell}
+import ru.agny.xent.core.{Cell, Outpost}
 
 trait LayerAction extends Action {
   type T = Layer
