@@ -5,6 +5,9 @@ import ru.agny.xent.core.utils.{IdHolder, OutpostTemplate, BuildingTemplate}
 import ru.agny.xent.core._
 
 class UserTest extends FlatSpec with Matchers with EitherValues {
+
+  import Item.implicits._
+
   val shape = FourShape(LocalCell(0,0))
   val woodId = 1
   val buildingId = 1

@@ -21,4 +21,13 @@ object Progress {
 }
 object Item {
   type ItemId = Long
+
+  object implicits {
+    implicit def convert(v: StackableItem): Slot[Item] = v match {
+      case ResourceUnit(stackValue, id) if stackValue > 0 => ItemSlot(v)
+      case _ => EmptySlot
+    }
+
+    implicit def convert(v: Seq[StackableItem])(implicit toSlot: StackableItem => Slot[Item]): Seq[Slot[Item]] = v.map(toSlot)
+  }
 }

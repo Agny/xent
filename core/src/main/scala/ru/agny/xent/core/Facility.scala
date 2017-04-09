@@ -13,7 +13,8 @@ sealed trait Facility extends DelayableItem {
 
   def tick(fromTime: ProductionTime): Storage => (Storage, Facility) = storage => {
     val (q, prod) = queue.out(fromTime)
-    (storage.add(prod.map(x => ResourceUnit(x._2, x._1.id))), instance(q))
+    val (s, excess) = storage.add(prod.map(x => ResourceUnit(x._2, x._1.id)))
+    (s, instance(q))
   }
 
   def addToQueue(item: ResourceUnit): Storage => Either[Response, (Storage, Facility)] = storage => {

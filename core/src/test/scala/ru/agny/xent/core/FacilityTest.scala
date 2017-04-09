@@ -3,6 +3,9 @@ package ru.agny.xent.core
 import org.scalatest.{EitherValues, Matchers, FlatSpec}
 
 class FacilityTest extends FlatSpec with Matchers with EitherValues {
+
+  import Item.implicits._
+
   val shape = FourShape(LocalCell(1,1))
   val woodId = 1
   val prodId = 2
