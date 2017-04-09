@@ -2,25 +2,25 @@ package ru.agny.xent.core
 
 import ru.agny.xent.core.Progress.ProductionTime
 
-case class ProductionQueue(content: Seq[(DelayableItem, Int)], progress: ProductionTime = 0) {
+case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: ProductionTime = 0) {
 
   def in(item: DelayableItem, count: Int): ProductionQueue = {
-    ProductionQueue(content :+(item, count), progress)
+    ProductionQueue((item, count) +: content, progress)
   }
 
-  def out(fromTime: Long): (ProductionQueue, Seq[(DelayableItem, Int)]) = {
+  def out(fromTime: Long): (ProductionQueue, Vector[(DelayableItem, Int)]) = {
     val now = System.currentTimeMillis()
     val progress = now - (fromTime - this.progress)
-    val (updatedContent, production, time) = handle(content, progress, Seq.empty)
+    val (updatedContent, production, time) = handle(content, progress, Vector.empty)
     (ProductionQueue(updatedContent, time), production)
   }
 
   def isEmpty = content.isEmpty
 
-  private def handle(items: Seq[(DelayableItem, Int)], remindedTime: Long, acc: Seq[(DelayableItem, Int)]): (Seq[(DelayableItem, Int)], Seq[(DelayableItem, Int)], ProductionTime) = {
+  private def handle(items: Vector[(DelayableItem, Int)], remindedTime: Long, acc: Vector[(DelayableItem, Int)]): (Vector[(DelayableItem, Int)], Vector[(DelayableItem, Int)], ProductionTime) = {
     items match {
-      case Seq(h, t@_*) => handle(h, remindedTime, (h._1, 0)) match {
-        case (_, time, (item, 0)) => (items, Seq.empty, time)
+      case h +: t => handle(h, remindedTime, (h._1, 0)) match {
+        case (_, time, (item, 0)) => (items, Vector.empty, time)
         case (0, time, prod) => handle(t, time, prod +: acc)
         case (count, time, prod) => ((h._1, count) +: t, prod +: acc, time)
       }
@@ -37,5 +37,5 @@ case class ProductionQueue(content: Seq[(DelayableItem, Int)], progress: Product
 }
 
 object ProductionQueue {
-  def empty = ProductionQueue(Seq.empty)
+  def empty = ProductionQueue(Vector.empty)
 }

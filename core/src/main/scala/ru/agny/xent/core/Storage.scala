@@ -3,24 +3,24 @@ package ru.agny.xent.core
 import ru.agny.xent.Response
 import ru.agny.xent.core.Item.ItemId
 
-case class Storage(slots: Seq[Slot[Item]]) extends InventoryLike[Storage, Item] {
+case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Item] {
 
   import Item.implicits._
 
   override implicit val s: Storage = this
 
-  def tick(lastAction: Long, producers: Seq[Facility]): (Storage, Seq[Facility]) =
-    producers.foldLeft(this, Seq.empty[Facility])((s, f) => {
+  def tick(lastAction: Long, producers: Vector[Facility]): (Storage, Vector[Facility]) =
+    producers.foldLeft(this, Vector.empty[Facility])((s, f) => {
       val (storage, updatedQueue) = f.tick(lastAction)(s._1)
-      (storage, s._2 :+ updatedQueue)
+      (storage, updatedQueue +: s._2)
     })
 
-  def add(r: Seq[Item]): (Storage, Seq[Slot[Item]]) = r match {
-    case Seq(h, t@_*) =>
+  def add(r: Vector[Item]): (Storage, Vector[Slot[Item]]) = r match {
+    case h +: t =>
       val (store, remainder) = add(h)(s)
       val (storeAcc, remainderAcc) = store.add(t)
-      (storeAcc, remainderAcc :+ remainder)
-    case _ => (this, Seq.empty)
+      (storeAcc, remainder +: remainderAcc)
+    case _ => (this, Vector.empty)
   }
 
   def spend(recipe: Cost): Either[Response, Storage] = {
@@ -41,9 +41,9 @@ case class Storage(slots: Seq[Slot[Item]]) extends InventoryLike[Storage, Item] 
     case _ => false
   }
 
-  override def apply(slots: Seq[Slot[Item]]): Storage = Storage(slots)
+  override def apply(slots: Vector[Slot[Item]]): Storage = Storage(slots)
 }
 
 object Storage {
-  def empty: Storage = Storage(Seq.empty)
+  def empty: Storage = Storage(Vector.empty)
 }

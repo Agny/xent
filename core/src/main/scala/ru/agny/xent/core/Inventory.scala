@@ -3,15 +3,15 @@ package ru.agny.xent.core
 import ru.agny.xent.core.Item.ItemId
 
 trait Inventory[T <: Item] {
-  val slots: Seq[Slot[T]]
+  val slots: Vector[Slot[T]]
 
   def add[S <: Inventory[T], U <: T](v: U)(implicit ev: InventoryLike[S, T]): (S, Slot[T]) = v match {
-    case i: SingleItem => (ev.apply(slots :+ ItemSlot(i).asInstanceOf[Slot[T]]), EmptySlot)
+    case i: SingleItem => (ev.apply(ItemSlot(i).asInstanceOf[Slot[T]] +: slots), EmptySlot)
     case r@ResourceUnit(st, id) => getSlot(id) match {
       case is@ItemSlot(x) =>
         val (newV, remainder) = is.set(v)
         (ev.apply(slots.updated(slots.indexOf(is), newV)), remainder)
-      case EmptySlot => (ev.apply(slots :+ ItemSlot(v)), EmptySlot)
+      case EmptySlot => (ev.apply(ItemSlot(v) +: slots), EmptySlot)
     }
     case _ => (ev.apply(slots), ItemSlot(v))
   }
@@ -39,7 +39,7 @@ trait Inventory[T <: Item] {
 
   def getItem(id: ItemId): Option[T] = slots.find(s => !s.isEmpty && s.get.id == id).map(_.get)
 
-  def resources: Seq[ResourceUnit] = slots.flatMap(x => x match {
+  def resources: Vector[ResourceUnit] = slots.flatMap(x => x match {
     case ItemSlot(v) => v match {
       case ru: ResourceUnit => Some(ru)
       case _ => None
@@ -52,63 +52,5 @@ trait Inventory[T <: Item] {
 trait InventoryLike[S <: Inventory[T], T <: Item] extends Inventory[T] {
   implicit val s: S
 
-  def apply(slots: Seq[Slot[T]]): S
+  def apply(slots: Vector[Slot[T]]): S
 }
-
-/*
-* Example of implementation
-*
-case class EquipmentInventory(mainH: TestMainWpn, offHand: TestOffWpn) extends Inventory[WeaponItem] {
-  val slots = Seq.empty // don't bother
-
-  override def add(v: WeaponItem): (Inventory[WeaponItem], Slot[WeaponItem]) = set(-1, ItemSlot(v))
-
-  override def set(idx: Int, v: Slot[WeaponItem]): (Inventory[WeaponItem], Slot[WeaponItem]) = v match {
-    case ItemSlot(item) => item match {
-      case itm@TestMainWpn(_, _) => (EquipmentInventory(itm, offHand), ItemSlot(mainH))
-      case itm@TestOffWpn(_, _) => (EquipmentInventory(mainH, itm), ItemSlot(offHand))
-    }
-    case EmptySlot => get(idx) match {
-      case Some(wpn) => (EquipmentInventory(slots.filter(_ != slots(idx))), ItemSlot(wpn))
-      case None => (this, EmptySlot)
-    }
-  }
-
-  override def isMoveAcceptable[U <: Item](v: U): Boolean = v.isInstanceOf[WeaponItem]
-}
-
-object EquipmentInventory {
-  def copy(slots: Seq[Slot[WeaponItem]]): EquipmentInventory = {
-    slots match {
-      case ItemSlot(mainW: TestMainWpn) :: ItemSlot(offW: TestOffWpn) :: Nil => EquipmentInventory(mainW, offW)
-      case ItemSlot(offW: TestOffWpn) :: ItemSlot(mainW: TestMainWpn) :: Nil => EquipmentInventory(mainW, offW)
-    }
-  }
-}
-
-case class UserInventory(slots: Seq[Slot[Item]]) extends Inventory[Item] {
-  override def add(v: Item): (Inventory[Item], Slot[Item]) = ???
-
-  override def set(idx: Int, v: Slot[Item]): (Inventory[Item], Slot[Item]) = ???
-
-  override def isMoveAcceptable[U <: Item](v: U): Boolean = v.isInstanceOf[Item]
-}
-
-object TestW extends App {
-  def tt: Unit = {
-    val ei = EquipmentInventory(Seq(ItemSlot(TestMainWpn(1, "t1")), ItemSlot(TestOffWpn(2, "o2"))))
-    val ui = UserInventory(Seq(ItemSlot(ResourceUnit(5, 4)), ItemSlot(TestOffWpn(2, "o3"))))
-    val (nui, nei) = ui.move(1, ei)
-    println(nui)
-    println(nei)
-  }
-
-  tt
-}
-
-trait WeaponItem extends SingleItem {
-  val v: String
-}
-case class TestMainWpn(id: ItemId, v: String) extends WeaponItem
-case class TestOffWpn(id: ItemId, v: String) extends WeaponItem
-  */

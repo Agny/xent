@@ -11,7 +11,7 @@ object Dependencies {
 
   val netty = "io.netty" % "netty-all" % "4.1.4.Final"
 
-  val macrosDeps = Seq(reflect)
-  val coreDeps = Seq(json4sJackson, scalactic, scalacticTest, scredis)
-  val webDeps = Seq(netty)
+  val macrosDeps = Vector(reflect)
+  val coreDeps = Vector(json4sJackson, scalactic, scalacticTest, scredis)
+  val webDeps = Vector(netty)
 }

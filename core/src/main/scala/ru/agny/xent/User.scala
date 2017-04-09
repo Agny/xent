@@ -47,8 +47,8 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     producers.find(_.name == producer)
   }
 
-  private def handleQueue(items: Seq[Facility], state: User): User = items match {
-    case Seq(h, t@_*) =>
+  private def handleQueue(items: Vector[Facility], state: User): User = items match {
+    case h +: t =>
       val update = h match {
         case x: Building => state.copy(city = city.build(x))
         case x: Outpost => state.copy(lands = lands.add(x))
@@ -57,11 +57,11 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     case _ => state
   }
 
-  private def updateByFacilitiesQueue(f: Seq[Facility]): (City, Lands) = {
-    val (buildings, outposts) = f.foldLeft((Seq.empty[Building], Seq.empty[Outpost]))((s, x) => {
+  private def updateByFacilitiesQueue(f: Vector[Facility]): (City, Lands) = {
+    val (buildings, outposts) = f.foldLeft((Vector.empty[Building], Vector.empty[Outpost]))((s, x) => {
       x match {
-        case a: Building => (s._1 :+ a, s._2)
-        case a: Outpost => (s._1, s._2 :+ a)
+        case a: Building => (a +: s._1, s._2)
+        case a: Outpost => (s._1, a +: s._2)
       }
     })
     (city.update(buildings.map((_, Facility.InProcess))), Lands(outposts))
@@ -70,12 +70,12 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
   override def toString = s"id=$id name=$name time=$lastAction"
 }
 
-case class Lands(outposts: Seq[Outpost]) {
-  def add(outpost: Outpost): Lands = Lands(outposts :+ outpost)
+case class Lands(outposts: Vector[Outpost]) {
+  def add(outpost: Outpost): Lands = Lands(outpost +: outposts)
 }
 
 object Lands {
-  def empty = Lands(Seq.empty)
+  def empty = Lands(Vector.empty)
 }
 
 object User {

@@ -6,7 +6,7 @@ import ru.agny.xent.core.Progress.ProductionTime
 
 sealed trait Facility extends DelayableItem {
   val name: String
-  val resources: Seq[Resource]
+  val resources: Vector[Resource]
   val queue: ProductionQueue
   //TODO state transitions
   val state: Facility.State
@@ -33,7 +33,7 @@ sealed trait Facility extends DelayableItem {
 
 final case class Building(id: ItemId,
                           name: String,
-                          resources: Seq[Resource],
+                          resources: Vector[Resource],
                           queue: ProductionQueue,
                           yieldTime: ProductionTime,
                           shape: Shape,
@@ -43,7 +43,7 @@ final case class Building(id: ItemId,
 final case class Outpost(id: ItemId,
                          name: String,
                          main: Extractable,
-                         resources: Seq[Resource],
+                         resources: Vector[Resource],
                          queue: ProductionQueue,
                          yieldTime: ProductionTime,
                          state: Facility.State = Facility.Init) extends Facility {
@@ -57,15 +57,15 @@ object Facility {
   case object Idle extends State
   case object Init extends State
 
-  val states = Seq(InConstruction, InProcess, Idle, Init)
+  val states = Vector(InConstruction, InProcess, Idle, Init)
 }
 
 object Building {
-  def apply(id: ItemId, name: String, resources: Seq[Resource], yieldTime: ProductionTime, shape: Shape): Building =
+  def apply(id: ItemId, name: String, resources: Vector[Resource], yieldTime: ProductionTime, shape: Shape): Building =
     Building(id, name, resources, ProductionQueue.empty, yieldTime, shape)
 }
 
 object Outpost {
-  def apply(id: ItemId, name: String, main: Extractable, resources: Seq[Resource], yieldTime: ProductionTime): Outpost =
+  def apply(id: ItemId, name: String, main: Extractable, resources: Vector[Resource], yieldTime: ProductionTime): Outpost =
     Outpost(id, name, main, resources, ProductionQueue.empty, yieldTime)
 }

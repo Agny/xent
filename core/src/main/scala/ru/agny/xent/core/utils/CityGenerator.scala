@@ -7,13 +7,13 @@ object CityGenerator {
 
   private val initBuilding = "Coppice"
 
-  private def buildingGen(layerLvl: Int): Seq[BuildingTemplate] = TemplateLoader.loadBuildings(layerLvl.toString)
+  private def buildingGen(layerLvl: Int): Vector[BuildingTemplate] = TemplateLoader.loadBuildings(layerLvl.toString)
 
   def initCity(x: Int, y: Int): City = {
     val building = buildingGen(1)
     val mbBuilding = building.find(b => b.name == initBuilding).map(bt => Building(bt.id, bt.name, bt.resources, bt.buildTime, bt.shape))
 
-    val map = ShapeMap(CellsMap(0 to 3 map (x => 0 to 3 map (y => {
+    val map = ShapeMap(CellsMap((0 to 3).toVector.map(x => (0 to 3).toVector.map(y => {
       if (x == 0 && y == 1) LocalCell(x, y, mbBuilding)
       else LocalCell(x, y)
     }))))

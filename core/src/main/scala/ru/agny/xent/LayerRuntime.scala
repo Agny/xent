@@ -1,9 +1,9 @@
 package ru.agny.xent
 
 class LayerRuntime(queue: MessageQueue) {
-  private var lastState: Seq[Layer] = Seq.empty
+  private var lastState: Vector[Layer] = Vector.empty
 
-  private def run(initialState: Seq[Layer]): Seq[Layer] = {
+  private def run(initialState: Vector[Layer]): Vector[Layer] = {
     lastState = initialState
 
     new Thread(new Runnable {
@@ -18,14 +18,14 @@ class LayerRuntime(queue: MessageQueue) {
     lastState
   }
 
-  private def rec(startState: Seq[Layer], messages: Seq[Message]): Seq[Layer] = {
+  private def rec(startState: Vector[Layer], messages: Vector[Message]): Vector[Layer] = {
     messages.foldLeft(startState)((layers, m) => m match {
           //TODO need some kind of abstraction for this handling
           case x: NewUserMessage =>
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(NewUser(x.user, x.name)) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Vector(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
@@ -35,13 +35,13 @@ class LayerRuntime(queue: MessageQueue) {
             val to = active.find(l => l.id == x.layerTo).get
             LayerChange(x.user).run(from, to) match {
               case Left(v) => x.reply(v); layers
-              case Right(v) => x.reply(ResponseOk); Seq(v._1, v._2) ++ idle
+              case Right(v) => x.reply(ResponseOk); Vector(v._1, v._2) ++ idle
             }
           case x: ResourceClaimMessage =>
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(ResourceClaim(x.facility, x.user, x.cell)) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Vector(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
@@ -49,7 +49,7 @@ class LayerRuntime(queue: MessageQueue) {
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(PlaceBuilding(x.building, layer, x.cell), x.user) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Vector(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
@@ -57,7 +57,7 @@ class LayerRuntime(queue: MessageQueue) {
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(AddProduction(x.facility, x.res), x.user) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Vector(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
@@ -65,7 +65,7 @@ class LayerRuntime(queue: MessageQueue) {
             layers.find(l => l.id == x.layer) match {
               case Some(layer) => layer.tick(Idle(x.user), x.user) match {
                 case Left(v) => x.reply(v); layers
-                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Seq(layer))
+                case Right(v) => x.reply(ResponseOk); v +: layers.diff(Vector(layer))
               }
               case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
             }
@@ -77,7 +77,7 @@ class LayerRuntime(queue: MessageQueue) {
 }
 
 object LayerRuntime {
-  def run(layers: Seq[Layer], queue: MessageQueue) = {
+  def run(layers: Vector[Layer], queue: MessageQueue) = {
     val runtime = new LayerRuntime(queue)
     runtime.run(layers)
     runtime

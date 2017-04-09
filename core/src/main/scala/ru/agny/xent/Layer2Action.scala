@@ -14,11 +14,11 @@ case class LayerChange(user: UserId) extends Layer2Action {
     val to = layers._2
     from.users.find(x => x.id == user) match {
       case Some(v) =>
-        val fromUsers = from.users.diff(Seq(user))
+        val fromUsers = from.users.diff(Vector(user))
         v.work(DoNothing) match {
           case Left(cantbe) => Left(cantbe)
           case Right(moving) =>
-            val toUsers = to.users :+ moving
+            val toUsers = moving +: to.users
             Right((from.copy(users = fromUsers), to.copy(users = toUsers)))
         }
       case None => Left(Response(s"There is no user with id[$user] in the layer[${from.id}]"))

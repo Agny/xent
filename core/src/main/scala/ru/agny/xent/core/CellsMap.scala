@@ -1,6 +1,6 @@
 package ru.agny.xent.core
 
-case class CellsMap[T <: Cell](private val cells: Seq[Seq[T]]) {
+case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
   val length = cells.length
 
   def find[A <: Cell](c: A): Option[T] = {
@@ -10,28 +10,28 @@ case class CellsMap[T <: Cell](private val cells: Seq[Seq[T]]) {
     }
   }
 
-  def flatMap[A](c: T => Option[A]): Seq[A] = {
-    cells.flatMap(x => rec_flatmap(c)(x, Seq.empty))
+  def flatMap[A](c: T => Option[A]): Vector[A] = {
+    cells.flatMap(x => rec_flatmap(c)(x, Vector.empty))
   }
 
-  def filter(c: T => Boolean): Seq[T] = {
-    cells.flatMap(x => rec_filter(c)(x, Seq.empty))
+  def filter(c: T => Boolean): Vector[T] = {
+    cells.flatMap(x => rec_filter(c)(x, Vector.empty))
   }
 
-  private def rec_flatmap[A](c: T => Option[A])(elems: Seq[T], acc: Seq[A]): Seq[A] = {
+  private def rec_flatmap[A](c: T => Option[A])(elems: Vector[T], acc: Vector[A]): Vector[A] = {
     elems match {
-      case Seq(h, t@_*) => c(h) match {
+      case h +: t => c(h) match {
         case Some(v) => rec_flatmap(c)(t, v +: acc)
         case None => rec_flatmap(c)(t, acc)
       }
-      case Seq() => acc
+      case Vector() => acc
     }
   }
 
-  private def rec_filter(c: T => Boolean)(elems: Seq[T], acc: Seq[T]): Seq[T] = {
+  private def rec_filter(c: T => Boolean)(elems: Vector[T], acc: Vector[T]): Vector[T] = {
     elems match {
-      case Seq(h, t@_*) => if (c(h)) rec_filter(c)(t, h +: acc) else rec_filter(c)(t, acc)
-      case Seq() => acc
+      case h +: t => if (c(h)) rec_filter(c)(t, h +: acc) else rec_filter(c)(t, acc)
+      case Vector() => acc
     }
   }
 

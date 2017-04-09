@@ -21,7 +21,7 @@ case class City(x: Int, y: Int, private val map: ShapeMap) {
     b.shape.core.copy(building = Some(b.copy(state = state)))
   ))
 
-  def update(bs: Seq[(Building, State)]): City = bs.foldLeft(this)((city, bstate) => update(bstate._1, bstate._2))
+  def update(bs: Vector[(Building, State)]): City = bs.foldLeft(this)((city, bstate) => update(bstate._1, bstate._2))
 }
 
 object City {

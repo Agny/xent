@@ -28,6 +28,6 @@ object Item {
       case _ => EmptySlot
     }
 
-    implicit def convert(v: Seq[StackableItem])(implicit toSlot: StackableItem => Slot[Item]): Seq[Slot[Item]] = v.map(toSlot)
+    implicit def convert(v: Vector[StackableItem])(implicit toSlot: StackableItem => Slot[Item]): Vector[Slot[Item]] = v.map(toSlot)
   }
 }
