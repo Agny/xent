@@ -6,6 +6,7 @@ import ru.agny.xent.core.Item.ItemId
 case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Item] {
 
   import Item.implicits._
+  import ItemMatcher.implicits._
 
   override implicit val s: Storage = this
 
@@ -17,7 +18,7 @@ case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Ite
 
   def add(r: Vector[Item]): (Storage, Vector[Slot[Item]]) = r match {
     case h +: t =>
-      val (store, remainder) = add(h)(s)
+      val (store, remainder) = add(h)
       val (storeAcc, remainderAcc) = store.add(t)
       (storeAcc, remainder +: remainderAcc)
     case _ => (this, Vector.empty)
@@ -36,10 +37,10 @@ case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Ite
 
   def get(resource: ItemId): Option[ResourceUnit] = resources.find(_.id == resource)
 
-  override def isMoveAcceptable[U <: Item](v: U): Boolean = v match {
-    case i: Item => true
-    case _ => false
-  }
+//  override def isMoveAcceptable[U <: Item](v: U): Boolean = v match {
+//    case i: Item => true
+//    case _ => false
+//  }
 
   override def apply(slots: Vector[Slot[Item]]): Storage = Storage(slots)
 }

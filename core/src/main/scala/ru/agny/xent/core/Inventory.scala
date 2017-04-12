@@ -4,9 +4,10 @@ import ru.agny.xent.core.Item.ItemId
 
 trait Inventory[T <: Item] {
   val slots: Vector[Slot[T]]
+  val self: InventoryLike[Inventory[T], T]
 
-  def add[S <: Inventory[T], U <: T](v: U)(implicit ev: InventoryLike[S, T]): (S, Slot[T]) = v match {
-    case i: SingleItem => (ev.apply(ItemSlot(i).asInstanceOf[Slot[T]] +: slots), EmptySlot)
+  def add[S <: Inventory[T], U <: T](v: U)(implicit ev: InventoryLike[S, T], ev2: ItemMatcher[T, U]): (S, Slot[T]) = v match {
+    case i: SingleItem => (ev.apply(ItemSlot(v) +: slots), EmptySlot)
     case r@ResourceUnit(st, id) => getSlot(id) match {
       case is@ItemSlot(x) =>
         val (newV, remainder) = is.set(v)
@@ -22,16 +23,19 @@ trait Inventory[T <: Item] {
     (ev.apply(res), replaced)
   }
 
-  def move[S1 <: Inventory[T], S2 <: Inventory[U], U <: Item]
-  (idx: Int)(implicit ev1: InventoryLike[S1, T], ev2: InventoryLike[S2, U]): (S1, S2) = getByIdx(idx) match {
-    case Some(v) if ev2.isMoveAcceptable(v) =>
+  def move[S <: Inventory[U], U <: Item](idx: Int, to: InventoryLike[S, U])
+                                        (implicit ev1: InventoryLike[Inventory[T], T] = implicitly(self),
+                                         ev2: InventoryLike[S, U] = to,
+                                         ev3: ItemMatcher[U, U]): (Inventory[T], S) = ev1.getByIdx(idx) match {
+    //    case Some(v) if ev2.isMoveAcceptable(v) => TODO not so sure about this check
+    case Some(v) =>
       val (toInv, old) = ev2.add(v.asInstanceOf[U])
       val (fromInv, _) = ev1.set(idx, old.asInstanceOf[Slot[T]])
       (fromInv, toInv)
     case _ => (ev1.apply(slots), ev2.apply(ev2.slots))
   }
 
-  def isMoveAcceptable[U <: Item](v: U): Boolean
+  //  def isMoveAcceptable[U <: Item](v: U): Boolean
 
   def getByIdx(idx: Int): Option[T] = if (slots.isDefinedAt(idx)) Some(slots(idx).get) else None
 
@@ -49,8 +53,9 @@ trait Inventory[T <: Item] {
 
 }
 
-trait InventoryLike[S <: Inventory[T], T <: Item] extends Inventory[T] {
+trait InventoryLike[+S <: Inventory[T], T <: Item] extends Inventory[T] {
   implicit val s: S
+  override implicit val self: InventoryLike[Inventory[T], T] = this
 
   def apply(slots: Vector[Slot[T]]): S
 }

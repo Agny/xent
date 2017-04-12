@@ -12,9 +12,15 @@ trait DelayableItem extends Item {
 }
 sealed trait StackableItem extends Item {
   val stackValue: Int
+
+  def add(v: StackableItem): StackableItem
 }
 
-final case class ResourceUnit(stackValue: Int, id: ItemId) extends StackableItem
+final case class ResourceUnit(stackValue: Int, id: ItemId) extends StackableItem {
+  override def add(v: StackableItem): ResourceUnit =
+    if (v.id == id) ResourceUnit(v.stackValue + stackValue, id)
+    else this
+}
 
 object Progress {
   type ProductionTime = Long

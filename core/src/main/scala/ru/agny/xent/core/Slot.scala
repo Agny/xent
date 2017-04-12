@@ -5,17 +5,16 @@ sealed trait Slot[+T <: Item] {
 
   def isEmpty: Boolean
 
-  def set[U <: Item](v: U): (Slot[U], Slot[T]) = (v, this) match {
-    case stack@(toSet: StackableItem, ItemSlot(ths: StackableItem)) if toSet.id == ths.id =>
-      (ItemSlot(ResourceUnit(ths.stackValue + toSet.stackValue, ths.id).asInstanceOf[U]), EmptySlot)
-    case replace@(a, b) => (ItemSlot(a), b)
+  def set[U <: Item](v: U)(implicit ev: ItemMatcher[T, U]): (Slot[U], Slot[T]) = ev.toStack(get, v) match {
+    case Some(x) => (ItemSlot(x), EmptySlot)
+    case None => (ItemSlot(v), this)
   }
 }
 object Slot {
   def empty = EmptySlot
 }
 
-final case class ItemSlot[+T <: Item](v: T) extends Slot[T] {
+final case class ItemSlot[T <: Item](v: T) extends Slot[T] {
   def get = v
 
   def isEmpty = false
