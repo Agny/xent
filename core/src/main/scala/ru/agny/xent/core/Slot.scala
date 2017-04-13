@@ -11,7 +11,13 @@ sealed trait Slot[+T <: Item] {
   }
 }
 object Slot {
-  def empty = EmptySlot
+  implicit def convert[To <: Item, From <: Item](v: Slot[From])(implicit ev: ItemLike[To, From]): Slot[To] = v match {
+    case ItemSlot(x) => ev.cast(x) match {
+      case (Some(a), Some(b)) => ItemSlot(b)
+      case _ => EmptySlot
+    }
+    case _ => EmptySlot
+  }
 }
 
 final case class ItemSlot[T <: Item](v: T) extends Slot[T] {

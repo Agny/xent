@@ -8,7 +8,7 @@ trait Inventory[T <: Item] {
 
   def add[S <: Inventory[T], U <: T](v: U)(implicit ev: InventoryLike[S, T], ev2: ItemMatcher[T, U]): (S, Slot[T]) = v match {
     case i: SingleItem => (ev.apply(ItemSlot(v) +: slots), EmptySlot)
-    case r@ResourceUnit(st, id) => getSlot(id) match {
+    case r: StackableItem => getSlot(r.id) match {
       case is@ItemSlot(x) =>
         val (newV, remainder) = is.set(v)
         (ev.apply(slots.updated(slots.indexOf(is), newV)), remainder)
@@ -26,16 +26,19 @@ trait Inventory[T <: Item] {
   def move[S <: Inventory[U], U <: Item](idx: Int, to: InventoryLike[S, U])
                                         (implicit ev1: InventoryLike[Inventory[T], T] = implicitly(self),
                                          ev2: InventoryLike[S, U] = to,
-                                         ev3: ItemMatcher[U, U]): (Inventory[T], S) = ev1.getByIdx(idx) match {
-    //    case Some(v) if ev2.isMoveAcceptable(v) => TODO not so sure about this check
-    case Some(v) =>
-      val (toInv, old) = ev2.add(v.asInstanceOf[U])
-      val (fromInv, _) = ev1.set(idx, old.asInstanceOf[Slot[T]])
-      (fromInv, toInv)
+                                         ev3: ItemMatcher[U, U],
+                                         ev4: ItemLike[U, T],
+                                         ev5: ItemLike[T, U]): (Inventory[T], S) = ev1.getByIdx(idx) match {
+    case Some(v) => ev4.cast(v) match {
+      case (Some(x), Some(y)) =>
+        val (toInv, old) = ev2.add(y)
+        val (fromInv, _) = ev1.set(idx, old)
+        (fromInv, toInv)
+      case _ => (ev1.apply(slots), ev2.apply(ev2.slots))
+    }
+
     case _ => (ev1.apply(slots), ev2.apply(ev2.slots))
   }
-
-  //  def isMoveAcceptable[U <: Item](v: U): Boolean
 
   def getByIdx(idx: Int): Option[T] = if (slots.isDefinedAt(idx)) Some(slots(idx).get) else None
 

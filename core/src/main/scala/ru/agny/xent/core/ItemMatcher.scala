@@ -12,5 +12,9 @@ object ItemMatcher {
         case _ => None
       }
     }
+
+    implicit object ExtractableMatcher extends ItemMatcher[Extractable, Extractable] {
+      override def toStack(a: Extractable, b: Extractable): Option[Extractable] = None
+    }
   }
 }

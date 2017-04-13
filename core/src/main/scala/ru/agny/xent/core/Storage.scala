@@ -37,11 +37,6 @@ case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Ite
 
   def get(resource: ItemId): Option[ResourceUnit] = resources.find(_.id == resource)
 
-//  override def isMoveAcceptable[U <: Item](v: U): Boolean = v match {
-//    case i: Item => true
-//    case _ => false
-//  }
-
   override def apply(slots: Vector[Slot[Item]]): Storage = Storage(slots)
 }
 
