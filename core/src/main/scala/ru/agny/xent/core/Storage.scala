@@ -8,8 +8,6 @@ case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Ite
   import Item.implicits._
   import ItemMatcher.implicits._
 
-  override implicit val s: Storage = this
-
   def tick(lastAction: Long, producers: Vector[Facility]): (Storage, Vector[Facility]) =
     producers.foldLeft(this, Vector.empty[Facility])((s, f) => {
       val (storage, updatedQueue) = f.tick(lastAction)(s._1)
