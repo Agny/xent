@@ -15,10 +15,10 @@ object RedisAdapter {
 
   def set(e: RedisMessage): Future[Boolean] = redis.hSet(e.collectionId, e.key, e.toPersist)
 
-  def get(collectionId: String): Future[Seq[RedisMessage]] =
+  def get(collectionId: String): Future[Vector[RedisMessage]] =
     redis.hGetAll(collectionId).map {
       case Some(v) => v.flatMap(kv => MessageHandler.convert(kv._2))(collection.breakOut)
-      case None => Seq.empty[RedisMessage]
+      case None => Vector.empty[RedisMessage]
     }
 
   def keys() = redis.keys("user*")

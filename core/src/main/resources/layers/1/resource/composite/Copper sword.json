@@ -1,13 +1,14 @@
 {
+  "id": 3,
   "name": "Copper sword",
   "cost": [
     {
-      "value": 3,
-      "res": "Copper sheet"
+      "stackValue": 3,
+      "id": 100
     },
     {
-      "value": 1,
-      "res": "Wood"
+      "stackValue": 1,
+      "id": 1
     }
   ],
   "yieldTime": 80000,

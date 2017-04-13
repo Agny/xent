@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.{ResourceUnit, Coordinate}
 import ru.agny.xent.persistence.{RedisEntity, RedisAdapter, RedisMessage}
 
 import scala.concurrent.ExecutionContext.Implicits.global

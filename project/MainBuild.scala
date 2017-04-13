@@ -6,13 +6,13 @@ object Resolvers {
   val artimarepo = "Artima Maven Repository" at "http://repo.artima.com/releases"
   val sonatype = "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 
-  val scalatest = Seq(artimarepo)
-  val scredis = Seq(sonatype)
+  val scalatest = Vector(artimarepo)
+  val scredis = Vector(sonatype)
 }
 
 object MainBuild extends Build {
   import Resolvers._
-  lazy val commonSettings = Seq(
+  lazy val commonSettings = Vector(
     organization := "ru.agny",
     version := "0.1.0",
     scalaVersion := "2.11.8",

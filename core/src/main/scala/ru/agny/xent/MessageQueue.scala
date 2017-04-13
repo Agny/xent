@@ -9,7 +9,7 @@ import scala.concurrent.Future
 //Class is not thread safe: it shouldn't be used in scenarios where is several consumer threads exist
 case class MessageQueue() {
 
-  var messages: Seq[(Message, Long)] = Seq.empty
+  var messages: Vector[(Message, Long)] = Vector.empty
   val lock = new ReentrantReadWriteLock()
 
   def push(msg: Message, number: Long): Future[Long] = {
@@ -25,10 +25,10 @@ case class MessageQueue() {
     number
   }
 
-  def take(): Seq[Message] = {
+  def take(): Vector[Message] = {
     val res = messages.map(_._1).reverse
     lock.writeLock().tryLock()
-    messages = Seq.empty
+    messages = Vector.empty
     lock.writeLock().unlock()
     res
   }

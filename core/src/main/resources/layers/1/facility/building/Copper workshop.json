@@ -1,4 +1,5 @@
 {
+  "id": 1,
   "name": "Copper workshop",
   "obtainable": [],
   "producible": [
@@ -8,8 +9,8 @@
   ],
   "cost": [
     {
-      "value": 5,
-      "res": "Wood"
+      "stackValue": 5,
+      "id": 1
     }
   ],
   "buildTime": 10000,

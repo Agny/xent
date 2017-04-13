@@ -1,4 +1,5 @@
 {
+  "id": 2,
   "name":"Copper",
   "baseVolume": 100,
   "yieldTime":3000,

@@ -1,44 +1,43 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.{ResourceUnit, Response}
+import ru.agny.xent.Response
+import ru.agny.xent.core.Item.ItemId
 
-case class Storage(resources: Seq[ResourceUnit], producers: Seq[Facility]) {
+case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Item] {
 
-  def tick(lastAction: Long): Storage = producers.foldLeft(this)((s, f) => f.tick(lastAction)(s))
+  import Item.implicits._
+  import ItemMatcher.implicits._
 
-  def add(r: Seq[ResourceUnit]): Storage =
-    r match {
-      case Seq(h, t@_*) => add(h).add(t)
-      case _ => this
-    }
+  def tick(lastAction: Long, producers: Vector[Facility]): (Storage, Vector[Facility]) =
+    producers.foldLeft(this, Vector.empty[Facility])((s, f) => {
+      val (storage, updatedQueue) = f.tick(lastAction)(s._1)
+      (storage, updatedQueue +: s._2)
+    })
 
-  def add(r: ResourceUnit): Storage =
-    resources.find(x => x.res == r.res) match {
-      case Some(v) =>
-        Storage(resources.map {
-          case x if x.res == r.res => ResourceUnit(x.value + r.value, r.res)
-          case x => x
-        }, producers)
-      case None => Storage(r +: resources, producers)
-    }
+  def add(r: Vector[Item]): (Storage, Vector[Slot[Item]]) = r match {
+    case h +: t =>
+      val (store, remainder) = add(h)
+      val (storeAcc, remainderAcc) = store.add(t)
+      (storeAcc, remainder +: remainderAcc)
+    case _ => (this, Vector.empty)
+  }
 
-  def addProducer(facility: Facility) = copy(producers = facility +: producers)
-
-  def updateProducer(from: Facility, to: Facility): Storage = copy(producers = producers.map(x => if (x == from) to else x))
-
-  def spend(recipe: Cost): Either[Response, Storage] =
-    recipe.cost.find(x => !resources.exists(y => x.res == y.res && y.value >= x.value)) match {
-      case Some(v) => Left(Response(s"There isn't enough of ${v.res}"))
+  def spend(recipe: Cost): Either[Response, Storage] = {
+    recipe.cost.find(x => !resources.exists(y => x.id == y.id && y.stackValue >= x.stackValue)) match {
+      case Some(v) => Left(Response(s"There isn't enough of ${v.id}"))
       case None =>
-        Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.res match {
-          case a.res => ResourceUnit(bb.value - a.value, a.res)
+        Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.id match {
+          case a.id => ResourceUnit(bb.stackValue - a.stackValue, a.id)
           case _ => bb
-        })), producers))
+        }))))
     }
+  }
 
-  def get(resource: String): Option[ResourceUnit] = resources.find(_.res == resource)
+  def get(resource: ItemId): Option[ResourceUnit] = resources.find(_.id == resource)
+
+  override def apply(slots: Vector[Slot[Item]]): Storage = Storage(slots)
 }
 
 object Storage {
-  def empty: Storage = Storage(Seq.empty, Seq.empty)
+  def empty: Storage = Storage(Vector.empty)
 }

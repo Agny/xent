@@ -1,36 +1,52 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.{ResourceUnit, Response}
+import ru.agny.xent.Response
+import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core.Progress.ProductionTime
 
-trait Facility extends DelayableItem {
+sealed trait Facility extends DelayableItem {
   val name: String
-  val resources: Seq[Resource]
+  val resources: Vector[Resource]
   val queue: ProductionQueue
+  //TODO state transitions
+  val state: Facility.State
 
-  def tick(fromTime: ProductionTime): Storage => Storage = storage => {
+  def tick(fromTime: ProductionTime): Storage => (Storage, Facility) = storage => {
     val (q, prod) = queue.out(fromTime)
-    storage.updateProducer(this, instance(q)).add(prod.map { case (res, amount) => ResourceUnit(amount, res.name) })
+    val (s, excess) = storage.add(prod.map(x => ResourceUnit(x._2, x._1.id)))
+    (s, instance(q))
   }
 
-  def addToQueue(item: ResourceUnit): Storage => Either[Response, Storage] = storage => {
-    resources.find(_.name == item.res) match {
+  def addToQueue(item: ResourceUnit): Storage => Either[Response, (Storage, Facility)] = storage => {
+    resources.find(_.id == item.id) match {
       case Some(v: Producible) =>
-        storage.spend(Recipe(v, v.price(item.value))) match {
+        storage.spend(Recipe(v, v.price(item.stackValue))) match {
           case Left(s) => Left(s)
-          case Right(s) => Right(s.updateProducer(this, instance(queue.in(v, item.value))))
+          case Right(s) => Right((s, instance(queue.in(v, item.stackValue))))
         }
-      case _ => Left(Response(s"Facility $name cannot produce ${item.res}"))
+      case _ => Left(Response(s"Facility $name cannot produce ${item.id}"))
     }
   }
 
   protected def instance(queue: ProductionQueue): Facility
 }
 
-case class Building(name: String, resources: Seq[Resource], queue: ProductionQueue, yieldTime: ProductionTime, shape: Shape) extends Facility {
+final case class Building(id: ItemId,
+                          name: String,
+                          resources: Vector[Resource],
+                          queue: ProductionQueue,
+                          yieldTime: ProductionTime,
+                          shape: Shape,
+                          state: Facility.State = Facility.Init) extends Facility {
   override protected def instance(queue: ProductionQueue): Facility = copy(queue = queue)
 }
-case class Outpost(name: String, main: Extractable, resources: Seq[Resource], queue: ProductionQueue, yieldTime: ProductionTime) extends Facility {
+final case class Outpost(id: ItemId,
+                         name: String,
+                         main: Extractable,
+                         resources: Vector[Resource],
+                         queue: ProductionQueue,
+                         yieldTime: ProductionTime,
+                         state: Facility.State = Facility.Init) extends Facility {
   override protected def instance(queue: ProductionQueue): Facility = copy(queue = queue)
 }
 
@@ -39,15 +55,17 @@ object Facility {
   case object InConstruction extends State
   case object InProcess extends State
   case object Idle extends State
-  val states = Seq(InConstruction, InProcess, Idle)
+  case object Init extends State
+
+  val states = Vector(InConstruction, InProcess, Idle, Init)
 }
 
 object Building {
-  def apply(name: String, resources: Seq[Resource], yieldTime: ProductionTime, shape: Shape): Building =
-    Building(name, resources, ProductionQueue.empty(), yieldTime, shape)
+  def apply(id: ItemId, name: String, resources: Vector[Resource], yieldTime: ProductionTime, shape: Shape): Building =
+    Building(id, name, resources, ProductionQueue.empty, yieldTime, shape)
 }
 
 object Outpost {
-  def apply(name: String, main: Extractable, resources: Seq[Resource], yieldTime: ProductionTime): Outpost =
-    Outpost(name, main, resources, ProductionQueue.empty(), yieldTime)
+  def apply(id: ItemId, name: String, main: Extractable, resources: Vector[Resource], yieldTime: ProductionTime): Outpost =
+    Outpost(id, name, main, resources, ProductionQueue.empty, yieldTime)
 }

@@ -1,5 +1,6 @@
 package ru.agny.xent
 
+import ru.agny.xent.core.Facility.State
 import ru.agny.xent.core.utils.CityGenerator
 import ru.agny.xent.core._
 
@@ -9,11 +10,18 @@ import ru.agny.xent.core._
   */
 
 case class City(x: Int, y: Int, private val map: ShapeMap) {
+  lazy val buildings = map.filter(_.building.nonEmpty).map(x => x.core)
+  lazy val producers = buildings.map(x => x.building.get)
+
   def isEnoughSpace(s: Shape): Boolean = map.isAvailable(s)
 
-  def buildings(): Seq[ContainerCell] = map.filter(_.building.nonEmpty).map(x => x.core)
+  def build(b: Building): City = update(b, Facility.Idle)
 
-  def build(c: LocalCell, b: Building): City = copy(map = map.update(c.copy(building = Some(b))))
+  def update(b: Building, state: State): City = copy(map = map.update(
+    b.shape.core.copy(building = Some(b.copy(state = state)))
+  ))
+
+  def update(bs: Vector[(Building, State)]): City = bs.foldLeft(this)((city, bstate) => update(bstate._1, bstate._2))
 }
 
 object City {

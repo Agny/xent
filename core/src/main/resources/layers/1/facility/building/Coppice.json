@@ -1,4 +1,5 @@
 {
+  "id": 2,
   "name": "Coppice",
   "obtainable": [
     "Wood"
@@ -6,8 +7,8 @@
   "producible": [],
   "cost": [
     {
-      "value": 2,
-      "res": "Wood"
+      "stackValue": 2,
+      "id": 1
     }
   ],
   "buildTime": 30000,
