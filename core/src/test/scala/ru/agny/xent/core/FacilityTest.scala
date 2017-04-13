@@ -11,7 +11,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
   val prodId = 2
 
   "Building" should "produce resource in queue" in {
-    val res = Producible(prodId, "Test res", Vector(ResourceUnit(5, woodId)), 1000, Set.empty)
+    val res = Producible(prodId, "Test res", ProductionSchema(1000, Vector(ResourceUnit(5, woodId)), Set.empty))
     val facility = Building(1, "test", Vector(res), 0, shape)
     val storage = Storage(Vector(ResourceUnit(10, woodId)))
     val (sAfterSpend, updatedFacilityQueue) = facility.addToQueue(ResourceUnit(1, res.id))(storage).right.value

@@ -18,9 +18,8 @@ object TemplateLoader {
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
       val t = parse(fromFile(f).mkString).extract[ProducibleTemplate]
-      Producible(t.name, ProductionSchema(t.yieldTime, t.cost, Set.empty))
       IdHolder.add(t.name, t.id)
-      Producible(t.id, t.name, t.cost, t.yieldTime, Set.empty)
+      Producible(t.id, t.name, ProductionSchema(t.yieldTime, t.cost, Set.empty))
     })
   }
 

@@ -1,7 +1,6 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.Facility.State
 import ru.agny.xent.core._
 
 case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, lastAction: Long) {
@@ -14,9 +13,6 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     val (actualStorage, updatedFacilities) = storage.tick(lastAction, producers)
     val (updatedCity, updatedLands) = updateByFacilitiesQueue(updatedFacilities)
     val actualUser = copy(city = updatedCity, lands = updatedLands, storage = actualStorage, queue = q, lastAction = time)
-    val updated = handleQueue(prod.map(_._1.asInstanceOf[Facility]), actualUser)
-    val actualStorage = storage.tick(lastAction)
-    val actualUser = copy(storage = actualStorage, queue = q, lastAction = time)
     val updated = handleQueue(prod.map { case (item, amount) => item.asInstanceOf[Facility] }, actualUser)
     a.run(updated)
   }
@@ -63,17 +59,11 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
   private def updateByFacilitiesQueue(f: Vector[Facility]): (City, Lands) = {
     val (buildings, outposts) = f.foldLeft((Vector.empty[Building], Vector.empty[Outpost]))((s, x) => {
       x match {
-        case a: Building => (a +: s._1, s._2)
-        case a: Outpost => (s._1, a +: s._2)
+        case a: Building => (s._1 :+ a, s._2)
+        case a: Outpost => (s._1, s._2 :+ a)
       }
     })
     (city.update(buildings.map((_, Facility.InProcess))), Lands(outposts))
-  private def updateBuildingState(f: String, from: Facility.State, to: Facility.State) = {
-    facilities.map { case facility@(facilityToUpdate, cell) => if (facilityToUpdate ==(f, from)) (f, to) -> cell else facility }
-  }
-
-  def findFacility(producer: String): Option[Facility] = {
-    storage.producers.find(_.name == producer)
   }
 
   override def toString = s"id=$id name=$name time=$lastAction"

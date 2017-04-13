@@ -1,6 +1,7 @@
 package ru.agny.xent.battle.unit.inventory
 
 import ru.agny.xent.battle.core.Property
+import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core.ProductionSchema
 
 trait Armor extends Equippable {
@@ -8,6 +9,7 @@ trait Armor extends Equippable {
 }
 
 case object DefaultArmor extends Armor {
+  override val id: ItemId = -1
   override val value: Int = 0
   override val attrs: Seq[Property] = Seq.empty
   override val name = "Default"

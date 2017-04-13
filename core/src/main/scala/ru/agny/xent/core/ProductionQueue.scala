@@ -21,7 +21,7 @@ case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: Prod
   private def handle(items: Vector[ItemCount], remindedTime: Long, acc: Vector[ItemCount]): (Vector[ItemCount], Vector[ItemCount], ProductionTime) = {
     items match {
       case (res, amount) +: t => handle((res, amount), remindedTime, (res, 0)) match {
-        case (_, time, (item, 0)) => (items, Seq.empty, time)
+        case (_, time, (item, 0)) => (items, Vector.empty, time)
         case (0, time, prod) => handle(t, time, prod +: acc)
         case (count, time, prod) => ((res, count) +: t, prod +: acc, time)
       }

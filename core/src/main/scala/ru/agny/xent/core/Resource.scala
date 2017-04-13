@@ -6,6 +6,7 @@ sealed trait Resource extends DelayableItem with SingleItem {
   val name: String
   val since: Set[Prereq]
   val defaultYield = 1
+
   //TODO usecases are lost!
   def out(): ResourceUnit
 
@@ -36,16 +37,15 @@ case class Obtainable(id: ItemId, name: String, yieldTime: Long, since: Set[Prer
   override def out(): ResourceUnit = ResourceUnit(defaultYield, id)
 }
 trait Producible extends Resource with Composite {
-  val schema:ProductionSchema
+  val schema: ProductionSchema
   lazy val yieldTime = schema.yieldTime
   lazy val cost = schema.cost
   lazy val since = schema.since
-  def out(): ResourceUnit = ResourceUnit(defaultYield, this.name)
+
+  def out(): ResourceUnit = ResourceUnit(defaultYield, this.id)
 }
 object Producible {
-  private case class ProdInner(name: String, schema: ProductionSchema) extends Producible
-  def apply(name: String, schema: ProductionSchema): Producible =
-    ProdInner(name, schema)
-case class Producible(id: ItemId, name: String, cost: Vector[ResourceUnit], yieldTime: Long, since: Set[Prereq]) extends Resource with Composite {
-  override def out(): ResourceUnit = ResourceUnit(defaultYield, id)
+  private case class ProdInner(id: ItemId, name: String, schema: ProductionSchema) extends Producible
+  def apply(id: ItemId, name: String, schema: ProductionSchema): Producible =
+    ProdInner(id, name, schema)
 }
