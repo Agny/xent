@@ -7,20 +7,20 @@ case class Equipment(private val mainHand: Weapon = DefaultWeapon,
                      val armor: Armor = DefaultArmor,
                      private val accessory: Accessory = DefaultAccessory) {
 
-  def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Seq[Property] =
+  def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Vector[Property] =
     (mode match {
       case Defensive =>
-        Seq(mainHand, offHand, armor, accessory).foldLeft(Map.empty[Attribute, Int])((a, b) =>
+        Vector(mainHand, offHand, armor, accessory).foldLeft(Map.empty[Attribute, Int])((a, b) =>
           b.attrs.foldLeft(a)(collectAllPotential)
         )
       case Offensive =>
         val wpnAttrs = wpn.attrs.map(x => x.attr -> x.value).toMap
-        Seq(armor, accessory).foldLeft(wpnAttrs)((a, b) =>
+        Vector(armor, accessory).foldLeft(wpnAttrs)((a, b) =>
           b.attrs.foldLeft(a)(collectSpecifiedPotential)
         )
-    }).map{case (attr, power) => Property(attr, power, mode)}.toSeq
+    }).map{case (attr, power) => Property(attr, power, mode)}.toVector
 
-  def weapons = Seq(mainHand, offHand)
+  def weapons = Vector(mainHand, offHand)
 
   private def collectAllPotential(attrs: Map[Attribute, Int], prop: Property)(implicit mode: Mode) = prop.mode match {
     case correct if correct == mode =>

@@ -9,7 +9,7 @@ object LayerGenerator {
 
   private val layerSize = 30
 
-  def setupLayers(): Seq[Layer] = for (i <- 1 to 1) yield Layer(i.toString, i, Vector.empty, generateWorldMap(layerSize, resourceGen(i)), facilityGen(i))
+  def setupLayers(): Vector[Layer] = (for (i <- 1 to 1) yield Layer(i.toString, i, Vector.empty, generateWorldMap(layerSize, resourceGen(i)), facilityGen(i))).toVector
 
   private def resourceGen(layerLvl: Int): Vector[Extractable] = TemplateLoader.loadExtractables(layerLvl.toString)
 

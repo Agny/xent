@@ -59,8 +59,8 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
   private def updateByFacilitiesQueue(f: Vector[Facility]): (City, Lands) = {
     val (buildings, outposts) = f.foldLeft((Vector.empty[Building], Vector.empty[Outpost]))((s, x) => {
       x match {
-        case a: Building => (s._1 :+ a, s._2)
-        case a: Outpost => (s._1, s._2 :+ a)
+        case a: Building => (a +: s._1, s._2)
+        case a: Outpost => (s._1, a +: s._2)
       }
     })
     (city.update(buildings.map((_, Facility.InProcess))), Lands(outposts))

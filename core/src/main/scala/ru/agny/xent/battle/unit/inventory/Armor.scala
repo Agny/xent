@@ -11,7 +11,7 @@ trait Armor extends Equippable {
 case object DefaultArmor extends Armor {
   override val id: ItemId = -1
   override val value: Int = 0
-  override val attrs: Seq[Property] = Seq.empty
+  override val attrs: Vector[Property] = Vector.empty
   override val name = "Default"
   override val schema: ProductionSchema = ProductionSchema.default()
 }

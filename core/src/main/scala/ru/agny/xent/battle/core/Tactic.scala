@@ -15,7 +15,7 @@ trait Tactic {
 
   def damageOutcome(enemy: Troop): OutcomeDamage
 
-  def chooseTarget(enemy: Troop): Seq[Soul]
+  def chooseTarget(enemy: Troop): Vector[Soul]
 }
 
 case class BasicTactic(self: Soul) extends Tactic {
@@ -27,7 +27,7 @@ case class BasicTactic(self: Soul) extends Tactic {
     OutcomeDamage(attackBy, cast)
   }
 
-  def chooseTarget(enemy: Troop): Seq[Soul] = Seq(enemy.units.head)
+  def chooseTarget(enemy: Troop): Vector[Soul] = Vector(enemy.units.head)
 }
 
 object Tactic {

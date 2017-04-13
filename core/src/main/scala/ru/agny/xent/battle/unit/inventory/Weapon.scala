@@ -12,7 +12,7 @@ trait Weapon extends Equippable {
 case object DefaultWeapon extends Weapon {
   override val id: ItemId = -1
   val damage: Dice = 1 d 2
-  val attrs = Seq.empty
+  val attrs = Vector.empty
   override val name = "Unarmed"
   override val schema: ProductionSchema = ProductionSchema.default()
 }
