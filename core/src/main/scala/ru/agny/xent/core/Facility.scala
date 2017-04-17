@@ -1,8 +1,8 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.Response
-import ru.agny.xent.core.Item.ItemId
-import ru.agny.xent.core.Progress.ProductionTime
+import Item.ItemId
+import Progress.ProductionTime
 
 sealed trait Facility extends DelayableItem {
   val name: String

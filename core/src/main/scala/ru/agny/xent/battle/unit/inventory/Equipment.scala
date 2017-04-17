@@ -1,7 +1,9 @@
 package ru.agny.xent.battle.unit.inventory
 
 import ru.agny.xent.battle.unit.inventory.DefaultValue.implicits.DefaultWeapon
-import ru.agny.xent.core.Item.ItemId
+import ru.agny.xent.core._
+import ru.agny.xent.core.inventory.{ItemSlot, Slot, InventoryLike}
+import Item.ItemId
 import ru.agny.xent.battle.core._
 import ru.agny.xent.battle.core.attributes.{Blunt, Piercing, Slashing}
 import ru.agny.xent.core._

@@ -1,11 +1,13 @@
-package ru.agny.xent.core
+package ru.agny.xent.core.inventory
+
+import ru.agny.xent.core.Item
 
 sealed trait Slot[+T <: Item] {
   def get: T
 
   def isEmpty: Boolean
 
-  def set[U <: Item](v: U)(implicit ev: ItemMatcher[T, U]): (Slot[U], Slot[T]) = ev.toStack(get, v) match {
+  def set[U <: Item](v: U)(implicit ev: ItemMerger[T, U]): (Slot[U], Slot[T]) = ev.asCompatible(get, v) match {
     case Some(x) => (ItemSlot(x), EmptySlot)
     case None => (ItemSlot(v), this)
   }

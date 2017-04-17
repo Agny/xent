@@ -2,8 +2,9 @@ package ru.agny.xent.battle.unit.inventory
 
 import ru.agny.xent.battle.core.{Dice, Property}
 import ru.agny.xent.battle.core.Dice._
-import ru.agny.xent.core.Item._
-import ru.agny.xent.core.ProductionSchema
+import ru.agny.xent.core.{Item, ProductionSchema}
+import Item._
+import ru.agny.xent.core.{Item, ProductionSchema}
 
 trait DefaultValue[T] {
   this: T =>

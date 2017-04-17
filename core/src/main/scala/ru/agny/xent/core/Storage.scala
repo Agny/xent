@@ -1,12 +1,13 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.Response
-import ru.agny.xent.core.Item.ItemId
+import ru.agny.xent.core.inventory._
+import Item.ItemId
 
 case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
   import Item.implicits._
-  import ItemMatcher.implicits._
+  import ItemMerger.implicits._
 
   def tick(lastAction: Long, producers: Vector[Facility]): (Storage, Vector[Facility]) =
     producers.foldLeft(this, Vector.empty[Facility])((s, f) => {

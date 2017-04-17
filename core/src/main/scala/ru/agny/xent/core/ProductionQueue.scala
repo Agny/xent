@@ -1,7 +1,7 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.core.ProductionQueue.ItemCount
-import ru.agny.xent.core.Progress.ProductionTime
+import ProductionQueue.ItemCount
+import Progress.ProductionTime
 
 case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: ProductionTime = 0) {
 

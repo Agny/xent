@@ -2,6 +2,7 @@ package ru.agny.xent.core
 
 import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core.Progress.ProductionTime
+import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot, Slot}
 
 sealed trait Item {
   val id: ItemId

@@ -1,6 +1,7 @@
-package ru.agny.xent.core
+package ru.agny.xent.core.inventory
 
 import ru.agny.xent.core.Item.ItemId
+import ru.agny.xent.core.{StackableItem, SingleItem, Item}
 
 trait Inventory[T <: Item] {
   val holder: SlotHolder[T]
@@ -8,7 +9,7 @@ trait Inventory[T <: Item] {
 
   protected def add[S <: Inventory[T], U <: T](v: U)
                                     (implicit ev: InventoryLike[S, T],
-                                     ev2: ItemMatcher[T, U]): (S, Slot[T]) = v match {
+                                     ev2: ItemMerger[T, U]): (S, Slot[T]) = v match {
     case i: SingleItem => (ev.apply(ItemSlot(v) +: holder.slots), EmptySlot)
     case r: StackableItem => getSlot(r.id) match {
       case is@ItemSlot(x) =>
@@ -27,7 +28,7 @@ trait Inventory[T <: Item] {
   def move[S <: Inventory[U], U <: Item](idx: Int, to: InventoryLike[S, U])
                                         (implicit ev1: ItemLike[U, T],
                                          ev2: ItemLike[T, U],
-                                         ev3: ItemMatcher[U,U]): (Inventory[T], S) = {
+                                         ev3: ItemMerger[U,U]): (Inventory[T], S) = {
     implicit val ths = implicitly(self)
     implicit val that = implicitly(to)
     ths.getByIdx(idx) match {

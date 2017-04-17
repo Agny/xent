@@ -2,7 +2,8 @@ package ru.agny.xent.core.utils
 
 import java.io.File
 import io.Source._
-import ru.agny.xent.core.Item.ItemId
+import ru.agny.xent.core._
+import Item.ItemId
 
 import ru.agny.xent.core._
 

@@ -1,6 +1,8 @@
 package ru.agny.xent.core.utils
 
-import ru.agny.xent.core.Item.ItemId
+import ru.agny.xent.core.Item
+import Item.ItemId
+import ru.agny.xent.core.Item
 
 import scala.collection.mutable
 
