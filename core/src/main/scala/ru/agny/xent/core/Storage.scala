@@ -35,6 +35,14 @@ case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Ite
 
   def get(resource: ItemId): Option[ResourceUnit] = resources.find(_.id == resource)
 
+  def resources: Vector[ResourceUnit] = slots.flatMap(x => x match {
+    case ItemSlot(v) => v match {
+      case ru: ResourceUnit => Some(ru)
+      case _ => None
+    }
+    case EmptySlot => None
+  })
+
   override def apply(slots: Vector[Slot[Item]]): Storage = Storage(slots)
 }
 
