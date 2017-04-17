@@ -78,7 +78,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     updated.right.value.users.head.storage.resources should be(expected)
   }
 
-  "Vectoruential actions" should "spend resources" in {
+  "Sequential actions" should "spend resources" in {
     val ot = OutpostTemplate(buildingId, "Out Test", "Test res", Vector.empty, Vector(ResourceUnit(7, woodId)), 0, "")
     val bt = BuildingTemplate(buildingId, "Build Test", Vector.empty, Vector(ResourceUnit(7, woodId)), 0, shape, "")
     val user = User(1, "test", City.empty(0, 0))
