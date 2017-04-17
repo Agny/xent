@@ -3,7 +3,7 @@ package ru.agny.xent.core
 import ru.agny.xent.Response
 import ru.agny.xent.core.Item.ItemId
 
-case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Item] {
+case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
   import Item.implicits._
   import ItemMatcher.implicits._
@@ -35,7 +35,7 @@ case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Ite
 
   def get(resource: ItemId): Option[ResourceUnit] = resources.find(_.id == resource)
 
-  def resources: Vector[ResourceUnit] = slots.flatMap(x => x match {
+  def resources: Vector[ResourceUnit] = holder.slots.flatMap(x => x match {
     case ItemSlot(v) => v match {
       case ru: ResourceUnit => Some(ru)
       case _ => None
@@ -48,4 +48,6 @@ case class Storage(slots: Vector[Slot[Item]]) extends InventoryLike[Storage, Ite
 
 object Storage {
   def empty: Storage = Storage(Vector.empty)
+
+  def apply(slots: Vector[Slot[Item]]):Storage = Storage(ItemHolder(slots))
 }

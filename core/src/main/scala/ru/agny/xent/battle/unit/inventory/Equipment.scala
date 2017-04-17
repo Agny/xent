@@ -1,36 +1,29 @@
 package ru.agny.xent.battle.unit.inventory
 
+import ru.agny.xent.battle.unit.inventory.DefaultValue.implicits.DefaultWeapon
 import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.battle.core._
 import ru.agny.xent.battle.core.attributes.{Blunt, Piercing, Slashing}
 import ru.agny.xent.core._
 
-case class Equipment(slots: Vector[Slot[Equippable]]) extends InventoryLike[Equipment, Equippable] {
+case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, Equippable] {
 
   import Equipment._
-  import DefaultValue.implicits._
-  import ItemMatcher2.implicits._
-
-  private val mainHandSlot = extractValue[Weapon](slots)
-  private val offHandSlot = extractValue[Weapon](slots.diff(Vector(ItemSlot(mainHandSlot))))
-  private val armorSlot = extractValue[Armor](slots)
-  private val accessorySlot = extractValue[Accessory](slots)
 
   def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Vector[Property] = (mode match {
-    case Defensive =>
-      Vector(mainHandSlot, offHandSlot, armorSlot, accessorySlot).foldLeft(Map.empty[Attribute, Int])((a, b) =>
-        b.attrs.foldLeft(a)(collectAllPotential)
-      )
+    case Defensive => holder.items.foldLeft(Map.empty[Attribute, Int])((a, b) =>
+      b.attrs.foldLeft(a)(collectAllPotential)
+    )
     case Offensive =>
       val wpnAttrs = wpn.attrs.map(x => x.attr -> x.value).toMap
-      Vector(armorSlot, accessorySlot).foldLeft(wpnAttrs)((a, b) =>
+      holder.passiveItems.foldLeft(wpnAttrs)((a, b) =>
         b.attrs.foldLeft(a)(collectSpecifiedPotential)
       )
   }).map { case (attr, power) => Property(attr, power, mode) }.toVector
 
-  def weapons = Vector(mainHandSlot, offHandSlot)
+  def weapons = holder.activeItems
 
-  def armor = armorSlot
+  def armor = holder.armor
 
   override def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(slots)
 
@@ -39,21 +32,10 @@ object Equipment {
 
   def empty(): Equipment = Equipment(Vector.empty)
 
-  private def extractValue[T <: Equippable](v: Vector[Slot[Equippable]])
-                                   (implicit ev: DefaultValue[T], ev2: ItemMatcher2[Equippable, T]): T = getEquip[T](v) match {
-    case Vector(a) => a
-    case _ => ev.self
-  }
-
-  private def getEquip[T <: Equippable](v: Vector[Slot[Equippable]])
-                               (implicit matcher: ItemMatcher2[Equippable, T]): Vector[T] =
-    v.filter(s => !s.isEmpty).flatMap(s => matcher.toStack(s.get) match {
-      case a@Some(x) => a
-      case _ => None
-    })
+  def apply(slots: Vector[Slot[Equippable]]):Equipment = Equipment(EquippableHolder(slots))
 
   private def collectAllPotential(attrs: Map[Attribute, Int], prop: Property)(implicit mode: Mode) = prop.mode match {
-    case correct if correct == mode =>
+    case wanted if mode == wanted =>
       if (attrs.contains(prop.attr)) {
         attrs + (prop.attr -> (attrs(prop.attr) + prop.value))
       } else {
@@ -85,10 +67,10 @@ object EqTest extends App {
     val nv = v.apply(slots)
     println(nv.weapons)
     println(nv.armor)
-//    val (nnv, wprev) = nv.(tW)
-//    println(nnv.weapons)
-//    println(nnv.armor)
-//    println(wprev)
+    //    val (nnv, wprev) = nv.(tW)
+    //    println(nnv.weapons)
+    //    println(nnv.armor)
+    //    println(wprev)
   }
 }
 
