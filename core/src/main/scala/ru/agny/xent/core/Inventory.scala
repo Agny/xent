@@ -6,7 +6,7 @@ trait Inventory[T <: Item] {
   val slots: Vector[Slot[T]]
   val self: InventoryLike[Inventory[T], T]
 
-  def add[S <: Inventory[T], U <: T](v: U)
+  protected def add[S <: Inventory[T], U <: T](v: U)
                                     (implicit ev: InventoryLike[S, T],
                                      ev2: ItemMatcher[T, U]): (S, Slot[T]) = v match {
     case i: SingleItem => (ev.apply(ItemSlot(v) +: slots), EmptySlot)
@@ -47,15 +47,6 @@ trait Inventory[T <: Item] {
   def getSlot(id: ItemId): Slot[T] = slots.find(s => !s.isEmpty && s.get.id == id).getOrElse(EmptySlot)
 
   def getItem(id: ItemId): Option[T] = slots.find(s => !s.isEmpty && s.get.id == id).map(_.get)
-
-  def resources: Vector[ResourceUnit] = slots.flatMap(x => x match {
-    case ItemSlot(v) => v match {
-      case ru: ResourceUnit => Some(ru)
-      case _ => None
-    }
-    case EmptySlot => None
-  })
-
 }
 
 trait InventoryLike[+S <: Inventory[T], T <: Item] extends Inventory[T] {
