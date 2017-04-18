@@ -9,6 +9,8 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
   import Item.implicits._
   import ItemMerger.implicits._
 
+  val asInventory = this
+
   def tick(lastAction: Long, producers: Vector[Facility]): (Storage, Vector[Facility]) =
     producers.foldLeft(this, Vector.empty[Facility])((s, f) => {
       val (storage, updatedQueue) = f.tick(lastAction)(s._1)

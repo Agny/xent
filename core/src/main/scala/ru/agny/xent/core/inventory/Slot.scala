@@ -7,9 +7,9 @@ sealed trait Slot[+T <: Item] {
 
   def isEmpty: Boolean
 
-  def set[U <: Item](v: U)(implicit ev: ItemMerger[T, U]): (Slot[U], Slot[T]) = ev.asCompatible(get, v) match {
-    case Some(x) => (ItemSlot(x), EmptySlot)
-    case None => (ItemSlot(v), this)
+  def set[U <: Item](v: U)(implicit ev: ItemMerger[T, U]): Option[(Slot[U], Slot[T])] = ev.asCompatible(get, v) match {
+    case Some(x) => Some((ItemSlot(x), this))
+    case None => None
   }
 }
 object Slot {

@@ -1,16 +1,22 @@
 package ru.agny.xent.battle.unit.inventory
 
-import ru.agny.xent.battle.unit.inventory.DefaultValue.implicits.DefaultWeapon
-import ru.agny.xent.core._
-import ru.agny.xent.core.inventory.{ItemSlot, Slot, InventoryLike}
-import Item.ItemId
 import ru.agny.xent.battle.core._
 import ru.agny.xent.battle.core.attributes.{Blunt, Piercing, Slashing}
-import ru.agny.xent.core._
+import ru.agny.xent.battle.unit.inventory.DefaultValue.implicits.DefaultWeapon
+import ru.agny.xent.core.Item.ItemId
+import ru.agny.xent.core.ProductionSchema
+import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot, Slot, InventoryLike}
 
 case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, Equippable] {
 
+  import ru.agny.xent.core.inventory.ItemMerger.implicits._
   import Equipment._
+
+  val asInventory = this
+
+  def weapons = holder.activeItems
+
+  def armor = holder.armor
 
   def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Vector[Property] = (mode match {
     case Defensive => holder.items.foldLeft(Map.empty[Attribute, Int])((a, b) =>
@@ -23,9 +29,7 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
       )
   }).map { case (attr, power) => Property(attr, power, mode) }.toVector
 
-  def weapons = holder.activeItems
-
-  def armor = holder.armor
+  def set[T <: Equippable](idx: Int, v: Slot[Equippable]): (Equipment, Slot[Equippable]) = super.set(idx, v)
 
   override def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(slots)
 
@@ -34,7 +38,7 @@ object Equipment {
 
   def empty(): Equipment = Equipment(Vector.empty)
 
-  def apply(slots: Vector[Slot[Equippable]]):Equipment = Equipment(EquippableHolder(slots))
+  def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(EquippableHolder(slots))
 
   private def collectAllPotential(attrs: Map[Attribute, Int], prop: Property)(implicit mode: Mode) = prop.mode match {
     case wanted if mode == wanted =>
@@ -60,15 +64,15 @@ object EqTest extends App {
     val slots = Vector(
       ItemSlot(WoodenSword(1, "WoSw", Vector(Property(Slashing, 22, Offensive), Property(Piercing, 13, Offensive)), 2 d 6, ProductionSchema.default())),
       ItemSlot(WoodenArmor(2, "WoAr", Vector(Property(Blunt, 12, Defensive), Property(Piercing, 20, Defensive)), 1, ProductionSchema.default())),
-      ItemSlot(WoodenAcc(3, "WoAcc", Vector(Property(Slashing, 28, Offensive), Property(Piercing, 23, Defensive)), ProductionSchema.default()))
+      ItemSlot(WoodenAcc(3, "WoAcc", Vector(Property(Slashing, 28, Offensive), Property(Piercing, 23, Defensive)), ProductionSchema.default())),
+      ItemSlot(DefaultWeapon)
     )
     val tW = ItemSlot(WoodenSword(4, "WoSword", Vector(Property(Slashing, 22, Offensive), Property(Piercing, 13, Offensive)), 2 d 6, ProductionSchema.default()))
-    val v = Equipment(Vector.empty)
-    println(v.weapons)
-    println(v.armor)
-    val nv = v.apply(slots)
-    println(nv.weapons)
-    println(nv.armor)
+    val v = Equipment(slots)
+    println(v.holder)
+    val (nv, old) = v.set(1, EmptySlot)
+    println(old)
+    println(nv.holder)
     //    val (nnv, wprev) = nv.(tW)
     //    println(nnv.weapons)
     //    println(nnv.armor)
