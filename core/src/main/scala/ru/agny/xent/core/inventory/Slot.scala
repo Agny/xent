@@ -11,6 +11,8 @@ sealed trait Slot[+T <: Item] {
     case Some(x) => Some((ItemSlot(x), this))
     case None => None
   }
+
+  def getOrElse[U >: T](default: => U): U = if (isEmpty) default else get
 }
 object Slot {
   implicit def convert[To <: Item, From <: Item](v: Slot[From])(implicit ev: ItemLike[To, From]): Slot[To] = v match {

@@ -5,12 +5,12 @@ import ru.agny.xent.battle.core.attributes.{Blunt, Piercing, Slashing}
 import ru.agny.xent.battle.unit.inventory.DefaultValue.implicits.DefaultWeapon
 import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core.ProductionSchema
-import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot, Slot, InventoryLike}
+import ru.agny.xent.core.inventory._
 
 case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, Equippable] {
 
-  import ru.agny.xent.core.inventory.ItemMerger.implicits._
   import Equipment._
+  import ItemMerger.implicits._
 
   val asInventory = this
 
@@ -29,7 +29,10 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
       )
   }).map { case (attr, power) => Property(attr, power, mode) }.toVector
 
-  def set[T <: Equippable](idx: Int, v: Slot[Equippable]): (Equipment, Slot[Equippable]) = super.set(idx, v)
+  def set(idx: Int, v: Slot[Equippable]): (Equipment, Slot[Equippable]) = {
+    val (updated, out) = holder.set(idx, v)
+    (Equipment(updated), out)
+  }
 
   override def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(slots)
 
@@ -70,7 +73,7 @@ object EqTest extends App {
     val tW = ItemSlot(WoodenSword(4, "WoSword", Vector(Property(Slashing, 22, Offensive), Property(Piercing, 13, Offensive)), 2 d 6, ProductionSchema.default()))
     val v = Equipment(slots)
     println(v.holder)
-    val (nv, old) = v.set(1, EmptySlot)
+    val (nv, old) = v.set(1, tW)
     println(old)
     println(nv.holder)
     //    val (nnv, wprev) = nv.(tW)
