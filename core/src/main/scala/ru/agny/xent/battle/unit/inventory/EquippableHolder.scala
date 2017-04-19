@@ -4,9 +4,9 @@ import ru.agny.xent.core.inventory._
 
 case class EquippableHolder(slots: Vector[Slot[Equippable]]) extends SlotHolder[Equippable] {
 
-  import ItemSubChecker.implicits._
-  import EquippableHolder._
   import DefaultValue.implicits._
+  import EquippableHolder._
+  import ItemSubChecker.implicits._
 
   val mainHand = extractValue[Weapon](slots)
   val offHand = extractValue[Weapon](slots.diff(Vector(ItemSlot(mainHand))))
@@ -19,44 +19,19 @@ case class EquippableHolder(slots: Vector[Slot[Equippable]]) extends SlotHolder[
 
   def set(idx: Int, v: Slot[Equippable])
          (implicit ev: ItemMerger[Equippable, Equippable]): (EquippableHolder, Slot[Equippable]) = {
-    val (updated: Slot[Equippable], replaced: Slot[Equippable]) = idx match {
-      case 0 => v match {
-        case i@ItemSlot(iv) => ItemSlot(mainHand).set(iv) match {
-          case Some((nv, rpl)) => (nv, rpl)
-          case None => (mainHand, v)
-        }
-        case EmptySlot => (DefaultWeapon, mainHand)
-      }
-      case 1 => v match {
-        case i@ItemSlot(iv) => ItemSlot(offHand).set(iv) match {
-          case Some((nv, rpl)) => (nv, rpl)
-          case None => (offHand, v)
-        }
-        case EmptySlot => (DefaultWeapon, offHand)
-      }
-      case 2 => v match {
-        case i@ItemSlot(iv) => ItemSlot(armor).set(iv) match {
-          case Some((nv, rpl)) => (nv, rpl)
-          case None => (armor, v)
-        }
-        case EmptySlot => (DefaultWeapon, armor)
-      }
-      case 3 => v match {
-        case i@ItemSlot(iv) => ItemSlot(accessory).set(iv) match {
-          case Some((nv, rpl)) => (nv, rpl)
-          case None => (accessory, v)
-        }
-        case EmptySlot => (DefaultWeapon, accessory)
-      }
-      case _ => None
+    val (updated, replaced) = idx match {
+      case 0 => updateSlot(mainHand, DefaultWeapon, v)
+      case 1 => updateSlot(offHand, DefaultWeapon, v)
+      case 2 => updateSlot(armor, DefaultArmor, v)
+      case 3 => updateSlot(accessory, DefaultAccessory, v)
+      case _ => (EmptySlot, v)
     }
     val replacedIdx = slots.indexOf(replaced)
-    val updateSlots = if (replacedIdx == -1)
-      slots
-    else {
-      slots.updated(replacedIdx, updated)
+    if (replacedIdx != -1) {
+      (EquippableHolder(slots.updated(replacedIdx, updated)), replaced)
+    } else {
+      (this, replaced)
     }
-    (EquippableHolder(updateSlots), replaced)
   }
 }
 
@@ -73,5 +48,14 @@ object EquippableHolder {
       case a@Some(x) => a
       case _ => None
     })
+
+  private def updateSlot[T <: Equippable](current: T, default: T, toSet: Slot[T])
+                                         (implicit ev: ItemMerger[T, T]): (Slot[T], Slot[T]) = toSet match {
+    case i@ItemSlot(iv) => ItemSlot(current).set(iv) match {
+      case Some((newValue, old)) => (newValue, old)
+      case None => (ItemSlot(current), toSet)
+    }
+    case EmptySlot => (ItemSlot(default), ItemSlot(current))
+  }
 
 }
