@@ -1,10 +1,7 @@
 package ru.agny.xent.battle.unit.inventory
 
 import ru.agny.xent.battle.core._
-import ru.agny.xent.battle.core.attributes.{Blunt, Piercing, Slashing}
 import ru.agny.xent.battle.unit.inventory.DefaultValue.implicits.DefaultWeapon
-import ru.agny.xent.core.Item.ItemId
-import ru.agny.xent.core.ProductionSchema
 import ru.agny.xent.core.inventory._
 
 case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, Equippable] {
@@ -59,30 +56,3 @@ object Equipment {
     case _ => attrs
   }
 }
-
-object EqTest extends App {
-
-  import Dice._
-  {
-    val slots = Vector(
-      ItemSlot(WoodenSword(1, "WoSw", Vector(Property(Slashing, 22, Offensive), Property(Piercing, 13, Offensive)), 2 d 6, ProductionSchema.default())),
-      ItemSlot(WoodenArmor(2, "WoAr", Vector(Property(Blunt, 12, Defensive), Property(Piercing, 20, Defensive)), 1, ProductionSchema.default())),
-      ItemSlot(WoodenAcc(3, "WoAcc", Vector(Property(Slashing, 28, Offensive), Property(Piercing, 23, Defensive)), ProductionSchema.default())),
-      ItemSlot(DefaultWeapon)
-    )
-    val tW = ItemSlot(WoodenSword(4, "WoSword", Vector(Property(Slashing, 22, Offensive), Property(Piercing, 13, Offensive)), 2 d 6, ProductionSchema.default()))
-    val v = Equipment(slots)
-    println(v.holder)
-    val (nv, old) = v.set(1, tW)
-    println(old)
-    println(nv.holder)
-    //    val (nnv, wprev) = nv.(tW)
-    //    println(nnv.weapons)
-    //    println(nnv.armor)
-    //    println(wprev)
-  }
-}
-
-case class WoodenArmor(id: ItemId, name: String, attrs: Vector[Property], value: Int, schema: ProductionSchema) extends Armor
-case class WoodenSword(id: ItemId, name: String, attrs: Vector[Property], damage: Dice, schema: ProductionSchema) extends Weapon
-case class WoodenAcc(id: ItemId, name: String, attrs: Vector[Property], schema: ProductionSchema) extends Accessory

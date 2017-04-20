@@ -2,19 +2,28 @@ package ru.agny.xent.battle.unit
 
 import ru.agny.xent.UserType.ObjectId
 import ru.agny.xent.battle.core.OutcomeDamage
+import ru.agny.xent.battle.unit.inventory.Backpack
 
-case class Troop(units: Vector[Soul]) {
+case class Troop(units: Vector[Soul], backpack: Backpack) {
 
   def attack(other: Troop): (Troop, Troop) = {
     val (u, t) = units.foldLeft((Vector.empty[Soul], other))(handleBattle)
-    (Troop(u), t)
+    (Troop(u, backpack), t)
   }
 
-  def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Troop = Troop {
-    units.map {
-      case u if targeted.contains(u.id) => u.receiveDamage(d)
-      case unharmed => unharmed
+  def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Troop = {
+    val (alive, fallenEquip) = units.map {
+      case u if targeted.contains(u.id) =>
+        val damaged = u.receiveDamage(d)
+        if (damaged.spirit.points <= 0) (None, Some(damaged.equip))
+        else (Some(damaged), None)
+      case unharmed => (Some(unharmed), None)
+    }.unzip
+    val items = fallenEquip.flatten.flatMap(x => x.holder.items)
+    if (alive.flatten.isEmpty) {
+      // TODO troop is defeated, hand off loot and send souls
     }
+    Troop(alive.flatten, backpack.add(items)._1)
   }
 
   private def handleBattle(state: (Vector[Soul], Troop), attacker: Soul): (Vector[Soul], Troop) = {
