@@ -2,6 +2,10 @@ package ru.agny.xent.battle.unit
 
 import ru.agny.xent.battle.core.{Attribute, Property}
 
+/**
+  * Describe effectiveness of equipment to resist/inflict damage with attribute
+  */
+
 case class Potential(stats: Vector[Property]) {
 
   def to(attribute: Attribute): Double = stats.find(x => x.attr == attribute) match {
