@@ -15,6 +15,7 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
   import Equipment._
   import ru.agny.xent.core.inventory.ItemMerger.implicits._
   import ru.agny.xent.core.inventory.ItemSubChecker.implicits._
+  import ru.agny.xent.core.inventory.ItemLike.implicits._
 
   "Equipment" should "set main weapon" in {
     val eq = Equipment.empty
