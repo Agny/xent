@@ -10,16 +10,14 @@ case class EquippableHolder(set: EquipmentSet) extends SlotHolder[Equippable] {
 
   def set(idx: Int, v: Slot[Equippable])
          (implicit ev: ItemMerger[Equippable, Equippable]): (EquippableHolder, Slot[Equippable]) = {
-    val (updatedSet, replaced) = idx match {
-      case Equipment.mainWeaponIdx => set.updateSlot(idx, set.mainHand, v)
-      case Equipment.secondaryWeaponIdx => set.updateSlot(idx, set.offHand, v)
-      case Equipment.armorIdx => set.updateSlot(idx, set.armor, v)
-      case Equipment.accessoryIdx => set.updateSlot(idx, set.accessory, v)
-      case _ => (set, v)
-    }
+    val (updatedSet, replaced) =
+      if (idx < set.items.size) set.updateSlot(idx, v)
+      else (set, v)
     if (updatedSet != set) (EquippableHolder(updatedSet), replaced)
     else (this, replaced)
   }
+
+  def getIndexForEquippable(v: Equippable)(implicit ev: ItemMerger[Equippable, Equippable]): Int = set.optimalIndexFor(v)
 
   override val slots: Vector[Slot[Equippable]] = set.items
 }

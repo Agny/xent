@@ -28,9 +28,20 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
       )
   }).map { case (attr, power) => Property(attr, power, mode) }.toVector
 
-  def set(idx: Int, v: Slot[Equippable]): (Equipment, Slot[Equippable]) = {
+  override def add[U <: Equippable](v: U)(implicit ev: ItemMerger[Equippable, U]): (Equipment, Slot[Equippable]) = {
+    val idx = holder.getIndexForEquippable(v)
+    if (idx < 0) {
+      (this, ItemSlot(v))
+    } else {
+      val (holder, s) = set(idx, ItemSlot(v))
+      (holder, s)
+    }
+  }
+
+  override def set(idx: Int, v: Slot[Equippable])(implicit ev: ItemMerger[Equippable, Equippable]): (Equipment, Slot[Equippable]) = {
     val (updated, out) = holder.set(idx, v)
-    (Equipment(updated), out)
+    if (updated == holder) (this, v)
+    else (Equipment(updated), out)
   }
 
   override def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(slots)

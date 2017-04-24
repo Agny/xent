@@ -15,14 +15,31 @@ case class EquipmentSet(private val slots: Vector[Slot[Equippable]]) {
 
   val items = Vector(ItemSlot(mainHand), ItemSlot(offHand), ItemSlot(armor), ItemSlot(accessory))
 
-  def updateSlot[T <: Equippable](idx: Int, current: T, toSet: Slot[T])
-                                 (implicit ev: ItemMerger[T, T]): (EquipmentSet, Slot[T]) = {
-    toSet match {
-      case i@ItemSlot(iv) => ItemSlot(current).set(iv) match {
+  def updateSlot[T <: Equippable](idx: Int, toSet: Slot[T])
+                                 (implicit ev: ItemMerger[Equippable, T]): (EquipmentSet, Slot[Equippable]) = {
+    val defaultsExcluded = items(idx) match {
+      case ItemSlot(DefaultWeapon | DefaultArmor | DefaultAccessory) => None
+      case ItemSlot(x) => Some(x)
+    }
+    (toSet, defaultsExcluded) match {
+      case (ItemSlot(iv), Some(item)) => ItemSlot(item).set(iv) match {
         case Some((newValue, old)) => (EquipmentSet(items.updated(idx, newValue)), old)
         case None => (this, toSet)
       }
-      case s@EmptySlot => (EquipmentSet(items.updated(idx, s)), ItemSlot(current))
+      case (s@ItemSlot(iv), None) => (EquipmentSet(items.updated(idx, s)), EmptySlot)
+      case (s@EmptySlot, Some(item)) => (EquipmentSet(items.updated(idx, s)), ItemSlot(item))
+      case _ => (this, EmptySlot)
+    }
+  }
+
+  /**
+    * This method returns index of the most "weak" compatible Equippable. The definition of "weak" is a subject to change btw
+    */
+  def optimalIndexFor(v: Equippable)(implicit ev: ItemMerger[Equippable, Equippable]): Int = {
+    val compatible = items.filter(x => ev.asCompatible(x.get, v).nonEmpty)
+    compatible.indexOf(ItemSlot(DefaultWeapon)) match {
+      case -1 => items.indexOf(compatible.head)
+      case idx => idx
     }
   }
 }
