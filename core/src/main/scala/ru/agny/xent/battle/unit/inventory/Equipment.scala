@@ -13,15 +13,17 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
 
   def weapons = holder.activeItems
 
-  def armor = holder.armor
+  def armor = holder.set.armor
+
+  def accessory = holder.set.accessory
 
   def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Vector[Property] = (mode match {
     case Defensive => holder.items.foldLeft(Map.empty[Attribute, Int])((a, b) =>
       b.attrs.foldLeft(a)(collectAllPotential)
     )
-    case Offensive =>
+    case Offensive => //TODO second weapon attack potential? Skill|reduced effect|something else
       val wpnAttrs = wpn.attrs.map(x => x.attr -> x.value).toMap
-      holder.passiveItems.foldLeft(wpnAttrs)((a, b) =>
+      (wpn +: holder.passiveItems).foldLeft(wpnAttrs)((a, b) =>
         b.attrs.foldLeft(a)(collectSpecifiedPotential)
       )
   }).map { case (attr, power) => Property(attr, power, mode) }.toVector
@@ -35,10 +37,11 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
 
 }
 object Equipment {
+  val (mainWeaponIdx, secondaryWeaponIdx, armorIdx, accessoryIdx) = (0, 1, 2, 3)
 
-  def empty(): Equipment = Equipment(Vector.empty)
+  def empty: Equipment = Equipment(Vector.empty)
 
-  def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(EquippableHolder(slots))
+  def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(EquippableHolder(EquipmentSet(slots)))
 
   private def collectAllPotential(attrs: Map[Attribute, Int], prop: Property)(implicit mode: Mode) = prop.mode match {
     case wanted if mode == wanted =>
