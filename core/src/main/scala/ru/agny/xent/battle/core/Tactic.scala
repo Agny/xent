@@ -6,11 +6,15 @@ trait Tactic {
   val self: Soul
 
   def execute(enemy: Troop): (Soul, Troop) = {
-    val damage = damageOutcome(enemy)
-    val target = chooseTarget(enemy)
-    val res = enemy.receiveDamage(damage, target.map(_.id))
-    //TODO fightback
-    (self, res)
+    if (enemy.units.nonEmpty) {
+      val damage = damageOutcome(enemy)
+      val target = chooseTarget(enemy)
+      val res = enemy.receiveDamage(damage, target.map(_.id))
+      //TODO fightback
+      (self, res)
+    } else {
+      (self, enemy)
+    }
   }
 
   def damageOutcome(enemy: Troop): OutcomeDamage

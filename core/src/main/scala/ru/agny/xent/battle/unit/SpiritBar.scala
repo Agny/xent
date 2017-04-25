@@ -1,5 +1,5 @@
 package ru.agny.xent.battle.unit
 
-case class SpiritBar(points: Int, regen: Int) {
-  def change(x:Int) = SpiritBar(points + x, regen)
+case class SpiritBar(points: Int, regen: Int, cap: Int) {
+  def change(x: Int) = SpiritBar(points + x, regen, cap)
 }

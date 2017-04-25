@@ -8,22 +8,26 @@ case class Troop(units: Vector[Soul], backpack: Backpack) {
 
   def attack(other: Troop): (Troop, Troop) = {
     val (u, t) = units.foldLeft((Vector.empty[Soul], other))(handleBattle)
-    (Troop(u, backpack), t)
+    if (t.units.isEmpty) {
+      val (withLoot, _) = backpack.add(t.backpack.toSpoil)
+      (Troop(u, withLoot), t.copy(backpack = Backpack.empty))
+    } else {
+      (Troop(u, backpack), t)
+    }
   }
 
   def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Troop = {
     val (alive, fallenEquip) = units.map {
       case u if targeted.contains(u.id) =>
         val damaged = u.receiveDamage(d)
-        if (damaged.spirit.points <= 0) (None, Some(damaged.equip))
-        else (Some(damaged), None)
-      case unharmed => (Some(unharmed), None)
+        if (damaged.spirit.points <= 0) (None, damaged.equip.toSpoil)
+        else (Some(damaged), Vector.empty)
+      case unharmed => (Some(unharmed), Vector.empty)
     }.unzip
-    val items = fallenEquip.flatten.flatMap(x => x.holder.items)
     if (alive.flatten.isEmpty) {
-      // TODO troop is defeated, hand off loot and send souls
+      // TODO troop is defeated, send souls
     }
-    Troop(alive.flatten, backpack.add(items)._1)
+    Troop(alive.flatten, backpack.add(fallenEquip.flatten)._1)
   }
 
   private def handleBattle(state: (Vector[Soul], Troop), attacker: Soul): (Vector[Soul], Troop) = {

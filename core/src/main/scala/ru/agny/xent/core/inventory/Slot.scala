@@ -1,5 +1,6 @@
 package ru.agny.xent.core.inventory
 
+import ru.agny.xent.battle.unit.inventory.DefaultValue
 import ru.agny.xent.core.Item
 
 sealed trait Slot[+T <: Item] {
@@ -13,6 +14,12 @@ sealed trait Slot[+T <: Item] {
   }
 
   def getOrElse[U >: T](default: => U): U = if (isEmpty) default else get
+
+  def flatten: Option[T] = if (!isEmpty) get match {
+    case x: DefaultValue[_] => None
+    case v => Some(v)
+  } else None
+
 }
 object Slot {
   implicit def convert[To <: Item, From <: Item](v: Slot[From])(implicit ev: ItemLike[To, From]): Slot[To] = v match {
