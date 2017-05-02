@@ -1,18 +1,18 @@
 package ru.agny.xent.battle.unit
 
-import ru.agny.xent.UserType.ObjectId
+import ru.agny.xent.UserType.{UserId, ObjectId}
 import ru.agny.xent.battle.core.OutcomeDamage
 import ru.agny.xent.battle.unit.inventory.Backpack
 
-case class Troop(units: Vector[Soul], backpack: Backpack) {
+case class Troop(units: Vector[Soul], backpack: Backpack, user: UserId) {
 
   def attack(other: Troop): (Troop, Troop) = {
     val (u, t) = units.foldLeft((Vector.empty[Soul], other))(handleBattle)
     if (t.units.isEmpty) {
       val (withLoot, _) = backpack.add(t.backpack.toSpoil)
-      (Troop(u, withLoot), t.copy(backpack = Backpack.empty))
+      (Troop(u, withLoot, user), t.copy(backpack = Backpack.empty))
     } else {
-      (Troop(u, backpack), t)
+      (Troop(u, backpack, user), t)
     }
   }
 
@@ -27,7 +27,7 @@ case class Troop(units: Vector[Soul], backpack: Backpack) {
     if (alive.flatten.isEmpty) {
       // TODO troop is defeated, send souls
     }
-    Troop(alive.flatten, backpack.add(fallenEquip.flatten)._1)
+    Troop(alive.flatten, backpack.add(fallenEquip.flatten)._1, user)
   }
 
   private def handleBattle(state: (Vector[Soul], Troop), attacker: Soul): (Vector[Soul], Troop) = {
