@@ -3,7 +3,7 @@ package ru.agny.xent
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.core._
 
-case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, lastAction: Long) {
+case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, souls: Workers, lastAction: Long) {
 
   private lazy val producers = city.producers ++ lands.outposts
 
@@ -79,7 +79,7 @@ object Lands {
 
 object User {
   def apply(id: UserId, name: String, city: City): User = {
-    User(id, name, city, Lands.empty, Storage.empty, ProductionQueue.empty, System.currentTimeMillis())
+    User(id, name, city, Lands.empty, Storage.empty, ProductionQueue.empty, Workers.empty, System.currentTimeMillis())
   }
 }
 

@@ -13,7 +13,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   val buildingId = 1
 
   "User" should "spend resources" in {
-    val user = User(1, "test", City.empty(0, 0), Lands.empty, Storage(Vector(ResourceUnit(10, woodId))), ProductionQueue.empty, 0)
+    val user = User(1, "test", City.empty(0, 0), Lands.empty, Storage(Vector(ResourceUnit(10, woodId))), ProductionQueue.empty, Workers.empty, 0)
     val bt = BuildingTemplate(buildingId, "Test", Vector.empty, Vector(ResourceUnit(7, woodId)), 0, shape, "")
     val updated = user.spend(bt)
     val expected = Storage(Vector(ResourceUnit(3, woodId)))
@@ -21,7 +21,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   }
 
   it should "not spend any resources if there is not enough" in {
-    val user = User(1, "test", City.empty(0, 0), Lands.empty, Storage(Vector(ResourceUnit(5, woodId))), ProductionQueue.empty, 0)
+    val user = User(1, "test", City.empty(0, 0), Lands.empty, Storage(Vector(ResourceUnit(5, woodId))), ProductionQueue.empty, Workers.empty, 0)
     val bt = BuildingTemplate(buildingId, "Test", Vector.empty, Vector(ResourceUnit(7, woodId)), 0, shape, "")
     val updated = user.spend(bt)
     updated.isLeft should be(true)
@@ -38,7 +38,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
 
   "PlaceBuildingAction" should "spend resources" in {
     val bt = BuildingTemplate(buildingId, "Test", Vector.empty, Vector(ResourceUnit(7, woodId)), 0, shape, "")
-    val layer = Layer("", 1, Vector.empty, CellsMap(Vector.empty), Vector(bt))
+    val layer = Layer("", 1, Vector.empty, Set.empty, CellsMap(Vector.empty), Vector(bt))
     val user = User(1, "test", City.empty(0, 0))
     val action = PlaceBuilding("Test", layer, LocalCell(2, 1))
     val userAndStorage = user.copy(storage = Storage(Vector(ResourceUnit(10, woodId))))
@@ -50,7 +50,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   "PlaceBuildingAction" should "add building to city" in {
     val buildingConstructionTime = 10
     val bt = BuildingTemplate(buildingId, "Test", Vector.empty, Vector(ResourceUnit(7, woodId)), buildingConstructionTime, shape, "")
-    val layer = Layer("", 1, Vector.empty, CellsMap(Vector.empty), Vector(bt))
+    val layer = Layer("", 1, Vector.empty, Set.empty, CellsMap(Vector.empty), Vector(bt))
     val user = User(1, "test", City.empty(0, 0))
     val bCell = LocalCell(2, 1)
     val action = PlaceBuilding("Test", layer, bCell)
@@ -71,7 +71,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val user = User(1, "test", City.empty(0, 0))
     val resourceToClaim = WorldCell(1, 2, Some(Extractable(1, "Test res", 10, 111, Set.empty)))
     val userAndStorage = user.copy(storage = Storage(Vector(ResourceUnit(10, woodId))))
-    val layer = Layer("", 1, Vector(userAndStorage), CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(bt))
+    val layer = Layer("", 1, Vector(userAndStorage), Set.empty, CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(bt))
     val action = ResourceClaim("Test", 1, WorldCell(1, 2))
     val updated = layer.tick(action)
     val expected = Vector(ResourceUnit(3, woodId))
@@ -84,7 +84,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val user = User(1, "test", City.empty(0, 0))
     val resourceToClaim = WorldCell(1, 2, Some(Extractable(1, "Test res", 10, 111, Set.empty)))
     val userAndStorage = user.copy(storage = Storage(Vector(ResourceUnit(15, woodId))))
-    val layer = Layer("", 1, Vector(userAndStorage), CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(ot, bt))
+    val layer = Layer("", 1, Vector(userAndStorage), Set.empty, CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(ot, bt))
     val resourceClaim = ResourceClaim("Out Test", 1, WorldCell(1, 2))
     val placeBuilding = PlaceBuilding("Build Test", layer, LocalCell(2, 1))
     val updated = layer.tick(resourceClaim)
