@@ -1,9 +1,9 @@
 package ru.agny.xent.core
 
 import ProductionQueue.ItemCount
-import Progress.ProductionTime
+import Progress.ProgressTime
 
-case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: ProductionTime = 0) {
+case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: ProgressTime = 0) {
 
   def in(item: DelayableItem, count: Int): ProductionQueue = {
     ProductionQueue((item, count) +: content, progress)
@@ -18,7 +18,7 @@ case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: Prod
 
   def isEmpty = content.isEmpty
 
-  private def handle(items: Vector[ItemCount], remindedTime: Long, acc: Vector[ItemCount]): (Vector[ItemCount], Vector[ItemCount], ProductionTime) = {
+  private def handle(items: Vector[ItemCount], remindedTime: Long, acc: Vector[ItemCount]): (Vector[ItemCount], Vector[ItemCount], ProgressTime) = {
     items match {
       case (res, amount) +: t => handle((res, amount), remindedTime, (res, 0)) match {
         case (_, time, (item, 0)) => (items, Vector.empty, time)
@@ -29,7 +29,7 @@ case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: Prod
     }
   }
 
-  private def handle(item: ItemCount, remindedTime: Long, acc: ItemCount): (Int, ProductionTime, ItemCount) =
+  private def handle(item: ItemCount, remindedTime: Long, acc: ItemCount): (Int, ProgressTime, ItemCount) =
     (item, remindedTime) match {
       case ((_, 0), time) => (0, time, acc)
       case ((v, count), time) if time < v.yieldTime => (count, time, acc)

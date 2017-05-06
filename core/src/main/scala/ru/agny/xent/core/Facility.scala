@@ -2,7 +2,7 @@ package ru.agny.xent.core
 
 import ru.agny.xent.Response
 import Item.ItemId
-import Progress.ProductionTime
+import Progress.ProgressTime
 
 sealed trait Facility extends DelayableItem {
   val name: String
@@ -11,7 +11,7 @@ sealed trait Facility extends DelayableItem {
   //TODO state transitions
   val state: Facility.State
 
-  def tick(fromTime: ProductionTime): Storage => (Storage, Facility) = storage => {
+  def tick(fromTime: ProgressTime): Storage => (Storage, Facility) = storage => {
     val (q, prod) = queue.out(fromTime)
     val (s, excess) = storage.add(prod.map(x => ResourceUnit(x._2, x._1.id)))
     (s, instance(q))
@@ -35,7 +35,7 @@ final case class Building(id: ItemId,
                           name: String,
                           resources: Vector[Resource],
                           queue: ProductionQueue,
-                          yieldTime: ProductionTime,
+                          yieldTime: ProgressTime,
                           shape: Shape,
                           state: Facility.State = Facility.Init) extends Facility {
   override protected def instance(queue: ProductionQueue): Facility = copy(queue = queue)
@@ -45,7 +45,7 @@ final case class Outpost(id: ItemId,
                          main: Extractable,
                          resources: Vector[Resource],
                          queue: ProductionQueue,
-                         yieldTime: ProductionTime,
+                         yieldTime: ProgressTime,
                          state: Facility.State = Facility.Init) extends Facility {
   override protected def instance(queue: ProductionQueue): Facility = copy(queue = queue)
 }
@@ -61,11 +61,11 @@ object Facility {
 }
 
 object Building {
-  def apply(id: ItemId, name: String, resources: Vector[Resource], yieldTime: ProductionTime, shape: Shape): Building =
+  def apply(id: ItemId, name: String, resources: Vector[Resource], yieldTime: ProgressTime, shape: Shape): Building =
     Building(id, name, resources, ProductionQueue.empty, yieldTime, shape)
 }
 
 object Outpost {
-  def apply(id: ItemId, name: String, main: Extractable, resources: Vector[Resource], yieldTime: ProductionTime): Outpost =
+  def apply(id: ItemId, name: String, main: Extractable, resources: Vector[Resource], yieldTime: ProgressTime): Outpost =
     Outpost(id, name, main, resources, ProductionQueue.empty, yieldTime)
 }

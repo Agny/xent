@@ -1,7 +1,7 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.core.Item.ItemId
-import ru.agny.xent.core.Progress.ProductionTime
+import ru.agny.xent.core.Progress.ProgressTime
 import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot, Slot}
 
 trait Item {
@@ -9,7 +9,7 @@ trait Item {
 }
 trait SingleItem extends Item
 trait DelayableItem extends Item {
-  val yieldTime: ProductionTime
+  val yieldTime: ProgressTime
 }
 sealed trait StackableItem extends Item {
   val stackValue: Int
@@ -24,7 +24,7 @@ final case class ResourceUnit(stackValue: Int, id: ItemId) extends StackableItem
 }
 
 object Progress {
-  type ProductionTime = Long
+  type ProgressTime = Long
 }
 object Item {
   type ItemId = Long

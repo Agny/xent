@@ -1,11 +1,11 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.battle.unit.Troop
+import ru.agny.xent.battle.unit.{Movement, Troop}
 import ru.agny.xent.core.{CellsMap, WorldCell}
 import ru.agny.xent.core.utils.FacilityTemplate
 
-case class Layer(id: String, level: Int, users: Vector[User], troops: Set[Troop], map: CellsMap[WorldCell], facilities: Vector[FacilityTemplate]) {
+case class Layer(id: String, level: Int, users: Vector[User], troops: Set[(Troop, Movement)], map: CellsMap[WorldCell], facilities: Vector[FacilityTemplate]) {
 
   def tick(action: LayerAction): Either[Response, Layer] = {
     action.run(this)
