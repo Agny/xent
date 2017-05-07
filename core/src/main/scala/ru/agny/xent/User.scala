@@ -5,14 +5,18 @@ import ru.agny.xent.core._
 
 case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, souls: Workers, lastAction: Long) {
 
+  import User._
+
   private lazy val producers = city.producers ++ lands.outposts
 
   def work(a: UserAction): Either[Response, User] = {
     val time = System.currentTimeMillis()
     val (q, prod) = queue.out(lastAction)
     val (actualStorage, updatedFacilities) = storage.tick(lastAction, producers)
-    val (updatedCity, updatedLands) = updateByFacilitiesQueue(updatedFacilities)
-    val actualUser = copy(city = updatedCity, lands = updatedLands, storage = actualStorage, queue = q, lastAction = time)
+    val (buildings, outposts) = updateByFacilitiesQueue(updatedFacilities)
+    val updatedCity = city.update(buildings.map((_, Facility.InProcess)))
+
+    val actualUser = copy(city = updatedCity, lands = Lands(outposts), storage = actualStorage, queue = q, lastAction = time)
     val updated = handleQueue(prod.map { case (item, amount) => item.asInstanceOf[Facility] }, actualUser)
     a.run(updated)
   }
@@ -46,26 +50,6 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     producers.find(_.name == producer)
   }
 
-  private def handleQueue(items: Vector[Facility], state: User): User = items match {
-    case h +: t =>
-      val update = h match {
-        case x: Building => state.copy(city = city.build(x))
-        case x: Outpost => state.copy(lands = lands.add(x))
-      }
-      handleQueue(t, update)
-    case _ => state
-  }
-
-  private def updateByFacilitiesQueue(f: Vector[Facility]): (City, Lands) = {
-    val (buildings, outposts) = f.foldLeft((Vector.empty[Building], Vector.empty[Outpost]))((s, x) => {
-      x match {
-        case a: Building => (a +: s._1, s._2)
-        case a: Outpost => (s._1, a +: s._2)
-      }
-    })
-    (city.update(buildings.map((_, Facility.InProcess))), Lands(outposts))
-  }
-
   override def toString = s"id=$id name=$name time=$lastAction"
 }
 
@@ -81,6 +65,25 @@ object User {
   def apply(id: UserId, name: String, city: City): User = {
     User(id, name, city, Lands.empty, Storage.empty, ProductionQueue.empty, Workers.empty, System.currentTimeMillis())
   }
+
+  private def handleQueue(items: Vector[Facility], state: User): User = items match {
+    case h +: t =>
+      val update = h match {
+        case x: Building => state.copy(city = state.city.build(x))
+        case x: Outpost => state.copy(lands = state.lands.add(x))
+      }
+      handleQueue(t, update)
+    case _ => state
+  }
+
+  private def updateByFacilitiesQueue(f: Vector[Facility]): (Vector[Building], Vector[Outpost]) =
+    f.foldLeft((Vector.empty[Building], Vector.empty[Outpost]))((s, x) => {
+      x match {
+        case a: Building => (a +: s._1, s._2)
+        case a: Outpost => (s._1, a +: s._2)
+      }
+    })
+
 }
 
 object UserType {
