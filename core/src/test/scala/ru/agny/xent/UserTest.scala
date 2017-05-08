@@ -1,14 +1,17 @@
 package ru.agny.xent
 
 import org.scalatest.{EitherValues, Matchers, FlatSpec}
-import ru.agny.xent.core.utils.{IdHolder, OutpostTemplate, BuildingTemplate}
+import ru.agny.xent.battle.core.LevelBar
+import ru.agny.xent.battle.unit.inventory.Equipment
+import ru.agny.xent.battle.unit.{Movement, Waiting, SpiritBar, Soul}
+import ru.agny.xent.core.utils.{OutpostTemplate, BuildingTemplate}
 import ru.agny.xent.core._
 
 class UserTest extends FlatSpec with Matchers with EitherValues {
 
   import Item.implicits._
 
-  val shape = FourShape(LocalCell(0,0))
+  val shape = FourShape(LocalCell(0, 0))
   val woodId = 1
   val buildingId = 1
 
@@ -27,13 +30,24 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     updated.isLeft should be(true)
   }
 
-  "Newly created user" should "spend resources" in {
-    val user = User(1, "test", City.empty(0, 0))
-    val userAndStorage = user.copy(storage = Storage(Vector(ResourceUnit(10, woodId))))
-    val bt = BuildingTemplate(buildingId, "Test", Vector.empty, Vector(ResourceUnit(7, woodId)), 0, shape, "")
-    val updated = userAndStorage.spend(bt)
-    val expected = Vector(ResourceUnit(3, woodId))
-    updated.right.value.storage.resources should be(expected)
+  it should "create troop from the souls" in {
+    val soul1 = (Soul(1, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), Waiting)
+    val soul2 = (Soul(2, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), Waiting)
+    val souls = Workers(Vector(soul1, soul2))
+    val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, Storage.empty, ProductionQueue.empty, souls, 0)
+    val (soulless, troop) = user.createTroop(3, Vector(1, 2))
+    soulless.souls should be(Workers.empty)
+    troop.units should be(Vector(soul1._1, soul2._1))
+  }
+
+  it should "not take occupied souls to the troop" in {
+    val soul1 = (Soul(1, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), Waiting)
+    val soul2 = (Soul(2, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), Movement(Coordinate(0, 0), Coordinate(1, 2), 0))
+    val souls = Workers(Vector(soul1, soul2))
+    val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, Storage.empty, ProductionQueue.empty, souls, 0)
+    val (userWithSoul, troop) = user.createTroop(3, Vector(1, 2))
+    userWithSoul.souls should be(Workers(Vector(soul2)))
+    troop.units should be(Vector(soul1._1))
   }
 
   "PlaceBuildingAction" should "spend resources" in {
@@ -63,7 +77,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val updatedCell = userWithBuilding.city.buildings.find(c => c.x == bCell.x && c.y == bCell.y)
     updatedCell.isEmpty shouldBe false
     updatedCell.get.building.isEmpty shouldBe false
-    updatedCell.get.building.get.name should be (expected)
+    updatedCell.get.building.get.name should be(expected)
   }
 
   "ResourceClaimAction" should "spend resources" in {

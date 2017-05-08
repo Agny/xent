@@ -9,7 +9,7 @@ import ru.agny.xent.core._
   * contains visual representation of buildings/storage
   */
 
-case class City(x: Int, y: Int, private val map: ShapeMap) {
+case class City(c: Coordinate, private val map: ShapeMap) {
   lazy val buildings = map.filter(_.building.nonEmpty).map(x => x.core)
   lazy val producers = buildings.map(x => x.building.get)
 
