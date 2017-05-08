@@ -23,7 +23,7 @@ case class Backpack(holder: ItemHolder) extends InventoryLike[Backpack, Item] {
 }
 
 object Backpack {
-  def empty: Backpack = Backpack(Vector.empty)
+  val empty: Backpack = Backpack(Vector.empty)
 
   def apply(slots: Vector[Slot[Item]]): Backpack = Backpack(ItemHolder(slots))
 }

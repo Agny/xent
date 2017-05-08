@@ -50,7 +50,7 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 }
 
 object Storage {
-  def empty: Storage = Storage(Vector.empty)
+  val empty: Storage = Storage(Vector.empty)
 
   def apply(slots: Vector[Slot[Item]]):Storage = Storage(ItemHolder(slots))
 }

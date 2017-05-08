@@ -52,7 +52,7 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
 object Equipment {
   val (mainWeaponIdx, secondaryWeaponIdx, armorIdx, accessoryIdx) = (0, 1, 2, 3)
 
-  def empty: Equipment = Equipment(Vector.empty)
+  val empty: Equipment = Equipment(Vector.empty)
 
   def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(EquippableHolder(EquipmentSet(slots)))
 

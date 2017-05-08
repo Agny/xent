@@ -40,5 +40,5 @@ case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: Prog
 object ProductionQueue {
   type ItemCount = (DelayableItem, Int)
 
-  def empty = ProductionQueue(Vector.empty)
+  val empty = ProductionQueue(Vector.empty)
 }

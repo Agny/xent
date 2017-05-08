@@ -17,7 +17,7 @@ object CityGenerator {
       if (x == 0 && y == 1) LocalCell(x, y, mbBuilding)
       else LocalCell(x, y)
     }))))
-    City(x, y, map)
+    City(Coordinate(x, y), map)
   }
 
 }

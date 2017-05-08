@@ -14,10 +14,6 @@ object DoNothing extends UserAction {
   override def run(user: User): Either[Response, User] = Right(user)
 }
 
-case class Idle(user: UserId) extends UserAction {
-  override def run(user: User): Either[Response, User] = Right(user)
-}
-
 case class PlaceBuilding(facility: String, layer: Layer, cell: Cell) extends UserAction {
   override def run(user: User): Either[Response, User] = {
     val bt = layer.facilities.collectFirst { case bt: BuildingTemplate if bt.name == facility => bt }
