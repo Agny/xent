@@ -6,7 +6,7 @@ import ru.agny.xent.core.Progress._
 
 case class Movement(from: Coordinate, to: Coordinate, start: ProgressTime) extends Occupation {
   override val isBusy = true
-  private val path = Coordinate.path(from, to)
+  private val path = from.path(to)
 
   override def pos(by: Speed, current: ProgressTime): Coordinate = {
     val elapsed = current - start
