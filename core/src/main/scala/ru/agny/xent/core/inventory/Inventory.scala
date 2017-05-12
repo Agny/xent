@@ -1,6 +1,7 @@
 package ru.agny.xent.core.inventory
 
 import ru.agny.xent.core.Item.ItemId
+import ru.agny.xent.core.utils.SubTyper
 import ru.agny.xent.core.{Item, SingleItem, StackableItem}
 
 trait Inventory[S <: Inventory[_, T], T <: Item] {
@@ -33,7 +34,7 @@ trait Inventory[S <: Inventory[_, T], T <: Item] {
   }
 
   def move[S2 <: Inventory[_, U], U <: Item](idx: Int, to: InventoryLike[S2, U])
-                                            (implicit ev1: ItemSubChecker[T, U],
+                                            (implicit ev1: SubTyper[T, U],
                                              ev2: ItemLike[T, U],
                                              ev3: ItemMerger[U, U],
                                              ev4: ItemMerger[T, T]): (S, S2) = {

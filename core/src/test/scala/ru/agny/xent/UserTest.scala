@@ -1,9 +1,10 @@
 package ru.agny.xent
 
 import org.scalatest.{EitherValues, Matchers, FlatSpec}
+import ru.agny.xent.battle.{Waiting, Military, Movement}
 import ru.agny.xent.battle.core.LevelBar
 import ru.agny.xent.battle.unit.inventory.Equipment
-import ru.agny.xent.battle.unit.{Movement, Waiting, SpiritBar, Soul}
+import ru.agny.xent.battle.unit.{SpiritBar, Soul}
 import ru.agny.xent.core.utils.{OutpostTemplate, BuildingTemplate}
 import ru.agny.xent.core._
 
@@ -12,6 +13,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   import Item.implicits._
 
   val shape = FourShape(LocalCell(0, 0))
+  val waitingCoordinate = new Waiting(Coordinate(0, 0), 0)
   val woodId = 1
   val buildingId = 1
 
@@ -31,8 +33,8 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   }
 
   it should "create troop from the souls" in {
-    val soul1 = (Soul(1, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), Waiting)
-    val soul2 = (Soul(2, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), Waiting)
+    val soul1 = (Soul(1, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), waitingCoordinate)
+    val soul2 = (Soul(2, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), waitingCoordinate)
     val souls = Workers(Vector(soul1, soul2))
     val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, Storage.empty, ProductionQueue.empty, souls, 0)
     val (soulless, troop) = user.createTroop(3, Vector(1, 2))
@@ -41,7 +43,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   }
 
   it should "not take occupied souls to the troop" in {
-    val soul1 = (Soul(1, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), Waiting)
+    val soul1 = (Soul(1, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), waitingCoordinate)
     val soul2 = (Soul(2, LevelBar(0, 0, 0), SpiritBar(0, 0, 0), Equipment.empty, 0, Vector.empty), Movement(Coordinate(0, 0), Coordinate(1, 2), 0))
     val souls = Workers(Vector(soul1, soul2))
     val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, Storage.empty, ProductionQueue.empty, souls, 0)
@@ -52,7 +54,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
 
   "PlaceBuildingAction" should "spend resources" in {
     val bt = BuildingTemplate(buildingId, "Test", Vector.empty, Vector(ResourceUnit(7, woodId)), 0, shape, "")
-    val layer = Layer("", 1, Vector.empty, Set.empty, CellsMap(Vector.empty), Vector(bt))
+    val layer = Layer("", 1, Vector.empty, Military.empty, CellsMap(Vector.empty), Vector(bt))
     val user = User(1, "test", City.empty(0, 0))
     val action = PlaceBuilding("Test", layer, LocalCell(2, 1))
     val userAndStorage = user.copy(storage = Storage(Vector(ResourceUnit(10, woodId))))
@@ -64,7 +66,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   "PlaceBuildingAction" should "add building to city" in {
     val buildingConstructionTime = 10
     val bt = BuildingTemplate(buildingId, "Test", Vector.empty, Vector(ResourceUnit(7, woodId)), buildingConstructionTime, shape, "")
-    val layer = Layer("", 1, Vector.empty, Set.empty, CellsMap(Vector.empty), Vector(bt))
+    val layer = Layer("", 1, Vector.empty, Military.empty, CellsMap(Vector.empty), Vector(bt))
     val user = User(1, "test", City.empty(0, 0))
     val bCell = LocalCell(2, 1)
     val action = PlaceBuilding("Test", layer, bCell)
@@ -85,7 +87,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val user = User(1, "test", City.empty(0, 0))
     val resourceToClaim = WorldCell(1, 2, Some(Extractable(1, "Test res", 10, 111, Set.empty)))
     val userAndStorage = user.copy(storage = Storage(Vector(ResourceUnit(10, woodId))))
-    val layer = Layer("", 1, Vector(userAndStorage), Set.empty, CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(bt))
+    val layer = Layer("", 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(bt))
     val action = ResourceClaim("Test", 1, WorldCell(1, 2))
     val updated = layer.tick(action)
     val expected = Vector(ResourceUnit(3, woodId))
@@ -98,7 +100,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     val user = User(1, "test", City.empty(0, 0))
     val resourceToClaim = WorldCell(1, 2, Some(Extractable(1, "Test res", 10, 111, Set.empty)))
     val userAndStorage = user.copy(storage = Storage(Vector(ResourceUnit(15, woodId))))
-    val layer = Layer("", 1, Vector(userAndStorage), Set.empty, CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(ot, bt))
+    val layer = Layer("", 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(ot, bt))
     val resourceClaim = ResourceClaim("Out Test", 1, WorldCell(1, 2))
     val placeBuilding = PlaceBuilding("Build Test", layer, LocalCell(2, 1))
     val updated = layer.tick(resourceClaim)

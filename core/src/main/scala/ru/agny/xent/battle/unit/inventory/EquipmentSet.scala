@@ -1,12 +1,13 @@
 package ru.agny.xent.battle.unit.inventory
 
 import ru.agny.xent.core.inventory._
+import ru.agny.xent.core.utils.SubTyper
 
 case class EquipmentSet(private val slots: Vector[Slot[Equippable]]) {
 
   import DefaultValue.implicits._
   import EquipmentSet._
-  import ItemSubChecker.implicits._
+  import ItemSubTyper.implicits._
 
   val mainHand = extractValue[Weapon](slots, Equipment.mainWeaponIdx)
   val offHand = extractValue[Weapon](slots, Equipment.secondaryWeaponIdx)
@@ -46,13 +47,13 @@ case class EquipmentSet(private val slots: Vector[Slot[Equippable]]) {
 
 object EquipmentSet {
   private def extractValue[T <: Equippable](v: Vector[Slot[Equippable]], idx: Int)
-                                           (implicit ev: DefaultValue[T], ev2: ItemSubChecker[Equippable, T]): T = getEquip[T](v, idx) match {
+                                           (implicit ev: DefaultValue[T], ev2: SubTyper[Equippable, T]): T = getEquip[T](v, idx) match {
     case Some(i) => i
     case _ => ev.self
   }
 
   private def getEquip[T <: Equippable](v: Vector[Slot[Equippable]], idx: Int)
-                                       (implicit matcher: ItemSubChecker[Equippable, T]): Option[T] = {
+                                       (implicit matcher: SubTyper[Equippable, T]): Option[T] = {
     if (idx < v.length && !v(idx).isEmpty) {
       matcher.asSub(v(idx).get) match {
         case a@Some(x) => a
