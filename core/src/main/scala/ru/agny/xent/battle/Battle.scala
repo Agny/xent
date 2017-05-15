@@ -10,7 +10,7 @@ case class Battle(pos: Coordinate, troops: Vector[Troop], queue: Vector[Troop], 
 
   override def pos(speed: Speed, time: ProgressTime): Coordinate = pos
 
-  def tick: Battle = ???
+  def tick: (Battle, Vector[Troop]) = ???
 
   def addTroops(t: Vector[Troop]): Battle = copy(queue = queue ++: t)
 }
