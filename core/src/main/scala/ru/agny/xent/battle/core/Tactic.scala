@@ -6,7 +6,7 @@ trait Tactic {
   val self: Soul
 
   def execute(enemy: Troop): (Soul, Troop) = {
-    if (enemy.units.nonEmpty) {
+    if (enemy.activeUnits.nonEmpty) {
       val damage = damageOutcome(enemy)
       val target = chooseTarget(enemy)
       val res = enemy.receiveDamage(damage, target.map(_.id))
@@ -31,7 +31,7 @@ case class BasicTactic(self: Soul) extends Tactic {
     OutcomeDamage(attackBy, cast)
   }
 
-  def chooseTarget(enemy: Troop): Vector[Soul] = Vector(enemy.units.head)
+  def chooseTarget(enemy: Troop): Vector[Soul] = Vector(enemy.activeUnits.head)
 }
 
 object Tactic {
