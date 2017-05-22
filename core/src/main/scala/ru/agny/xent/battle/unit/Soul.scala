@@ -5,8 +5,10 @@ import ru.agny.xent.battle.core._
 import ru.agny.xent.battle.unit.inventory.{Weapon, Equipment}
 
 case class Soul(id: ObjectId, level: LevelBar, spirit: SpiritBar, equip: Equipment, speed: Int, skills: Vector[Skill]) {
-  //TODO should depend on stats
-  val endurance = 3
+  //TODO should depends on stats
+  lazy val weight = 10
+  lazy val endurance = 3
+  lazy val initiative = 5
   lazy val state = spirit.points match {
     case alive if alive > 0 => Soul.Active
     case _ => Soul.Fallen

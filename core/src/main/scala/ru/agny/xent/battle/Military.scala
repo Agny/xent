@@ -72,7 +72,7 @@ object Military {
   private def arrive(troops: Iterable[TO]): (Vector[TO], Vector[Troop]) = troops.foldLeft(Vector.empty[TO], Vector.empty[Troop]) { (res, x) =>
     val now = System.currentTimeMillis()
     x match {
-      case (fallen, m: Movement) if fallen.activeUnits.isEmpty && m.pos(10, now) == m.to => (res._1, fallen +: res._2)
+      case (fallen, m: Movement) if !fallen.isActive && m.pos(10, now) == m.to => (res._1, fallen +: res._2)
       case (alive, m: Movement) if m.pos(alive.moveSpeed, now) == m.to => ((alive, new Waiting(m.to, now)) +: res._1, res._2)
       case _ => (x +: res._1, res._2)
     }

@@ -6,7 +6,7 @@ trait Tactic {
   val self: Soul
 
   def execute(enemy: Troop): (Soul, Troop) = {
-    if (enemy.activeUnits.nonEmpty) {
+    if (enemy.isActive) {
       val damage = damageOutcome(enemy)
       val target = chooseTarget(enemy)
       val res = enemy.receiveDamage(damage, target.map(_.id))
