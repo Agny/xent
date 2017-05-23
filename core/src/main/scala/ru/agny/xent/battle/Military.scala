@@ -40,7 +40,7 @@ object Military {
       val (inBattle, queueing) = partition[Battle](multiple)
       val (battle, moving) = commenceBattle(pos, inBattle, queueing)
       val tb = battle match {
-        case Some(b) => b.troops.map(x => (x._1, b)) ++ b.queue.map(x => (x._1, b))
+        case Some(b) => b.troops.map(x => x -> b)
         case _ => Vector.empty
       }
       (tb, moving)
@@ -60,12 +60,13 @@ object Military {
     case (_, b) +: _ =>
       val (inProcess, leaving) = b.tick
       inProcess match {
-        case Some(battle) => (Some(battle.addTroops(queueing.toMap)), leaving)
-        case None if isSameUserArmies(queueing.unzip._1) => (None, leaving ++ queueing)
-        case _ => (Some(Battle(pos, queueing.toMap)), leaving)
+        case Some(battle) => val (toBattle, byPass) = queueing.partition(x => x._1.isAbleToFight)
+          (Some(battle.addTroops(toBattle)), leaving ++ byPass)
+        case None if !Combatants.isBattleNeeded(queueing.unzip._1) => (None, leaving ++ queueing)
+        case _ => (Some(Battle(pos, queueing)), leaving)
       }
-    case _ if isSameUserArmies(queueing.unzip._1) => (None, queueing)
-    case _ => Battle(pos, queueing.toMap).tick
+    case _ if !Combatants.isBattleNeeded(queueing.unzip._1) => (None, queueing)
+    case _ => Battle(pos, queueing).tick
   }
 
   //TODO send troop back to city upon arriving
@@ -77,6 +78,4 @@ object Military {
       case _ => (x +: res._1, res._2)
     }
   }
-
-  private def isSameUserArmies(t: Vector[Troop]) = t.map(x => x.user).distinct.size < 2
 }

@@ -1,62 +1,52 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.UserType.{ObjectId, UserId}
+import ru.agny.xent.UserType.UserId
 import ru.agny.xent.battle.unit.Speed.Speed
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress.ProgressTime
 import ru.agny.xent.core.utils.TimeUnit
 
-import scala.collection.mutable
 import scala.util.Random
 
-case class Battle(pos: Coordinate, troops: Map[Troop, Occupation], queue: Map[Troop, Occupation], start: ProgressTime, round: Round) extends Occupation {
-  private type TO = (Troop, Occupation)
-  private val TOMap = troops.map(x => x._1.id -> x._2)
+case class Battle(pos: Coordinate, private val combatants: Combatants, start: ProgressTime, round: Round) extends Occupation {
+
+  import Combatants._
 
   def tick: (Option[Battle], Vector[TO]) = {
     val now = System.currentTimeMillis()
     val timeRemains = (start + round.time) - now
-    if (timeRemains <= 0) toNextRoundM
+    if (timeRemains <= 0) toNextRound
     else (Some(this), Vector.empty)
   }
 
-  def addTroops(t: Map[Troop, Occupation]): Battle = copy(queue = queue ++: t)
+  def addTroops(t: Vector[(Troop, Occupation)]): Battle = copy(combatants = combatants.queue(t))
 
   //TODO unite troops to Squads
-  private def toNextRoundM: (Option[Battle], Vector[TO]) = {
-    val troopsPool = mutableGroupByUsers(troops.keys)
-    val troopsResult = nextAttack(troopsPool.values.flatten.unzip._2.toVector, troopsPool)
-    val (fallen, alive) = sendFallenToHome(troopsResult)
-    val (exhausted, fresh) = freeExhaustedFromBattle(alive)
-    val out = fallen ++ exhausted
-    val ready = resumePreviousOccupation(fresh)
-    if (fresh.isEmpty || isSameSide(queue.keys.toVector ++ fresh)) (None, out ++ ready ++ queue)
-    else {
-      val toBattle = queue ++ ready
-      val r = Round(round.n + 1, toBattle.keys)
-      (Some(Battle(pos, toBattle, Map.empty, System.currentTimeMillis(), r)), out)
+  private def toNextRound: (Option[Battle], Vector[TO]) = {
+    val troopsByUser = combatants.groupByUsers
+    val (troopsResult, _) = nextAttack(troopsByUser.values.flatten.unzip._2.toVector, troopsByUser)
+    val (next, out) = nextRound(combatants, troopsResult)
+    if (next.isBattleNeeded) {
+      val r = Round(round.n + 1, next.troops.unzip._1)
+      (Some(Battle(pos, next, System.currentTimeMillis(), r)), out)
+    } else {
+      (None, next.free)
     }
   }
 
-  private def mutableGroupByUsers(troops: Iterable[Troop]): Map[UserId, mutable.Map[ObjectId, Troop]] = {
-    val empty = Map.empty[UserId, mutable.Map[ObjectId, Troop]]
-    troops.foldLeft(empty)((m, t) => m.updated(t.user, m(t.user).updated(t.id, t)))
-  }
-
-  private def nextAttack(attackers: Vector[Troop], pool: Map[UserId, mutable.Map[ObjectId, Troop]]): Vector[Troop] = {
+  private def nextAttack(attackers: Vector[Troop], pool: Pool): (Vector[Troop], Pool) = {
     val (mostInitiative +: _) = attackers.sortBy(_.initiative)
     val target = claimEnemy(mostInitiative.user, pool.map(x => x._1 -> x._2.values))
     val (attacker, attacked) = attack(mostInitiative, target)
-
-    pool(attacker.user).update(attacker.id, attacker)
-    pool(attacked.user).update(attacked.id, attacked)
+    val poolWithAttacker = Combatants.adjustPool(pool, attacker)
+    val updPool = Combatants.adjustPool(poolWithAttacker, attacked)
 
     val canAttack = pool.updated(attacker.user, pool(attacker.user) - attacker.user).values.flatten.unzip._2.toVector
-    if (isNextAttackAvailable(canAttack, pool)) nextAttack(canAttack, pool) else pool.values.flatten.unzip._2.toVector
+    if (isNextAttackAvailable(canAttack, updPool)) nextAttack(canAttack, updPool) else (updPool.values.flatten.unzip._2.toVector, updPool)
   }
 
-  private def isNextAttackAvailable(attackers: Vector[Troop], pool: Map[UserId, mutable.Map[ObjectId, Troop]]) = {
+  private def isNextAttackAvailable(attackers: Vector[Troop], pool: Pool) = {
     if (attackers.isEmpty) false
     else {
       val possibleTargets = attackers.flatMap(x => pool.filter(_._1 != x.user).values.flatten.unzip._2)
@@ -78,20 +68,7 @@ case class Battle(pos: Coordinate, troops: Map[Troop, Occupation], queue: Map[Tr
     attacker.attack(target)
   }
 
-  //TODO calculate home coordinates for fallen
-  private def sendFallenToHome(troops: Vector[Troop]): (Vector[TO], Vector[Troop]) = {
-    val (fallen, alive) = troops.partition(_.isActive)
-    (fallen.map(x => x -> TOMap(x.id)), alive)
-  }
-
-  private def freeExhaustedFromBattle(troops: Vector[Troop]): (Vector[TO], Vector[Troop]) = {
-    val (fresh, exhausted) = troops.partition(_.endurance > 0)
-    (resumePreviousOccupation(exhausted), fresh)
-  }
-
-  private def isSameSide(v: Vector[Troop]) = v.map(_.user).distinct.length < 2
-
-  private def resumePreviousOccupation(troops: Vector[Troop]): Vector[TO] = troops.map(x => x -> TOMap(x.id))
+  val troops = combatants.free.unzip._1
 
   override val isBusy = true
 
@@ -117,7 +94,7 @@ case class Round(n: Int, troops: Iterable[Troop]) {
 }
 
 object Battle {
-  def apply(pos: Coordinate, troops: Map[Troop, Occupation]): Battle = Battle(pos, troops, Map.empty, System.currentTimeMillis(), Round(1, troops.keys))
+  def apply(pos: Coordinate, troops: Vector[(Troop, Occupation)]): Battle = Battle(pos, Combatants(troops, Vector.empty), System.currentTimeMillis(), Round(1, troops.unzip._1))
 }
 
 object Round {

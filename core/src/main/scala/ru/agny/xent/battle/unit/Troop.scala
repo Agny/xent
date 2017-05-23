@@ -12,6 +12,7 @@ case class Troop(id: ObjectId, private val units: Vector[Soul], backpack: Backpa
   val activeUnits = units.filter(_.state == Soul.Active)
   lazy val weight = activeUnits.foldLeft(0)((sum, x) => sum + x.weight)
   lazy val isActive = activeUnits.nonEmpty
+  lazy val isAbleToFight = isActive && endurance > 0
 
   lazy val endurance = (activeUnits match {
     case x@h +: t => x.minBy(_.endurance).endurance
