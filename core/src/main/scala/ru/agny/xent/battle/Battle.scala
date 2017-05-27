@@ -5,7 +5,7 @@ import ru.agny.xent.battle.unit.Speed.Speed
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress.ProgressTime
-import ru.agny.xent.core.utils.TimeUnit
+import ru.agny.xent.core.utils.NESeq
 
 import scala.util.Random
 
@@ -15,7 +15,7 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
 
   def tick: (Option[Battle], Vector[TO]) = {
     val now = System.currentTimeMillis()
-    val timeRemains = (start + round.time) - now
+    val timeRemains = (start + round.duration) - now
     if (timeRemains <= 0) toNextRound
     else (Some(this), Vector.empty)
   }
@@ -28,7 +28,7 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
     val (troopsResult, _) = nextAttack(troopsByUser.values.flatten.unzip._2.toVector, troopsByUser)
     val (next, out) = nextRound(combatants, troopsResult)
     if (next.isBattleNeeded) {
-      val r = Round(round.n + 1, next.troops.unzip._1)
+      val r = Round(round.n + 1, NESeq(next.troops.unzip._1))
       (Some(Battle(pos, next, System.currentTimeMillis(), r)), out)
     } else {
       (None, next.free)
@@ -43,7 +43,8 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
     val updPool = Combatants.adjustPool(poolWithAttacker, attacked)
 
     val canAttack = pool.updated(attacker.user, pool(attacker.user) - attacker.user).values.flatten.unzip._2.toVector
-    if (isNextAttackAvailable(canAttack, updPool)) nextAttack(canAttack, updPool) else (updPool.values.flatten.unzip._2.toVector, updPool)
+    if (isNextAttackAvailable(canAttack, updPool)) nextAttack(canAttack, updPool)
+    else (updPool.values.flatten.unzip._2.toVector, updPool)
   }
 
   private def isNextAttackAvailable(attackers: Vector[Troop], pool: Pool) = {
@@ -75,29 +76,7 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
   override def pos(speed: Speed, time: ProgressTime): Coordinate = pos
 }
 
-case class Round(n: Int, troops: Iterable[Troop]) {
-
-  import Round._
-
-  val time: ProgressTime = {
-    val byUsers = Troop.groupByUsers(troops)
-    time(byUsers.map { case (uid, ts) => uid -> ts.foldLeft(0)((w, t) => w + weight(t)) }.values)
-  }
-
-  private def weight(t: Troop): Int = troops.foldLeft(0)((sum, x) => sum + x.weight)
-
-  private def time(armiesWithWeight: Iterable[Int]): ProgressTime = {
-    val max = armiesWithWeight.max
-    val min = armiesWithWeight.min
-    math.round((min.toDouble / max) * timeLimitMax)
-  }
-}
-
 object Battle {
-  def apply(pos: Coordinate, troops: Vector[(Troop, Occupation)]): Battle = Battle(pos, Combatants(troops, Vector.empty), System.currentTimeMillis(), Round(1, troops.unzip._1))
-}
-
-object Round {
-  val timeLimitMax = TimeUnit.minute * 10
-  val timeLimitMin = TimeUnit.minute
+  def apply(pos: Coordinate, troops: NESeq[(Troop, Occupation)]): Battle =
+    Battle(pos, Combatants(troops, Vector.empty), System.currentTimeMillis(), Round(1, NESeq(troops.unzip._1)))
 }
