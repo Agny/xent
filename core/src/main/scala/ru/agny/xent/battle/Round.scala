@@ -10,17 +10,16 @@ case class Round(n: Int, troops: NESeq[Troop]) {
 
   val duration: ProgressTime = {
     val byUsers = Troop.groupByUsers(troops)
-    time(byUsers.map { case (uid, ts) => uid -> ts.foldLeft(0)((w, t) => w + weight(t)) }.values)
+    time(byUsers.map { case (uid, ts) => uid -> ts.foldLeft(0)((w, t) => w + t.weight) }.values)
   }
-
-  private def weight(t: Troop): Int = troops.foldLeft(0)((sum, x) => sum + x.weight)
 
   private def time(armiesByUserWithWeight: Iterable[Int]): ProgressTime = {
     if (armiesByUserWithWeight.size < 2) 0
     else {
       val max = armiesByUserWithWeight.max
       val min = armiesByUserWithWeight.min
-      math.round((min.toDouble / max) * timeLimitMax)
+      val time = math.round((min.toDouble / max) * timeLimitMax)
+      if (time < timeLimitMin) timeLimitMin else time
     }
   }
 }
