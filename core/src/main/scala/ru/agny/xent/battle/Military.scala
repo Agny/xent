@@ -2,7 +2,7 @@ package ru.agny.xent.battle
 
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
-import ru.agny.xent.core.utils.SubTyper
+import ru.agny.xent.core.utils.{NESeq, SubTyper}
 
 case class Military(troops: Vector[(Troop, Occupation)]) {
 
@@ -62,11 +62,11 @@ object Military {
       inProcess match {
         case Some(battle) => val (toBattle, byPass) = queueing.partition(x => x._1.isAbleToFight)
           (Some(battle.addTroops(toBattle)), leaving ++ byPass)
-        case None if !Combatants.isBattleNeeded(queueing.unzip._1) => (None, leaving ++ queueing)
-        case _ => (Some(Battle(pos, queueing)), leaving)
+        case None if Combatants.isBattleNeeded(queueing.unzip._1) => (Some(Battle(pos, NESeq(queueing))), leaving)
+        case _ => (None, leaving ++ queueing)
       }
-    case _ if !Combatants.isBattleNeeded(queueing.unzip._1) => (None, queueing)
-    case _ => Battle(pos, queueing).tick
+    case _ if Combatants.isBattleNeeded(queueing.unzip._1) => Battle(pos, NESeq(queueing)).tick
+    case _ => (None, queueing)
   }
 
   //TODO send troop back to city upon arriving

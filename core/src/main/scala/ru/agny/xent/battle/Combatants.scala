@@ -2,8 +2,9 @@ package ru.agny.xent.battle
 
 import ru.agny.xent.UserType._
 import ru.agny.xent.battle.unit.Troop
+import ru.agny.xent.core.utils.NESeq
 
-case class Combatants(troops: Vector[(Troop, Occupation)], queue: Vector[(Troop, Occupation)]) {
+case class Combatants(troops: NESeq[(Troop, Occupation)], queue: Vector[(Troop, Occupation)]) {
 
   def queue(t: Vector[(Troop, Occupation)]): Combatants = copy(queue = queue ++: t)
 
@@ -14,7 +15,7 @@ case class Combatants(troops: Vector[(Troop, Occupation)], queue: Vector[(Troop,
 
   def isBattleNeeded = Combatants.isBattleNeeded(troops.unzip._1 ++ queue.unzip._1)
 
-  def free: Vector[(Troop, Occupation)] = troops ++ queue
+  def free: Vector[(Troop, Occupation)] = (troops ++ queue).toVector
 }
 
 object Combatants {
@@ -23,7 +24,7 @@ object Combatants {
 
   def adjustPool(pool: Pool, value: Troop): Pool = pool.updated(value.user, pool(value.user).updated(value.id, value))
 
-  def isBattleNeeded(troops: Vector[Troop]) = troops.map(_.user).distinct.length > 1
+  def isBattleNeeded(troops: Seq[Troop]) = troops.filter(_.isAbleToFight).map(_.user).distinct.length > 1
 
   def nextRound(self: Combatants, afterBattle: Vector[Troop]): (Combatants, Vector[TO]) = {
     val withOccupation = self.troops.map(x => x._1.id -> x._2).toMap
@@ -31,7 +32,7 @@ object Combatants {
     val (exhausted, fresh) = freeExhaustedFromBattle(alive, withOccupation)
     val out = fallen ++ exhausted
     val ready = resumePreviousOccupation(fresh, withOccupation) ++ self.queue
-    (Combatants(ready, Vector.empty), out)
+    (Combatants(NESeq(ready), Vector.empty), out)
   }
 
   //TODO calculate home coordinates for fallen

@@ -4,6 +4,7 @@ import ru.agny.xent.UserType.{ObjectId, UserId}
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.battle.unit.inventory.Backpack
 import ru.agny.xent.core._
+import ru.agny.xent.core.utils.NESeq
 
 case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, souls: Workers, lastAction: Long) {
 
@@ -52,9 +53,10 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     producers.find(_.name == producer)
   }
 
-  def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): (User, Troop) = {
+  def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): (User, Option[Troop]) = {
     val (remains, units) = souls.callToArms(soulsId)
-    (copy(souls = remains), Troop(troopId, units, Backpack.empty, id, city.c))
+    if (units.nonEmpty) (copy(souls = remains), Some(Troop(troopId, NESeq(units), Backpack.empty, id, city.c)))
+    else (this, None)
   }
 
   override def toString = s"id=$id name=$name time=$lastAction"
