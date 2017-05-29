@@ -53,15 +53,14 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
       val soulTwo = Soul(userTwo, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userTwo, pos)
-      val troops = Vector(troopOne, troopTwo).map(_ -> defaultOccupation)
-      Combatants(NESeq(troops), Vector.empty)
+      Vector(troopOne, troopTwo)
     }
 
-    start.isBattleNeeded should be(true)
+    Combatants.isBattleNeeded(start) should be(true)
   }
 
   it should "test troops if the battle must go on with queued troops" in {
-    val start = {
+    val (t, q) = {
       val userOne = 1
       val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val userTwo = 2
@@ -70,35 +69,34 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
       val soulThree = Soul(userThree, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userTwo, pos)
-      val troopQueue = Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userThree, pos)
-      val troops = Vector(troopOne, troopTwo).map(_ -> defaultOccupation)
-      Combatants(NESeq(troops), Vector(troopQueue -> defaultOccupation))
+      val troopQueue = Vector(Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userThree, pos))
+      val troops = Vector(troopOne, troopTwo)
+      (troops, troopQueue)
     }
 
-    start.isBattleNeeded should be(true)
+    Combatants.isBattleNeeded(t ++ q) should be(true)
   }
 
   it should "test troops if the battle must end" in {
     val dummySoul = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-    val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, 1, pos) -> defaultOccupation
-    val start = Combatants(NESeq(troopOne +: Vector.empty), Vector.empty)
-    start.isBattleNeeded should be(false)
+    val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, 1, pos)
+    Combatants.isBattleNeeded(Vector(troopOne)) should be(false)
   }
 
   it should "test troops if the battle must end with queued troops" in {
-    val start = {
+    val (t, q) = {
       val userOne = 1
       val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val soulTwo = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val soulThree = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userOne, pos)
-      val troopQueue = Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userOne, pos)
-      val troops = Vector(troopOne, troopTwo).map(_ -> defaultOccupation)
-      Combatants(NESeq(troops), Vector(troopQueue -> defaultOccupation))
+      val troopQueue = Vector(Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userOne, pos))
+      val troops = Vector(troopOne, troopTwo)
+      (troops, troopQueue)
     }
 
-    start.isBattleNeeded should be(false)
+    Combatants.isBattleNeeded(t ++ q) should be(false)
   }
 
   it should "free all troops" in {
@@ -139,10 +137,10 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
         Vector(troopTwo).map(_ -> defaultOccupation))
     }
 
-    val (res, outRes) = Combatants.nextRound(start, start.troops.unzip._1.toVector)
-    res.troops should be(toNext)
+    val (res, outRes) = Combatants.prepareToNextRound(start, start.troops.unzip._1.toVector)
+    res.get.troops should be(toNext)
     outRes should be(out)
-    res.queue should be(Vector.empty)
+    res.get.queue should be(Vector.empty)
   }
 
   it should "adjust the pool of troops" in {

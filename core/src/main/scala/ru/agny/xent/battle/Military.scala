@@ -58,14 +58,14 @@ object Military {
 
   private def commenceBattle(pos: Coordinate, inBattle: Vector[TB], queueing: Vector[TO]): (Option[Battle], Vector[TO]) = inBattle match {
     case (_, b) +: _ =>
-      val (inProcess, leaving) = b.tick
+      val (inProcess, leaving) = b.tick()
       inProcess match {
         case Some(battle) => val (toBattle, byPass) = queueing.partition(x => x._1.isAbleToFight)
           (Some(battle.addTroops(toBattle)), leaving ++ byPass)
         case None if Combatants.isBattleNeeded(queueing.unzip._1) => (Some(Battle(pos, NESeq(queueing))), leaving)
         case _ => (None, leaving ++ queueing)
       }
-    case _ if Combatants.isBattleNeeded(queueing.unzip._1) => Battle(pos, NESeq(queueing)).tick
+    case _ if Combatants.isBattleNeeded(queueing.unzip._1) => Battle(pos, NESeq(queueing)).tick()
     case _ => (None, queueing)
   }
 

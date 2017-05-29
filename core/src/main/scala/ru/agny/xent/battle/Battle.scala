@@ -13,9 +13,8 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
 
   import Combatants._
 
-  def tick: (Option[Battle], Vector[TO]) = {
-    val now = System.currentTimeMillis()
-    val timeRemains = (start + round.duration) - now
+  def tick(from: ProgressTime = System.currentTimeMillis()): (Option[Battle], Vector[TO]) = {
+    val timeRemains = (start + round.duration) - from
     if (timeRemains <= 0) toNextRound
     else (Some(this), Vector.empty)
   }
@@ -26,25 +25,34 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
   private def toNextRound: (Option[Battle], Vector[TO]) = {
     val troopsByUser = combatants.groupByUsers
     val (troopsResult, _) = nextAttack(troopsByUser.values.flatten.unzip._2.toVector, troopsByUser)
-    val (next, out) = nextRound(combatants, troopsResult)
-    if (next.isBattleNeeded) {
-      val r = Round(round.n + 1, NESeq(next.troops.unzip._1))
-      (Some(Battle(pos, next, System.currentTimeMillis(), r)), out)
-    } else {
-      (None, next.free)
+    val (next, out) = prepareToNextRound(combatants, troopsResult)
+    next match {
+      case Some(v) =>
+        val r = Round(round.n + 1, NESeq(v.troops.unzip._1))
+        (Some(Battle(pos, v, System.currentTimeMillis(), r)), out)
+      case None => (None, out)
     }
   }
 
   private def nextAttack(attackers: Vector[Troop], pool: Pool): (Vector[Troop], Pool) = {
-    val (mostInitiative +: _) = attackers.sortBy(_.initiative)
+    val (mostInitiative +: tail) = attackers.sortBy(_.initiative)
     val target = claimEnemy(mostInitiative.user, pool.map(x => x._1 -> x._2.values))
     val (attacker, attacked) = attack(mostInitiative, target)
     val poolWithAttacker = Combatants.adjustPool(pool, attacker)
     val updPool = Combatants.adjustPool(poolWithAttacker, attacked)
 
-    val canAttack = pool.updated(attacker.user, pool(attacker.user) - attacker.user).values.flatten.unzip._2.toVector
-    if (isNextAttackAvailable(canAttack, updPool)) nextAttack(canAttack, updPool)
+    val nextAttackers = validateAttackers(tail, attacked)
+    if (isNextAttackAvailable(nextAttackers, updPool)) nextAttack(nextAttackers, updPool)
     else (updPool.values.flatten.unzip._2.toVector, updPool)
+  }
+
+  private def validateAttackers(base: Vector[Troop], attacked: Troop): Vector[Troop] = {
+    val others = base.filterNot(_.id == attacked.id)
+    if (others.size == base.size) others
+    else {
+      if (attacked.isAbleToFight) attacked +: others
+      else others
+    }
   }
 
   private def isNextAttackAvailable(attackers: Vector[Troop], pool: Pool) = {

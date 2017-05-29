@@ -13,8 +13,6 @@ case class Combatants(troops: NESeq[(Troop, Occupation)], queue: Vector[(Troop, 
     troops.foldLeft(empty)((m, t) => m.updated(t._1.user, m(t._1.user).updated(t._1.id, t._1)))
   }
 
-  def isBattleNeeded = Combatants.isBattleNeeded(troops.unzip._1 ++ queue.unzip._1)
-
   def free: Vector[(Troop, Occupation)] = (troops ++ queue).toVector
 }
 
@@ -26,13 +24,14 @@ object Combatants {
 
   def isBattleNeeded(troops: Seq[Troop]) = troops.filter(_.isAbleToFight).map(_.user).distinct.length > 1
 
-  def nextRound(self: Combatants, afterBattle: Vector[Troop]): (Combatants, Vector[TO]) = {
+  def prepareToNextRound(self: Combatants, afterBattle: Vector[Troop]): (Option[Combatants], Vector[TO]) = {
     val withOccupation = self.troops.map(x => x._1.id -> x._2).toMap
     val (fallen, alive) = sendFallenToHome(afterBattle, withOccupation)
     val (exhausted, fresh) = freeExhaustedFromBattle(alive, withOccupation)
     val out = fallen ++ exhausted
     val ready = resumePreviousOccupation(fresh, withOccupation) ++ self.queue
-    (Combatants(NESeq(ready), Vector.empty), out)
+    if (isBattleNeeded(ready.unzip._1)) (Some(Combatants(NESeq(ready), Vector.empty)), out)
+    else (None, out ++ ready)
   }
 
   //TODO calculate home coordinates for fallen
