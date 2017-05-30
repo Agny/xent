@@ -79,9 +79,16 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       Battle(pos, NESeq(troops))
     }
 
-    val (result, outs) = start.tick(System.currentTimeMillis() + (Round.timeLimitMax * 3))
-    result should be (None)
-    outs.size should be(4)
+    val (second, outFirst) = start.tick(System.currentTimeMillis() + start.round.duration)
+    val (third, outSecond) = second.get.tick(System.currentTimeMillis() + second.get.round.story + second.get.round.duration)
+    if (outFirst.size == 1) {
+      val (last, outThird) = third.get.tick(System.currentTimeMillis() + third.get.round.story + third.get.round.duration)
+      (outFirst ++ outSecond ++ outThird).size should be(4)
+      last should be(None)
+    } else {
+      (outFirst ++ outSecond).size should be(4)
+      third should be(None)
+    }
   }
 
 }

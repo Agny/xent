@@ -4,7 +4,7 @@ import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Progress._
 import ru.agny.xent.core.utils.{NESeq, TimeUnit}
 
-case class Round(n: Int, troops: NESeq[Troop]) {
+case class Round(n: Int, troops: NESeq[Troop], story: ProgressTime = 0) {
 
   import Round._
 
@@ -27,4 +27,6 @@ case class Round(n: Int, troops: NESeq[Troop]) {
 object Round {
   val timeLimitMax = TimeUnit.minute * 10
   val timeLimitMin = TimeUnit.minute
+
+  def apply(prev: Round, troops: NESeq[Troop]): Round = Round(prev.n + 1, troops, prev.story + prev.duration)
 }

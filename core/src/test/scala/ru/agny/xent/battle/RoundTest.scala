@@ -12,7 +12,7 @@ class RoundTest extends FlatSpec with Matchers with EitherValues {
   val pos = Coordinate(1, 1)
 
   "Round" should "throw exception if there are no units" in {
-    assertThrows[UnsupportedOperationException](Round(1, NESeq(Vector.empty)))
+    assertThrows[UnsupportedOperationException](Round(1, NESeq(Vector.empty), 0))
   }
 
   it should "have zero duration if all troops belongs to the same user" in {

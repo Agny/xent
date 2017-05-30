@@ -14,30 +14,24 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
 
   import Combatants._
 
-  def tick(implicit from: ProgressTime = System.currentTimeMillis()): (Option[Battle], Vector[TO]) = {
-    val timePassed = from - (start + round.duration)
-    if (timePassed > 0) toNextRound(timePassed, Vector.empty)
+  def tick(from: ProgressTime = System.currentTimeMillis()): (Option[Battle], Vector[TO]) = {
+    val timeRemains = (start + round.story + round.duration) - from
+    if (timeRemains <= 0) toNextRound(timeRemains)
     else (Some(this), Vector.empty)
   }
 
   def addTroops(t: Vector[(Troop, Occupation)]): Battle = copy(combatants = combatants.queue(t))
 
   //TODO unite troops to Squads
-  @tailrec private def toNextRound(remainder: ProgressTime, outs: Vector[TO]): (Option[Battle], Vector[TO]) = {
+  private def toNextRound(remainder: ProgressTime): (Option[Battle], Vector[TO]) = {
     val troopsByUser = combatants.groupByUsers
     val (troopsResult, _) = nextAttack(troopsByUser.values.flatten.unzip._2.toVector, troopsByUser)
     val (next, out) = prepareToNextRound(combatants, troopsResult)
     next match {
       case Some(v) =>
-        val r = Round(round.n + 1, NESeq(v.troops.unzip._1))
-        val nextBattleRound = Battle(pos, v, start + round.duration, r)
-        val isAnotherRoundPassed = (r.duration - remainder) < 0
-        if (isAnotherRoundPassed) {
-          nextBattleRound.toNextRound(remainder - r.duration, outs ++ out)
-        } else {
-          (Some(nextBattleRound), outs ++ out)
-        }
-      case None => (None, outs ++ out)
+        val r = Round(round, NESeq(v.troops.unzip._1))
+        (Some(Battle(pos, v, start, r)), out)
+      case None => (None, out)
     }
   }
 
