@@ -1,6 +1,7 @@
 package ru.agny.xent.battle.unit
 
 import ru.agny.xent.UserType.{UserId, ObjectId}
+import ru.agny.xent.battle.Fatigue
 import ru.agny.xent.battle.core.OutcomeDamage
 import ru.agny.xent.battle.unit.inventory.Backpack
 import ru.agny.xent.core.utils.NESeq
@@ -67,11 +68,9 @@ case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpac
 
 }
 
-case class Fatigue(v: Int) {
-  def ++ = Fatigue(v + 1)
-}
-
 object Troop {
+
+  val FALLEN_SPEED = 10
 
   def apply(id: ObjectId, units: NESeq[Soul], backpack: Backpack, user: UserId, pos: Coordinate): Troop = Troop(id, units, backpack, user, pos, Fatigue(0))
 
@@ -79,10 +78,4 @@ object Troop {
     val empty = Map.empty[UserId, Vector[Troop]].withDefaultValue(Vector.empty)
     troops.foldLeft(empty)((m, t) => m.updated(t.user, t +: m(t.user)))
   }
-}
-
-object Fatigue {
-  val MAX = Fatigue(Int.MaxValue)
-
-  implicit def toInt(f: Fatigue): Int = f.v
 }
