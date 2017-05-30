@@ -4,7 +4,7 @@ import ru.agny.xent.battle.unit.Speed._
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress._
 
-case class Movement(from: Coordinate, to: Coordinate, start: ProgressTime) extends Occupation {
+case class Movement(from: Coordinate, to: Coordinate, start: ProgressTime = System.currentTimeMillis()) extends Occupation {
   override val isBusy = true
   private val path = from.path(to)
 
@@ -15,6 +15,6 @@ case class Movement(from: Coordinate, to: Coordinate, start: ProgressTime) exten
   }
 }
 
-class Waiting(pos: Coordinate, start: ProgressTime) extends Movement(pos, pos, start) {
+class Waiting(pos: Coordinate, start: ProgressTime = System.currentTimeMillis()) extends Movement(pos, pos, start) {
   override val isBusy = false
 }

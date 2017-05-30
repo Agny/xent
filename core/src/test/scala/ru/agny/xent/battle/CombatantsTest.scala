@@ -2,7 +2,7 @@ package ru.agny.xent.battle
 
 import org.scalatest.{EitherValues, Matchers, FlatSpec}
 import ru.agny.xent.battle.core.LevelBar
-import ru.agny.xent.battle.unit.{Fatigue, SpiritBar, Soul, Troop}
+import ru.agny.xent.battle.unit.{SpiritBar, Soul, Troop}
 import ru.agny.xent.battle.unit.inventory.{Equipment, Backpack}
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.utils.NESeq
@@ -120,12 +120,12 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
       val userOne = 1
       val userTwo = 2
       val userThree = 3
-      val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulTwo = Soul(userTwo, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulThree = Soul(userThree, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(2, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulThree = Soul(3, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
 
-      val fallen = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(0, 1, 1), Equipment.empty, 10, Vector.empty)
-      val fallenTwo = Soul(userTwo, LevelBar(1, 1, 1), SpiritBar(0, 1, 1), Equipment.empty, 10, Vector.empty)
+      val fallen = Soul(1, LevelBar(1, 1, 1), SpiritBar(0, 1, 1), Equipment.empty, 10, Vector.empty)
+      val fallenTwo = Soul(2, LevelBar(1, 1, 1), SpiritBar(0, 1, 1), Equipment.empty, 10, Vector.empty)
 
       val troopOne = Troop(1, NESeq(Vector(soulOne, fallen)), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(Vector(soulTwo, fallenTwo)), Backpack.empty, userTwo, pos, Fatigue.MAX)

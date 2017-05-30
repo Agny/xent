@@ -18,8 +18,8 @@ class RoundTest extends FlatSpec with Matchers with EitherValues {
   it should "have zero duration if all troops belongs to the same user" in {
     val start = {
       val userOne = 1
-      val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulTwo = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(2, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne, Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo, Vector.empty), Backpack.empty, userOne, pos)
       Round(1, NESeq(Vector(troopOne, troopTwo)))
@@ -33,10 +33,10 @@ class RoundTest extends FlatSpec with Matchers with EitherValues {
       val userOne = 1
       val userTwo = 2
       val userThree = 3
-      val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulTwo = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulThree = Soul(userThree, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulFour = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(2, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulThree = Soul(3, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulFour = Soul(4, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(Vector(soulOne, soulTwo)), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulThree, Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(soulFour, Vector.empty), Backpack.empty, userThree, pos)
