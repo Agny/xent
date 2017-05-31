@@ -84,10 +84,10 @@ object Military {
       inProcess match {
         case Some(battle) => val (toBattle, byPass) = queueing.partition(x => x._1.isAbleToFight)
           (Some(battle.addTroops(toBattle)), leaving ++ byPass)
-        case None if Combatants.isBattleNeeded(queueing.unzip._1) => (Some(Battle(pos, NESeq(queueing))), leaving)
+        case None if Combatants.isBattleNeeded(queueing.unzip._1) => (Some(Battle(pos, NESeq(queueing), time)), leaving)
         case _ => (None, leaving ++ queueing)
       }
-    case _ if Combatants.isBattleNeeded(queueing.unzip._1) => Battle(pos, NESeq(queueing)).tick(time)
+    case _ if Combatants.isBattleNeeded(queueing.unzip._1) => Battle(pos, NESeq(queueing), time).tick(time)
     case _ => (None, queueing)
   }
 

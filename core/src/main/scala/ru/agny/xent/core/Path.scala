@@ -1,5 +1,7 @@
 package ru.agny.xent.core
 
+import scala.annotation.tailrec
+
 case class Path(from: Coordinate, to: Coordinate) {
   private val cells = path_rec(from, to, Vector(to))
 
@@ -9,7 +11,7 @@ case class Path(from: Coordinate, to: Coordinate) {
     case maxed if idx >= cells.length => cells.last
   }
 
-  private def path_rec(start: Coordinate, end: Coordinate, acc: Vector[Coordinate]): Vector[Coordinate] = {
+  @tailrec private def path_rec(start: Coordinate, end: Coordinate, acc: Vector[Coordinate]): Vector[Coordinate] = {
     val (sx, sy) = (start.x, start.y)
     val (ex, ey) = (end.x, end.y)
     val xdiff = math.abs(ex - sx)

@@ -25,8 +25,8 @@ case class Round(n: Int, troops: NESeq[Troop], story: ProgressTime = 0) {
 }
 
 object Round {
-  val timeLimitMax = TimeUnit.minute * 10
-  val timeLimitMin = TimeUnit.minute
+  val timeLimitMax: Long = TimeUnit.minute * 10
+  val timeLimitMin: Long = TimeUnit.minute
 
   def apply(prev: Round, troops: NESeq[Troop]): Round = Round(prev.n + 1, troops, prev.story + prev.duration)
 }

@@ -86,8 +86,6 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
 }
 
 object Battle {
-  def apply(pos: Coordinate, troops: NESeq[(Troop, Occupation)])(implicit from: ProgressTime = System.currentTimeMillis()): Battle = {
-    val now = System.currentTimeMillis()
-    Battle(pos, Combatants(troops, Vector.empty), now - (from - now), Round(1, NESeq(troops.unzip._1)))
-  }
+  def apply(pos: Coordinate, troops: NESeq[(Troop, Occupation)], start: ProgressTime = System.currentTimeMillis()): Battle =
+    Battle(pos, Combatants(troops, Vector.empty), start, Round(1, NESeq(troops.unzip._1)))
 }
