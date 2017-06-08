@@ -1,24 +1,24 @@
 package ru.agny.xent.core
 
-import ProductionQueue.ItemCount
 import Progress.ProgressTime
+import ru.agny.xent.core.ResourceQueue.ItemCount
 
-case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: ProgressTime = 0) {
+import scala.annotation.tailrec
 
-  def in(item: DelayableItem, count: Int): ProductionQueue = {
+case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: ProgressTime = 0) extends ResourceQueue {
+
+  override def in(item: DelayableItem, count: Int): ProductionQueue = {
     ProductionQueue((item, count) +: content, progress)
   }
 
-  def out(fromTime: Long): (ProductionQueue, Vector[ItemCount]) = {
+  override def out(from: ProgressTime): (ProductionQueue, Vector[ItemCount]) = {
     val now = System.currentTimeMillis()
-    val progress = now - (fromTime - this.progress)
+    val progress = now - (from - this.progress)
     val (updatedContent, production, time) = handle(content, progress, Vector.empty)
     (ProductionQueue(updatedContent, time), production)
   }
 
-  def isEmpty = content.isEmpty
-
-  private def handle(items: Vector[ItemCount], remindedTime: Long, acc: Vector[ItemCount]): (Vector[ItemCount], Vector[ItemCount], ProgressTime) = {
+  @tailrec private def handle(items: Vector[ItemCount], remindedTime: Long, acc: Vector[ItemCount]): (Vector[ItemCount], Vector[ItemCount], ProgressTime) = {
     items match {
       case (res, amount) +: t => handle((res, amount), remindedTime, (res, 0)) match {
         case (_, time, (item, 0)) => (items, Vector.empty, time)
@@ -29,7 +29,7 @@ case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: Prog
     }
   }
 
-  private def handle(item: ItemCount, remindedTime: Long, acc: ItemCount): (Int, ProgressTime, ItemCount) =
+  @tailrec private def handle(item: ItemCount, remindedTime: Long, acc: ItemCount): (Int, ProgressTime, ItemCount) =
     (item, remindedTime) match {
       case ((_, 0), time) => (0, time, acc)
       case ((v, count), time) if time < v.yieldTime => (count, time, acc)
@@ -38,7 +38,5 @@ case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: Prog
 }
 
 object ProductionQueue {
-  type ItemCount = (DelayableItem, Int)
-
   val empty = ProductionQueue(Vector.empty)
 }

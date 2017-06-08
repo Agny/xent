@@ -1,13 +1,13 @@
 package ru.agny.xent.core
 
 import Item.ItemId
+import ru.agny.xent.core.Progress.ProgressTime
 
 sealed trait Resource extends DelayableItem with SingleItem {
   val name: String
   val since: Set[Prereq]
   val defaultYield = 1
 
-  //TODO usecases are lost!
   def out(): ResourceUnit
 
   override def toString = s"$name"
@@ -24,7 +24,7 @@ trait Composite extends Cost {
   self: Resource =>
 }
 
-case class Extractable(id: ItemId, name: String, var volume: Int, yieldTime: Long, since: Set[Prereq]) extends Resource with Finite {
+case class Extractable(id: ItemId, name: String, var volume: Int, yieldTime: ProgressTime, since: Set[Prereq]) extends Resource with Finite {
   override def out(): ResourceUnit = {
     val resultYield = if (volume > 0) defaultYield else 0
     volume = volume - resultYield
@@ -33,7 +33,7 @@ case class Extractable(id: ItemId, name: String, var volume: Int, yieldTime: Lon
 
   override def toString = s"$name[$volume]"
 }
-case class Obtainable(id: ItemId, name: String, yieldTime: Long, since: Set[Prereq]) extends Resource with Simple {
+case class Obtainable(id: ItemId, name: String, yieldTime: ProgressTime, since: Set[Prereq]) extends Resource with Simple {
   override def out(): ResourceUnit = ResourceUnit(defaultYield, id)
 }
 trait Producible extends Resource with Composite {
