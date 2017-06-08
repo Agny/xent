@@ -7,7 +7,9 @@ import Progress.ProgressTime
 sealed trait Facility extends DelayableItem {
   val name: String
   val resources: Vector[Resource]
-  val queue: ProductionQueue
+  val queue: ResourceQueue
+  val buildTime: ProgressTime
+  override val yieldTime = buildTime
   //TODO state transitions
   val state: Facility.State
 
@@ -28,26 +30,26 @@ sealed trait Facility extends DelayableItem {
     }
   }
 
-  protected def instance(queue: ProductionQueue): Facility
+  protected def instance(queue: ResourceQueue): Facility
 }
 
 final case class Building(id: ItemId,
                           name: String,
                           resources: Vector[Resource],
-                          queue: ProductionQueue,
-                          yieldTime: ProgressTime,
+                          queue: ResourceQueue,
+                          buildTime: ProgressTime,
                           shape: Shape,
                           state: Facility.State = Facility.Init) extends Facility {
-  override protected def instance(queue: ProductionQueue): Facility = copy(queue = queue)
+  override protected def instance(queue: ResourceQueue): Facility = copy(queue = queue)
 }
 final case class Outpost(id: ItemId,
                          name: String,
                          main: Extractable,
                          resources: Vector[Resource],
-                         queue: ProductionQueue,
-                         yieldTime: ProgressTime,
+                         queue: ResourceQueue,
+                         buildTime: ProgressTime,
                          state: Facility.State = Facility.Init) extends Facility {
-  override protected def instance(queue: ProductionQueue): Facility = copy(queue = queue)
+  override protected def instance(queue: ResourceQueue): Facility = copy(queue = queue)
 }
 
 object Facility {
@@ -67,5 +69,5 @@ object Building {
 
 object Outpost {
   def apply(id: ItemId, name: String, main: Extractable, resources: Vector[Resource], yieldTime: ProgressTime): Outpost =
-    Outpost(id, name, main, resources, ProductionQueue.empty, yieldTime)
+    Outpost(id, name, main, resources, ExtractionQueue(main), yieldTime)
 }
