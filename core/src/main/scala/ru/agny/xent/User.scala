@@ -4,11 +4,12 @@ import ru.agny.xent.UserType.{ObjectId, UserId}
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.battle.unit.inventory.Backpack
 import ru.agny.xent.core._
-import ru.agny.xent.core.utils.NESeq
+import ru.agny.xent.core.utils.{SubTyper, NESeq}
 
 case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, souls: Workers, lastAction: Long) {
 
   import User._
+  import FacilitySubTyper.implicits._
 
   private lazy val producers = city.producers ++ lands.outposts
 
@@ -16,8 +17,8 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     val time = System.currentTimeMillis()
     val (q, prod) = queue.out(lastAction)
     val (actualStorage, updatedFacilities) = storage.tick(lastAction, producers)
-    val (buildings, outposts) = updateByFacilitiesQueue(updatedFacilities)
-    val updatedCity = city.update(buildings.map((_, Facility.InProcess)))
+    val (buildings, outposts) = SubTyper.partition[Building, Outpost, Facility](updatedFacilities)
+    val updatedCity = city.update(buildings.map((_, Facility.Working)))
 
     val actualUser = copy(city = updatedCity, lands = Lands(outposts), storage = actualStorage, queue = q, lastAction = time)
     val updated = handleQueue(prod.map { case (item, amount) => item.asInstanceOf[Facility] }, actualUser)
@@ -84,15 +85,6 @@ object User {
       handleQueue(t, update)
     case _ => state
   }
-
-  private def updateByFacilitiesQueue(f: Vector[Facility]): (Vector[Building], Vector[Outpost]) =
-    f.foldLeft((Vector.empty[Building], Vector.empty[Outpost]))((s, x) => {
-      x match {
-        case a: Building => (a +: s._1, s._2)
-        case a: Outpost => (s._1, a +: s._2)
-      }
-    })
-
 }
 
 object UserType {

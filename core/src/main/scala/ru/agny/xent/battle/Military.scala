@@ -20,7 +20,7 @@ case class Military(troops: Vector[(Troop, Occupation)]) {
 
 object Military {
 
-  import ru.agny.xent.battle.OccupationSubTyper.implicits._
+  import OccupationSubTyper.implicits._
 
   private type TO = (Troop, Occupation)
   private type TB = (Troop, Battle)
@@ -59,7 +59,7 @@ object Military {
 
   private def findBattle(pos: Coordinate, inArea: Vector[TO], time: ProgressTime): (Iterable[TB], Iterable[TO]) = inArea match {
     case multiple@h +: t if t.nonEmpty =>
-      val (inBattle, queueing) = partition[Battle](multiple)
+      val (inBattle, queueing) = SubTyper.partition[Battle, Occupation, Troop](multiple)
       val (battle, moving) = battleTick(pos, inBattle, queueing, time)
       val tb = battle match {
         case Some(b) => b.troops.map(x => x -> b)
@@ -67,15 +67,6 @@ object Military {
       }
       (tb, moving)
     case x => (Vector.empty, x)
-  }
-
-  private def partition[By <: Occupation](troops: Vector[TO])(implicit ev: SubTyper[Occupation, By]) = {
-    val l = Vector.empty[(Troop, By)]
-    val r = Vector.empty[TO]
-    troops.foldLeft(l, r)((lr, x) => (x._1, ev.asSub(x._2)) match {
-      case (a, Some(o)) => ((a, o) +: lr._1, lr._2)
-      case _ => (lr._1, x +: lr._2)
-    })
   }
 
   private def battleTick(pos: Coordinate, inBattle: Vector[TB], queueing: Vector[TO], time: ProgressTime): (Option[Battle], Vector[TO]) = inBattle match {
