@@ -5,7 +5,6 @@ import Item.ItemId
 import Progress.ProgressTime
 
 sealed trait Facility extends DelayableItem {
-  val name: String
   val obtainables: Vector[Obtainable]
   val producibles: Vector[Producible]
   val queue: ResourceQueue
