@@ -24,7 +24,7 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     a.run(updated)
   }
 
-  def addProduction(facility: Facility, res: ResourceUnit) = {
+  def addProduction(facility: Facility, res: ItemStack) = {
     facility.addToQueue(res)(storage)
   }
 

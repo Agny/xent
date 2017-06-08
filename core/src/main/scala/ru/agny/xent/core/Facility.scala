@@ -6,7 +6,8 @@ import Progress.ProgressTime
 
 sealed trait Facility extends DelayableItem {
   val name: String
-  val resources: Vector[Resource]
+  val obtainables: Vector[Obtainable]
+  val producibles: Vector[Producible]
   val queue: ResourceQueue
   val buildTime: ProgressTime
   override val yieldTime = buildTime
@@ -15,14 +16,14 @@ sealed trait Facility extends DelayableItem {
 
   def tick(fromTime: ProgressTime): Storage => (Storage, Facility) = storage => {
     val (q, prod) = queue.out(fromTime)
-    val (s, excess) = storage.add(prod.map(x => ResourceUnit(x._2, x._1.id)))
+    val (s, excess) = storage.add(prod.map(x => ItemStack(x._2, x._1.id)))
     (s, instance(q))
   }
 
-  def addToQueue(item: ResourceUnit): Storage => Either[Response, (Storage, Facility)] = storage => {
-    resources.find(_.id == item.id) match {
+  def addToQueue(item: ItemStack): Storage => Either[Response, (Storage, Facility)] = storage => {
+    producibles.find(_.id == item.id) match {
       case Some(v: Producible) =>
-        storage.spend(Recipe(v, v.price(item.stackValue))) match {
+        storage.spend(v.cost.price(item.stackValue)) match {
           case Left(s) => Left(s)
           case Right(s) => Right((s, instance(queue.in(v, item.stackValue))))
         }
@@ -35,7 +36,8 @@ sealed trait Facility extends DelayableItem {
 
 final case class Building(id: ItemId,
                           name: String,
-                          resources: Vector[Resource],
+                          producibles: Vector[Producible],
+                          obtainables: Vector[Obtainable],
                           queue: ResourceQueue,
                           buildTime: ProgressTime,
                           shape: Shape,
@@ -45,10 +47,12 @@ final case class Building(id: ItemId,
 final case class Outpost(id: ItemId,
                          name: String,
                          main: Extractable,
-                         resources: Vector[Resource],
+                         obtainables: Vector[Obtainable],
                          queue: ResourceQueue,
                          buildTime: ProgressTime,
                          state: Facility.State = Facility.Init) extends Facility {
+  override val producibles = Vector.empty
+
   override protected def instance(queue: ResourceQueue): Facility = copy(queue = queue)
 }
 
@@ -63,11 +67,11 @@ object Facility {
 }
 
 object Building {
-  def apply(id: ItemId, name: String, resources: Vector[Resource], yieldTime: ProgressTime, shape: Shape): Building =
-    Building(id, name, resources, ProductionQueue.empty, yieldTime, shape)
+  def apply(id: ItemId, name: String, producibles: Vector[Producible], yieldTime: ProgressTime, shape: Shape): Building =
+    Building(id, name, producibles, Vector.empty, ProductionQueue.empty, yieldTime, shape)
 }
 
 object Outpost {
-  def apply(id: ItemId, name: String, main: Extractable, resources: Vector[Resource], yieldTime: ProgressTime): Outpost =
-    Outpost(id, name, main, resources, ExtractionQueue(main), yieldTime)
+  def apply(id: ItemId, name: String, main: Extractable, obtainables: Vector[Obtainable], yieldTime: ProgressTime): Outpost =
+    Outpost(id, name, main, obtainables, ExtractionQueue(main), yieldTime)
 }

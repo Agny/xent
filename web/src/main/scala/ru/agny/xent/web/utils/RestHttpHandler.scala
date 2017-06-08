@@ -63,7 +63,7 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
     runtime.get.find(_.id == layerId) match {
       case Some(v) =>
         v.users.find(u => u.id == userId) match {
-          case Some(user) => (user.city.x, user.city.y, v.map.length)
+          case Some(user) => (user.city.c.x, user.city.c.y, v.map.length)
           case None => (2, 4, v.map.length)
         }
       case None => (0, 0, -1)

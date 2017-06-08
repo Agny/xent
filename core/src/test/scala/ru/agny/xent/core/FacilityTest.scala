@@ -13,12 +13,12 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
   val copperId = 3
 
   "Building" should "produce resource in queue" in {
-    val res = Producible(prodId, "Test res", ProductionSchema(1000, Vector(ResourceUnit(5, woodId)), Set.empty))
+    val res = Producible(prodId, "Test res", ProductionSchema(1000, Cost(Vector(ItemStack(5, woodId))), Set.empty))
     val facility = Building(1, "test", Vector(res), 0, shape)
-    val storage = Storage(Vector(ResourceUnit(10, woodId)))
-    val (sAfterSpend, updatedFacilityQueue) = facility.addToQueue(ResourceUnit(1, res.id))(storage).right.value
+    val storage = Storage(Vector(ItemStack(10, woodId)))
+    val (sAfterSpend, updatedFacilityQueue) = facility.addToQueue(ItemStack(1, res.id))(storage).right.value
     val (result, _) = sAfterSpend.tick(System.currentTimeMillis() - 1000, Vector(updatedFacilityQueue))
-    val expected = Vector(ResourceUnit(1, res.id), ResourceUnit(5, woodId))
+    val expected = Vector(ItemStack(1, res.id), ItemStack(5, woodId))
     result.resources should be(expected)
   }
 
@@ -28,7 +28,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
     val storage = Storage.empty
     val (s, _) = facility.tick(TimeUnit.minute)(storage)
 
-    s.resources should be(Vector(ResourceUnit(30, copperId)))
+    s.resources should be(Vector(ItemStack(30, copperId)))
     res.volume should be(0)
     facility.main.volume should be(0)
   }

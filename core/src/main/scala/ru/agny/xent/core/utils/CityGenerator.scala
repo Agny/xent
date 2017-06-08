@@ -11,7 +11,7 @@ object CityGenerator {
 
   def initCity(x: Int, y: Int): City = {
     val building = buildingGen(1)
-    val mbBuilding = building.find(b => b.name == initBuilding).map(bt => Building(bt.id, bt.name, bt.resources, bt.buildTime, bt.shape))
+    val mbBuilding = building.find(b => b.name == initBuilding).map(bt => Building(bt.id, bt.name, bt.producibles, bt.buildTime, bt.shape))
 
     val map = ShapeMap(CellsMap((0 to 3).toVector.map(x => (0 to 3).toVector.map(y => {
       if (x == 0 && y == 1) LocalCell(x, y, mbBuilding)

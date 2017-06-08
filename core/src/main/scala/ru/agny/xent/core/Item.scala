@@ -7,19 +7,14 @@ import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot, Slot}
 trait Item {
   val id: ItemId
 }
-trait SingleItem extends Item
 trait DelayableItem extends Item {
+  val name: String
   val yieldTime: ProgressTime
 }
-sealed trait StackableItem extends Item {
-  val stackValue: Int
 
-  def add(v: StackableItem): StackableItem
-}
-
-final case class ResourceUnit(stackValue: Int, id: ItemId) extends StackableItem {
-  override def add(v: StackableItem): ResourceUnit =
-    if (v.id == id) ResourceUnit(v.stackValue + stackValue, id)
+final case class ItemStack(stackValue: Int, id: ItemId) extends Item {
+  def add(v: ItemStack): ItemStack =
+    if (v.id == id) ItemStack(v.stackValue + stackValue, id)
     else this
 }
 
@@ -30,11 +25,11 @@ object Item {
   type ItemId = Long
 
   object implicits {
-    implicit def convert(v: StackableItem): Slot[Item] = v match {
-      case ResourceUnit(stackValue, id) if stackValue > 0 => ItemSlot(v)
+    implicit def convert(v: ItemStack): Slot[Item] = v match {
+      case ItemStack(stackValue, _) if stackValue > 0 => ItemSlot(v)
       case _ => EmptySlot
     }
 
-    implicit def convert(v: Vector[StackableItem])(implicit toSlot: StackableItem => Slot[Item]): Vector[Slot[Item]] = v.map(toSlot)
+    implicit def convert(v: Vector[ItemStack])(implicit toSlot: ItemStack => Slot[Item]): Vector[Slot[Item]] = v.map(toSlot)
   }
 }

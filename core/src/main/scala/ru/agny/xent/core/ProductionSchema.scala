@@ -1,6 +1,8 @@
 package ru.agny.xent.core
 
-case class ProductionSchema(yieldTime: Long, cost: Vector[ResourceUnit], since: Set[Prereq])
+import ru.agny.xent.core.Progress.ProgressTime
+
+case class ProductionSchema(yieldTime: ProgressTime, cost: Cost, since: Set[Prereq])
 object ProductionSchema {
-  def default() = ProductionSchema(0, Vector.empty, Set.empty)
+  def default() = ProductionSchema(0, Cost(Vector.empty), Set.empty)
 }

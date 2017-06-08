@@ -2,15 +2,14 @@ package ru.agny.xent.core.inventory
 
 import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core.utils.SubTyper
-import ru.agny.xent.core.{Item, SingleItem, StackableItem}
+import ru.agny.xent.core.{ItemStack, Item}
 
 trait Inventory[S <: Inventory[_, T], T <: Item] {
   val holder: SlotHolder[T]
   val self: InventoryLike[S, T]
 
   protected def add[U <: T](v: U)(implicit ev: ItemMerger[T, U]): (S, Slot[T]) = v match {
-    case i: SingleItem => (self.apply(ItemSlot(v) +: holder.slots), EmptySlot)
-    case r: StackableItem => getSlot(r.id) match {
+    case r: ItemStack => getSlot(r.id) match {
       case is@ItemSlot(x) =>
         is.set(v) match {
           case Some((newValue, remainder)) => (self.apply(holder.slots.updated(holder.slots.indexOf(is), newValue)), remainder)
@@ -19,6 +18,7 @@ trait Inventory[S <: Inventory[_, T], T <: Item] {
         }
       case EmptySlot => (self.apply(ItemSlot(v) +: holder.slots), EmptySlot)
     }
+    case i: Item => (self.apply(ItemSlot(v) +: holder.slots), EmptySlot)
   }
 
   def set(idx: Int, v: Slot[T])(implicit ev: ItemMerger[T, T]): (S, Slot[T]) = {

@@ -3,7 +3,6 @@
   "name": "Copper mine",
   "extractable": "Copper",
   "obtainable": [],
-  "producible": [],
   "cost": [
     {
       "stackValue": 5,

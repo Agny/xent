@@ -1,7 +1,7 @@
 package ru.agny.xent.core.inventory
 
 import ru.agny.xent.battle.unit.inventory.{Accessory, Armor, Weapon, Equippable}
-import ru.agny.xent.core.{ResourceUnit, Item}
+import ru.agny.xent.core.{ItemStack, Item}
 
 trait ItemMerger[-From <: Item, To <: Item] {
   def asCompatible(a: From, b: To): Option[To]
@@ -10,8 +10,8 @@ trait ItemMerger[-From <: Item, To <: Item] {
 object ItemMerger {
   object implicits {
     implicit object ResourceMerger extends ItemMerger[Item, Item] {
-      override def asCompatible(a: Item, b: Item): Option[ResourceUnit] = (a, b) match {
-        case (current: ResourceUnit, toSet: ResourceUnit) => Some(current.add(toSet))
+      override def asCompatible(a: Item, b: Item): Option[ItemStack] = (a, b) match {
+        case (current: ItemStack, toSet: ItemStack) => Some(current.add(toSet))
         case _ => None
       }
     }

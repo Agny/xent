@@ -26,21 +26,21 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
   }
 
   def spend(recipe: Cost): Either[Response, Storage] = {
-    recipe.cost.find(x => !resources.exists(y => x.id == y.id && y.stackValue >= x.stackValue)) match {
+    recipe.v.find(x => !resources.exists(y => x.id == y.id && y.stackValue >= x.stackValue)) match {
       case Some(v) => Left(Response(s"There isn't enough of ${v.id}"))
       case None =>
-        Right(Storage(recipe.cost.foldRight(resources)((a, b) => b.map(bb => bb.id match {
-          case a.id => ResourceUnit(bb.stackValue - a.stackValue, a.id)
+        Right(Storage(recipe.v.foldRight(resources)((a, b) => b.map(bb => bb.id match {
+          case a.id => ItemStack(bb.stackValue - a.stackValue, a.id)
           case _ => bb
         }))))
     }
   }
 
-  def get(resource: ItemId): Option[ResourceUnit] = resources.find(_.id == resource)
+  def get(resource: ItemId): Option[ItemStack] = resources.find(_.id == resource)
 
-  def resources: Vector[ResourceUnit] = holder.slots.flatMap(x => x match {
+  def resources: Vector[ItemStack] = holder.slots.flatMap(x => x match {
     case ItemSlot(v) => v match {
-      case ru: ResourceUnit => Some(ru)
+      case ru: ItemStack => Some(ru)
       case _ => None
     }
     case EmptySlot => None
