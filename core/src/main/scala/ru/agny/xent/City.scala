@@ -1,6 +1,5 @@
 package ru.agny.xent
 
-import ru.agny.xent.core.Facility.State
 import ru.agny.xent.core.utils.CityGenerator
 import ru.agny.xent.core._
 
@@ -15,13 +14,9 @@ case class City(c: Coordinate, private val map: ShapeMap) {
 
   def isEnoughSpace(s: Shape): Boolean = map.isAvailable(s)
 
-  def build(b: Building): City = update(b, Facility.Idle)
+  def update(bs: Vector[Building]): City = bs.foldLeft(this)((city, b) => update(b))
 
-  def update(b: Building, state: State): City = copy(map = map.update(
-    b.shape.core.copy(building = Some(b.copy(state = state)))
-  ))
-
-  def update(bs: Vector[(Building, State)]): City = bs.foldLeft(this)((city, bstate) => update(bstate._1, bstate._2))
+  def update(b: Building): City = copy(map = map.update(b.shape.core.copy(building = Some(b))))
 }
 
 object City {

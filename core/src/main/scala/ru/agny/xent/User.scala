@@ -18,7 +18,7 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     val (q, prod) = queue.out(lastAction)
     val (actualStorage, updatedFacilities) = storage.tick(lastAction, producers)
     val (buildings, outposts) = SubTyper.partition[Building, Outpost, Facility](updatedFacilities)
-    val updatedCity = city.update(buildings.map((_, Facility.Working)))
+    val updatedCity = city.update(buildings)
 
     val actualUser = copy(city = updatedCity, lands = Lands(outposts), storage = actualStorage, queue = q, lastAction = time)
     val updated = handleQueue(prod.map { case (item, amount) => item.asInstanceOf[Facility] }, actualUser)
@@ -30,10 +30,7 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
   }
 
   def build(cell: ContainerCell): User = {
-    val facility = cell.building.get match {
-      case x: Building => x.copy(state = Facility.InConstruction)
-      case x: Outpost => x.copy(state = Facility.InConstruction)
-    }
+    val facility = cell.building.get.build
     val q = queue.in(facility, 1)
     //TODO modify citymap
     copy(queue = q)
@@ -78,8 +75,8 @@ object User {
 
   private def handleQueue(items: Vector[Facility], state: User): User = items match {
     case h +: t =>
-      val update = h match {
-        case x: Building => state.copy(city = state.city.build(x))
+      val update = h.finish match {
+        case x: Building => state.copy(city = state.city.update(x))
         case x: Outpost => state.copy(lands = state.lands.add(x))
       }
       handleQueue(t, update)
