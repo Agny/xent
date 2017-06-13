@@ -16,9 +16,9 @@ trait Facility extends DelayableItem {
   val state: Facility.State
   val worker: Option[Soul]
 
-  def tick(fromTime: ProgressTime): Storage => (Storage, Facility) = storage => {
+  def tick(period: ProgressTime): Storage => (Storage, Facility) = storage => {
     if (state == Working) {
-      val (q, prod) = queue.out(fromTime)
+      val (q, prod) = queue.out(period)
       val (s, excess) = storage.add(prod.map(x => ItemStack(x._2, x._1.id)))
       (s, instance(q, state, worker))
     } else {

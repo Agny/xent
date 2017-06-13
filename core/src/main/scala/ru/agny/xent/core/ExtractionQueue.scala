@@ -8,10 +8,8 @@ import scala.annotation.tailrec
 case class ExtractionQueue(content: Extractable, progress: ProgressTime = 0) extends ResourceQueue {
   override def in(item: DelayableItem, count: Int): ExtractionQueue = this
 
-  override def out(from: ProgressTime): (ExtractionQueue, Vector[(DelayableItem, Int)]) = {
-    val now = System.currentTimeMillis()
-    val progress = now - (from - this.progress)
-    val (production, time) = handle(content, progress, 0)
+  override def out(period: ProgressTime): (ExtractionQueue, Vector[(DelayableItem, Int)]) = {
+    val (production, time) = handle(content, progress + period, 0)
     (copy(progress = time), Vector(production))
   }
 
@@ -21,4 +19,6 @@ case class ExtractionQueue(content: Extractable, progress: ProgressTime = 0) ext
       case (r, notEnoughTime) if notEnoughTime < r.yieldTime => ((r, count), notEnoughTime)
       case (r, t) => handle(r, t - r.yieldTime, count + r.out().stackValue)
     }
+
+  override def isEmpty: Boolean = content.volume <= 0
 }

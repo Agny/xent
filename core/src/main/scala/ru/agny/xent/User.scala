@@ -15,8 +15,9 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
 
   def work(a: UserAction): Either[Response, User] = {
     val time = System.currentTimeMillis()
-    val (q, prod) = queue.out(lastAction)
-    val (actualStorage, updatedFacilities) = storage.tick(lastAction, producers)
+    val period = time - lastAction
+    val (q, prod) = queue.out(period)
+    val (actualStorage, updatedFacilities) = storage.tick(period, producers)
     val (buildings, outposts) = SubTyper.partition[Building, Outpost, Facility](updatedFacilities)
     val updatedCity = city.update(buildings)
 

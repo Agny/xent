@@ -6,7 +6,11 @@ import ru.agny.xent.core.ResourceQueue.ItemCount
 trait ResourceQueue {
   def in(item: DelayableItem, count: Int): ResourceQueue
 
-  def out(from: ProgressTime): (ResourceQueue, Vector[ItemCount])
+  def out(period: ProgressTime): (ResourceQueue, Vector[ItemCount])
+
+  def isEmpty: Boolean
+
+  val progress: ProgressTime
 }
 
 object ResourceQueue {

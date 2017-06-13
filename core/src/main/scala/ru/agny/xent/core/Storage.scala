@@ -1,6 +1,7 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.Response
+import ru.agny.xent.core.Progress.ProgressTime
 import ru.agny.xent.core.inventory._
 import Item.ItemId
 
@@ -11,9 +12,9 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
   val asInventory = this
 
-  def tick(lastAction: Long, producers: Vector[Facility]): (Storage, Vector[Facility]) =
+  def tick(period: ProgressTime, producers: Vector[Facility]): (Storage, Vector[Facility]) =
     producers.foldLeft(this, Vector.empty[Facility])((s, f) => {
-      val (storage, updatedQueue) = f.tick(lastAction)(s._1)
+      val (storage, updatedQueue) = f.tick(period)(s._1)
       (storage, updatedQueue +: s._2)
     })
 

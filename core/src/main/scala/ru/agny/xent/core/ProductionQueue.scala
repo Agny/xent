@@ -11,12 +11,12 @@ case class ProductionQueue(content: Vector[(DelayableItem, Int)], progress: Prog
     ProductionQueue((item, count) +: content, progress)
   }
 
-  override def out(from: ProgressTime): (ProductionQueue, Vector[ItemCount]) = {
-    val now = System.currentTimeMillis()
-    val progress = now - (from - this.progress)
-    val (updatedContent, production, time) = handle(content, progress, Vector.empty)
+  override def out(period: ProgressTime): (ProductionQueue, Vector[ItemCount]) = {
+    val (updatedContent, production, time) = handle(content, progress + period, Vector.empty)
     (ProductionQueue(updatedContent, time), production)
   }
+
+  override def isEmpty: Boolean = content.isEmpty
 
   @tailrec private def handle(items: Vector[ItemCount], remindedTime: Long, acc: Vector[ItemCount]): (Vector[ItemCount], Vector[ItemCount], ProgressTime) = {
     items match {
