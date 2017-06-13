@@ -18,14 +18,14 @@ class ExtractionQueueTest extends FlatSpec with Matchers {
   it should "return correct amount of produced items" in {
     val item = Extractable(extrId, "test", 6, 1000, Set.empty)
     val queue = ExtractionQueue(item)
-    val (_, result) = queue.out(System.currentTimeMillis() - 5000)
+    val (_, result) = queue.out(5000)
     result should be(Vector((item, 5)))
   }
 
   it should "save progress" in {
     val item = Extractable(extrId, "test", 6, 1000, Set.empty)
     val queue = ExtractionQueue(item)
-    val (q, result) = queue.out(System.currentTimeMillis() - 3300)
+    val (q, result) = queue.out(3300)
     result should be(Vector((item, 3)))
     q.progress should be(300)
   }
@@ -33,7 +33,7 @@ class ExtractionQueueTest extends FlatSpec with Matchers {
   it should "mutate source of extractable" in {
     val item = Extractable(extrId, "test", 6, 1000, Set.empty)
     val queue = ExtractionQueue(item)
-    val (q, result) = queue.out(System.currentTimeMillis() - 5000)
+    val (q, result) = queue.out(5000)
     result should be(Vector((item, 5)))
     q.content.volume should be(1)
     item should be theSameInstanceAs q.content
