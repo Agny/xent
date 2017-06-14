@@ -52,6 +52,18 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
     troop.get.activeUnits should be(Vector(soul1._1))
   }
 
+  it should "add production to facility queue" in {
+    val facilityId = 105
+    val toProduce = Producible(1, "meh", ProductionSchema(1000, Cost(Vector.empty), Set.empty))
+    val building = Building(facilityId, "Test", Vector(toProduce), 1000, FourShape(LocalCell(1, 1)))
+    val ready = building.finish
+    val city = City.empty(0, 0)
+    val user = User(1, "Vasya", city.update(ready), Lands.empty, ProductionQueue.empty, Workers.empty, 0)
+    val res = user.addProduction(facilityId, ItemStack(4, 1))
+    val queue = res.right.value.city.producers.find(_.id == facilityId).get.queue
+    queue.content should be(Vector((toProduce, 4)))
+  }
+
   "PlaceBuildingAction" should "spend resources" in {
     val bt = BuildingTemplate(buildingId, "Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, "")
     val layer = Layer("", 1, Vector.empty, Military.empty, CellsMap(Vector.empty), Vector(bt))

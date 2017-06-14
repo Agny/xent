@@ -13,16 +13,18 @@ final case class Outpost(id: ItemId,
                          buildTime: ProgressTime,
                          state: Facility.State,
                          worker: Option[Soul] = None) extends Facility {
+  //TODO think about distance/timegap
+
   def build = copy(state = InConstruction)
 
   def finish = copy(state = Idle)
 
-  def stop: (Facility, Option[Soul]) = state match {
+  def stop: (Outpost, Option[Soul]) = state match {
     case Idle | Working => (copy(state = Idle, worker = None), worker)
     case _ => (this, worker)
   }
 
-  def run(worker: Soul): (Facility, Option[Soul]) = state match {
+  def run(worker: Soul): (Outpost, Option[Soul]) = state match {
     case Idle | Working => (copy(state = Working, worker = Some(worker)), this.worker)
     case _ => (this, Some(worker))
   }

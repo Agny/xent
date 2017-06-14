@@ -19,12 +19,12 @@ case class Building(id: ItemId,
 
   def finish = copy(state = Idle)
 
-  def stop: (Facility, Option[Soul]) = state match {
+  def stop: (Building, Option[Soul]) = state match {
     case Idle | Working => (copy(state = Idle, worker = None), worker)
     case _ => (this, worker)
   }
 
-  def run(worker: Soul): (Facility, Option[Soul]) = state match {
+  def run(worker: Soul): (Building, Option[Soul]) = state match {
     case Idle | Working => (copy(state = Working, worker = Some(worker)), this.worker)
     case _ => (this, Some(worker))
   }
