@@ -1,6 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
+import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core.{ItemStack, Coordinate}
 import ru.agny.xent.persistence.{RedisEntity, RedisAdapter, RedisMessage}
 
@@ -28,4 +29,4 @@ case class ResourceClaimMessage(user: UserId, layer: String, facility: String, c
 @RedisEntity("user", "user", System.nanoTime().toString)
 case class BuildingConstructionMessage(user: UserId, layer: String, building: String, cell: Coordinate) extends Message
 @RedisEntity("user", "user", System.nanoTime().toString)
-case class AddProductionMessage(user: UserId, layer: String, facility: String, res: ItemStack) extends Message
+case class AddProductionMessage(user: UserId, layer: String, facility: ItemId, res: ItemStack) extends Message

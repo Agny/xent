@@ -9,7 +9,7 @@ object CityGenerator {
 
   private def buildingGen(layerLvl: Int): Vector[BuildingTemplate] = TemplateLoader.loadBuildings(layerLvl.toString)
 
-  def initCity(x: Int, y: Int): City = {
+  def initCity(x: Int, y: Int, s: Storage): City = {
     val building = buildingGen(1)
     val mbBuilding = building.find(b => b.name == initBuilding).map(bt => Building(bt.id, bt.name, bt.producibles, bt.buildTime, bt.shape))
 
@@ -17,7 +17,7 @@ object CityGenerator {
       if (x == 0 && y == 1) LocalCell(x, y, mbBuilding)
       else LocalCell(x, y)
     }))))
-    City(Coordinate(x, y), map)
+    City(Coordinate(x, y), map, s)
   }
 
 }

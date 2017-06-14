@@ -1,6 +1,6 @@
 package ru.agny.xent
 
-import ru.agny.xent.UserType._
+import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core.utils.BuildingTemplate
 import ru.agny.xent.core.{ItemStack, Cell, Building, LocalCell}
 
@@ -29,14 +29,6 @@ case class PlaceBuilding(facility: String, layer: Layer, cell: Cell) extends Use
   }
 }
 
-case class AddProduction(facility: String, res: ItemStack) extends UserAction {
-  override def run(user: User): Either[Response, User] = {
-    user.findFacility(facility) match {
-      case Some(v) => user.addProduction(v, res) match {
-        case Left(l) => Left(l)
-        case Right(r) => Right(user.copy(storage = r._1))
-      }
-      case None => Left(Response(s"Unable to find $facility"))
-    }
-  }
+case class AddProduction(facility: ItemId, res: ItemStack) extends UserAction {
+  override def run(user: User): Either[Response, User] = user.addProduction(facility, res)
 }

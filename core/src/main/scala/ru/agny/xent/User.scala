@@ -3,32 +3,32 @@ package ru.agny.xent
 import ru.agny.xent.UserType.{ObjectId, UserId}
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.battle.unit.inventory.Backpack
+import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core._
 import ru.agny.xent.core.utils.{SubTyper, NESeq}
 
-case class User(id: UserId, name: String, city: City, lands: Lands, storage: Storage, queue: ProductionQueue, souls: Workers, lastAction: Long) {
+case class User(id: UserId, name: String, city: City, lands: Lands, queue: ProductionQueue, souls: Workers, lastAction: Long) {
 
   import User._
-  import FacilitySubTyper.implicits._
-
-  private lazy val producers = city.producers ++ lands.outposts
 
   def work(a: UserAction): Either[Response, User] = {
     val time = System.currentTimeMillis()
     val period = time - lastAction
     val (q, prod) = queue.out(period)
-    val (actualStorage, updatedFacilities) = storage.tick(period, producers)
-    val (buildings, outposts) = SubTyper.partition[Building, Outpost, Facility](updatedFacilities)
-    val updatedCity = city.update(buildings)
-
-    val actualUser = copy(city = updatedCity, lands = Lands(outposts), storage = actualStorage, queue = q, lastAction = time)
+    val (updatedCity, updatedOutposts) = city.produce(period, lands.outposts)
+    val actualUser = copy(city = updatedCity, lands = Lands(updatedOutposts), queue = q, lastAction = time)
     val updated = handleQueue(prod.map { case (item, amount) => item.asInstanceOf[Facility] }, actualUser)
     a.run(updated)
   }
 
-  def addProduction(facility: Facility, res: ItemStack) = {
-    facility.addToQueue(res)(storage)
-  }
+  def addProduction(facility: ItemId, res: ItemStack): Either[Response, User] =
+    city.producers.find(_.id == facility) match {
+      case Some(v) => v.addToQueue(res)(city.storage) match {
+        case Left(l) => Left(l)
+        case Right((s, f)) => Right(copy(city = city.update(f, s)))
+      }
+      case _ => Left(Response(s"Unable to find building $facility"))
+    }
 
   def build(cell: ContainerCell): User = {
     val facility = cell.building.get.build
@@ -41,15 +41,11 @@ case class User(id: UserId, name: String, city: City, lands: Lands, storage: Sto
     work(DoNothing) match {
       case Left(v) => Left(v)
       case Right(v) =>
-        v.storage.spend(recipe) match {
+        v.city.storage.spend(recipe) match {
           case Left(s) => Left(s)
-          case Right(s) => Right(v.copy(storage = s))
+          case Right(s) => Right(v.copy(city = v.city.copy(storage = s)))
         }
     }
-  }
-
-  def findFacility(producer: String): Option[Facility] = {
-    producers.find(_.name == producer)
   }
 
   def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): (User, Option[Troop]) = {
@@ -71,7 +67,7 @@ object Lands {
 
 object User {
   def apply(id: UserId, name: String, city: City): User = {
-    User(id, name, city, Lands.empty, Storage.empty, ProductionQueue.empty, Workers.empty, System.currentTimeMillis())
+    User(id, name, city, Lands.empty, ProductionQueue.empty, Workers.empty, System.currentTimeMillis())
   }
 
   private def handleQueue(items: Vector[Facility], state: User): User = items match {
