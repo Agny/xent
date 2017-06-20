@@ -1,21 +1,28 @@
 package ru.agny.xent.core
 
-case class ShapeMap(private val cellsMap: CellsMap[LocalCell]) {
-  def filter(f: LocalCell => Boolean): Vector[Shape] = toShape(cellsMap.filter(f))
+case class ShapeMap(private val cellsMap: CellsMap[LocalCell], shapes: Vector[ResultShape]) {
+  def buildings: Vector[Building] = withBuildings().map(_.building.get).filter(_.isFunctioning)
 
-  def buildings(): Vector[Shape] = toShape(cellsMap.filter(_.building.nonEmpty))
+  def isAvailable(s: ResultShape): Boolean = !shapes.exists(_.isIntersected(s))
 
-  def isAvailable(s: Shape): Boolean = {
-    val withBuildings = buildings().flatMap(x => x.core +: x.parts)
-    (s.core +: s.parts).forall(c => !withBuildings.exists(b => b.x == c.x && b.y == c.y))
+  def add(b:Building, s: ResultShape): ShapeMap =  {
+    val lc = LocalCell(s.core.x, s.core.y, Some(b))
+    ShapeMap(cellsMap.update(lc), s +: shapes)
   }
 
-  def update(c:LocalCell):ShapeMap = ShapeMap(cellsMap.update(c))
-
-  private def toShape(cells: Vector[LocalCell]): Vector[Shape] = {
-    cells.foldLeft(Vector.empty[Shape])((s, c) => c.building match {
-      case Some(v) => v.shape.form(c) +: s
-      case None => s
-    })
+  def update(b: Building): ShapeMap = {
+    withBuildings().find(_.building.get.id == b.id) match {
+      case Some(v) if containsSameBuilding(v, b) => ShapeMap(cellsMap.update(v.copy(building = Some(b))), shapes)
+      case _ => this
+    }
   }
+
+  private def containsSameBuilding(c: LocalCell, b: Building): Boolean = {
+    val r = for {
+      cb <- c.building
+    } yield cb.id == b.id
+    r.getOrElse(false)
+  }
+
+  private def withBuildings(): Vector[LocalCell] = cellsMap.filter(_.building.nonEmpty)
 }

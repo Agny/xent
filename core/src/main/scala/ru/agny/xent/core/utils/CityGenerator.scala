@@ -10,14 +10,19 @@ object CityGenerator {
   private def buildingGen(layerLvl: Int): Vector[BuildingTemplate] = TemplateLoader.loadBuildings(layerLvl.toString)
 
   def initCity(x: Int, y: Int, s: Storage): City = {
-    val building = buildingGen(1)
-    val mbBuilding = building.find(b => b.name == initBuilding).map(bt => Building(bt.id, bt.name, bt.producibles, bt.buildTime, bt.shape))
-
-    val map = ShapeMap(CellsMap((0 to 3).toVector.map(x => (0 to 3).toVector.map(y => {
-      if (x == 0 && y == 1) LocalCell(x, y, mbBuilding)
-      else LocalCell(x, y)
-    }))))
+    val cellsMap = generateCityMap(3)
+    val (b, shape) = createDefaultBuilding()
+    val map = ShapeMap(cellsMap, Vector.empty).add(b, shape)
     City(Coordinate(x, y), map, s)
+  }
+
+  def generateCityMap(size: Int): CellsMap[LocalCell] = {
+    CellsMap((0 to size).toVector.map(x => (0 to size).toVector.map(LocalCell(x, _))))
+  }
+
+  private def createDefaultBuilding(): (Building, ResultShape) = {
+    val building = buildingGen(1)
+    building.find(b => b.name == initBuilding).map(bt => (Building(bt.name, bt.producibles, bt.buildTime).finish, bt.shape.form(Coordinate(0, 1)))).get
   }
 
 }

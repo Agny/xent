@@ -13,8 +13,7 @@ case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) {
 
   import FacilitySubTyper.implicits._
 
-  lazy val buildings = map.filter(_.building.nonEmpty).map(x => x.core)
-  lazy val producers = buildings.map(x => x.building.get)
+  lazy val producers = map.buildings
 
   def produce(period: ProgressTime, outposts: Vector[Outpost]): (City, Vector[Outpost]) = {
     val (s, p) = storage.tick(period, producers ++ outposts)
@@ -22,13 +21,16 @@ case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) {
     (City(c, updateMap(buildings), s), outs)
   }
 
-  def update(b: Building, s: Storage = storage): City = copy(map = updateMap(b), storage = s)
+  def place(b: Building, s: ResultShape): Either[Response, City] = {
+    if (map.isAvailable(s)) Right(copy(map = map.add(b, s)))
+    else Left(Response(s"Not enough space to place $s"))
+  }
 
-  def isEnoughSpace(s: Shape): Boolean = map.isAvailable(s)
+  def update(b: Building, s: Storage = storage): City = copy(map = updateMap(b), storage = s)
 
   private def updateMap(bs: Vector[Building]): ShapeMap = bs.foldLeft(map)((m, b) => updateMap(b))
 
-  private def updateMap(b: Building): ShapeMap = map.update(b.shape.core.copy(building = Some(b)))
+  private def updateMap(b: Building): ShapeMap = map.update(b)
 }
 
 object City {
