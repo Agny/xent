@@ -1,5 +1,7 @@
 package ru.agny.xent.core
 
+import scala.annotation.tailrec
+
 case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
   val length = cells.length
 
@@ -18,6 +20,7 @@ case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
     cells.flatMap(x => rec_filter(c)(x, Vector.empty))
   }
 
+  @tailrec
   private def rec_flatmap[A](c: T => Option[A])(elems: Vector[T], acc: Vector[A]): Vector[A] = {
     elems match {
       case h +: t => c(h) match {
@@ -27,6 +30,7 @@ case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
       case Vector() => acc
     }
   }
+
 
   private def rec_filter(c: T => Boolean)(elems: Vector[T], acc: Vector[T]): Vector[T] = {
     elems match {
