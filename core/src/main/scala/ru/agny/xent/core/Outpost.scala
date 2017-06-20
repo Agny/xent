@@ -4,6 +4,7 @@ import ru.agny.xent.battle.unit.Soul
 import ru.agny.xent.core.Facility.{Working, Idle, InConstruction}
 import ru.agny.xent.core.Item._
 import ru.agny.xent.core.Progress._
+import ru.agny.xent.core.utils.ItemIdGenerator
 
 final case class Outpost(id: ItemId,
                          name: String,
@@ -19,15 +20,13 @@ final case class Outpost(id: ItemId,
 
   def finish = copy(state = Idle)
 
-  def stop: (Outpost, Option[Soul]) = state match {
-    case Idle | Working => (copy(state = Idle, worker = None), worker)
-    case _ => (this, worker)
-  }
+  def stop: (Outpost, Option[Soul]) =
+    if (isFunctioning) (copy(state = Idle, worker = None), worker)
+    else (this, worker)
 
-  def run(worker: Soul): (Outpost, Option[Soul]) = state match {
-    case Idle | Working => (copy(state = Working, worker = Some(worker)), this.worker)
-    case _ => (this, Some(worker))
-  }
+  def run(worker: Soul): (Outpost, Option[Soul]) =
+    if (isFunctioning) (copy(state = Working, worker = Some(worker)), this.worker)
+    else (this, Some(worker))
 
   def tick(period: ProgressTime): Storage => (Storage, Outpost) = storage => {
     if (state == Working) {
@@ -38,9 +37,11 @@ final case class Outpost(id: ItemId,
       (storage, this)
     }
   }
+
+  def isFunctioning: Boolean = state == Working || state == Idle
 }
 
 object Outpost {
-  def apply(id: ItemId, name: String, main: Extractable, obtainables: Vector[Obtainable], yieldTime: ProgressTime): Outpost =
-    Outpost(id, name, main, obtainables, ExtractionQueue(main), yieldTime, Facility.Init)
+  def apply(name: String, main: Extractable, obtainables: Vector[Obtainable], yieldTime: ProgressTime): Outpost =
+    Outpost(ItemIdGenerator.next, name, main, obtainables, ExtractionQueue(main), yieldTime, Facility.Init)
 }

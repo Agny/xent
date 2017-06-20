@@ -19,7 +19,6 @@ object TemplateLoader {
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
       val t = parse(fromFile(f).mkString).extract[ProducibleTemplate]
-      IdHolder.add(t.name, t.id)
       Producible(t.id, t.name, ProductionSchema(t.yieldTime, Cost(t.cost), Set.empty))
     })
   }
@@ -28,8 +27,7 @@ object TemplateLoader {
     val resourcesDir = new File(getClass.getResource(s"/layers/$layer/item/obtainable").toURI)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
-      val t = parse(fromFile(f).mkString).extract[SimpleTemplate]
-      IdHolder.add(t.name, t.id)
+      val t = parse(fromFile(f).mkString).extract[ObtainableTemplate]
       Obtainable(t.id, t.name, t.yieldTime, Set.empty)
     })
   }
@@ -38,8 +36,7 @@ object TemplateLoader {
     val resourcesDir = new File(getClass.getResource(s"/layers/$layer/item/extractable").toURI)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
-      val t = parse(fromFile(f).mkString).extract[FiniteTemplate]
-      IdHolder.add(t.name, t.id)
+      val t = parse(fromFile(f).mkString).extract[ExtractableTemplate]
       Extractable(t.id, t.name, t.baseVolume, t.yieldTime, Set.empty)
     })
   }
@@ -51,8 +48,7 @@ object TemplateLoader {
     outpostsDir.listFiles().toVector.map(f => {
       val t = parse(fromFile(f).mkString).extract[OutpostTemplateJson]
       val ores = t.obtainable.flatMap(res => obtainables.find(x => x.name == res).map(x => x))
-      IdHolder.add(t.name, t.id)
-      OutpostTemplate(t.id, t.name, t.extractable, ores, Vector.empty, Cost(t.cost), t.buildTime, t.since)
+      OutpostTemplate(t.name, t.extractable, ores, Vector.empty, Cost(t.cost), t.buildTime, t.since)
     })
   }
 
@@ -64,18 +60,16 @@ object TemplateLoader {
       val t = parse(fromFile(f).mkString).extract[BuildingTemplateJson]
       val pres = t.producible.flatMap(res => producibles.find(x => x.name == res).map(x => x))
       val ores = t.obtainable.flatMap(res => obtainables.find(x => x.name == res).map(x => x))
-      IdHolder.add(t.name, t.id)
-      BuildingTemplate(t.id, t.name, pres, ores, Cost(t.cost), t.buildTime, t.shape, t.since)
+      BuildingTemplate(t.name, pres, ores, Cost(t.cost), t.buildTime, t.shape, t.since)
     })
   }
 }
 
 //TODO since
-case class FiniteTemplate(id: ItemId, name: String, baseVolume: Int, yieldTime: Long, since: String)
-case class SimpleTemplate(id: ItemId, name: String, yieldTime: Long, since: String)
+case class ExtractableTemplate(id: ItemId, name: String, baseVolume: Int, yieldTime: Long, since: String)
+case class ObtainableTemplate(id: ItemId, name: String, yieldTime: Long, since: String)
 case class ProducibleTemplate(id: ItemId, name: String, cost: Vector[ItemStack], yieldTime: Long, since: String)
 sealed trait FacilityTemplate {
-  val id: ItemId
   val name: String
   val producibles: Vector[Producible]
   val obtainables: Vector[Obtainable]
@@ -83,8 +77,8 @@ sealed trait FacilityTemplate {
   val buildTime: Long
   val since: String
 }
-case class OutpostTemplate(id: ItemId, name: String, extractable: String, obtainables: Vector[Obtainable], producibles: Vector[Producible], cost: Cost, buildTime: Long, since: String) extends FacilityTemplate
-case class BuildingTemplate(id: ItemId, name: String, producibles: Vector[Producible], obtainables: Vector[Obtainable], cost: Cost, buildTime: Long, shape: FourShape, since: String) extends FacilityTemplate
+case class OutpostTemplate(name: String, extractable: String, obtainables: Vector[Obtainable], producibles: Vector[Producible], cost: Cost, buildTime: Long, since: String) extends FacilityTemplate
+case class BuildingTemplate(name: String, producibles: Vector[Producible], obtainables: Vector[Obtainable], cost: Cost, buildTime: Long, shape: FourShape, since: String) extends FacilityTemplate
 
-case class OutpostTemplateJson(id: ItemId, name: String, extractable: String, obtainable: Vector[String], cost: Vector[ItemStack], buildTime: Long, since: String)
-case class BuildingTemplateJson(id: ItemId, name: String, obtainable: Vector[String], producible: Vector[String], cost: Vector[ItemStack], buildTime: Long, shape: FourShape, since: String)
+case class OutpostTemplateJson(name: String, extractable: String, obtainable: Vector[String], cost: Vector[ItemStack], buildTime: Long, since: String)
+case class BuildingTemplateJson(name: String, obtainable: Vector[String], producible: Vector[String], cost: Vector[ItemStack], buildTime: Long, shape: FourShape, since: String)

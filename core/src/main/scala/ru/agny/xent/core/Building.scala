@@ -5,6 +5,7 @@ import ru.agny.xent.battle.unit.Soul
 import ru.agny.xent.core.Facility.{Working, Idle, InConstruction}
 import ru.agny.xent.core.Item._
 import ru.agny.xent.core.Progress._
+import ru.agny.xent.core.utils.ItemIdGenerator
 
 case class Building(id: ItemId,
                     name: String,
@@ -12,22 +13,19 @@ case class Building(id: ItemId,
                     obtainables: Vector[Obtainable],
                     queue: ProductionQueue,
                     buildTime: ProgressTime,
-                    shape: Shape,
                     state: Facility.State,
                     worker: Option[Soul] = None) extends Facility {
   def build = copy(state = InConstruction)
 
   def finish = copy(state = Idle)
 
-  def stop: (Building, Option[Soul]) = state match {
-    case Idle | Working => (copy(state = Idle, worker = None), worker)
-    case _ => (this, worker)
-  }
+  def stop: (Building, Option[Soul]) =
+    if (isFunctioning) (copy(state = Idle, worker = None), worker)
+    else (this, worker)
 
-  def run(worker: Soul): (Building, Option[Soul]) = state match {
-    case Idle | Working => (copy(state = Working, worker = Some(worker)), this.worker)
-    case _ => (this, Some(worker))
-  }
+  def run(worker: Soul): (Building, Option[Soul]) =
+    if (isFunctioning) (copy(state = Working, worker = Some(worker)), this.worker)
+    else (this, Some(worker))
 
   def tick(period: ProgressTime): Storage => (Storage, Building) = storage => {
     if (state == Working) {
@@ -38,6 +36,8 @@ case class Building(id: ItemId,
       (storage, this)
     }
   }
+
+  def isFunctioning: Boolean = state == Working || state == Idle
 
   def addToQueue(item: ItemStack): Storage => Either[Response, (Storage, Building)] = storage => {
     producibles.find(_.id == item.id) match {
@@ -52,6 +52,6 @@ case class Building(id: ItemId,
 }
 
 object Building {
-  def apply(id: ItemId, name: String, producibles: Vector[Producible], buildTime: ProgressTime, shape: Shape): Building =
-    Building(id, name, producibles, Vector.empty, ProductionQueue.empty, buildTime, shape, Facility.Init)
+  def apply(name: String, producibles: Vector[Producible], buildTime: ProgressTime): Building =
+    Building(ItemIdGenerator.next, name, producibles, Vector.empty, ProductionQueue.empty, buildTime, Facility.Init)
 }
