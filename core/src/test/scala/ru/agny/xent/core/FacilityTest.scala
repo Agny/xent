@@ -10,7 +10,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   import Item.implicits._
 
-  val shape = FourShape(LocalCell(1, 1))
+  val shape = FourShape(Coordinate(1, 1))
   val worker = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
   val woodId = 1
   val prodId = 2
@@ -18,14 +18,14 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   "Building" should "assign worker" in {
     val res = Producible(prodId, "Test res", ProductionSchema(1000, Cost(Vector(ItemStack(5, woodId))), Set.empty))
-    val (facility, _) = Building(1, "test", Vector(res), 0, shape).finish.run(worker)
+    val (facility, _) = Building("test", Vector(res), 0).finish.run(worker)
     facility.worker should be(Some(worker))
   }
 
   it should "replace worker" in {
     val replacement = Soul(2, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
     val res = Producible(prodId, "Test res", ProductionSchema(1000, Cost(Vector(ItemStack(5, woodId))), Set.empty))
-    val (facility, _) = Building(1, "test", Vector(res), 0, shape).finish.run(worker)
+    val (facility, _) = Building("test", Vector(res), 0).finish.run(worker)
     val (facilityUpdated, ex) = facility.run(replacement)
     facilityUpdated.worker should be(Some(replacement))
     ex should be(Some(worker))
@@ -33,7 +33,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   it should "produce resource in queue" in {
     val res = Producible(prodId, "Test res", ProductionSchema(1000, Cost(Vector(ItemStack(5, woodId))), Set.empty))
-    val (facility, _) = Building(1, "test", Vector(res), 0, shape).finish.run(worker)
+    val (facility, _) = Building("test", Vector(res), 0).finish.run(worker)
     val storage = Storage(Vector(ItemStack(10, woodId)))
     val (sAfterSpend, updatedFacilityQueue) = facility.addToQueue(ItemStack(1, res.id))(storage).right.value
     val (result, _) = sAfterSpend.tick(1000, Vector(updatedFacilityQueue))
@@ -43,7 +43,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   it should "stop production" in {
     val res = Producible(prodId, "Test res", ProductionSchema(1000, Cost(Vector(ItemStack(5, woodId))), Set.empty))
-    val (facility, _) = Building(1, "test", Vector(res), 0, shape).finish.run(worker)
+    val (facility, _) = Building("test", Vector(res), 0).finish.run(worker)
     val storage = Storage(Vector(ItemStack(10, woodId)))
     val (sAfterSpend, updatedFacilityQueue) = facility.addToQueue(ItemStack(2, res.id))(storage).right.value
     val (sWithProduced, producers) = sAfterSpend.tick(1000, Vector(updatedFacilityQueue))
@@ -61,7 +61,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   "Outpost" should "produce resource in time" in {
     val res = Extractable(copperId, " Copper", 30, 1000, Set.empty)
-    val (facility, _) = Outpost(copperId, "Copper mine", res, Vector.empty, 10000).finish.run(worker)
+    val (facility, _) = Outpost("Copper mine", res, Vector.empty, 10000).finish.run(worker)
     val storage = Storage.empty
     val (s, _) = storage.tick(TimeUnit.minute, Vector(facility))
 
@@ -72,7 +72,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   it should "handle gaps in time" in {
     val res = Extractable(copperId, " Copper", 30, 1000, Set.empty)
-    val (facility, _) = Outpost(copperId, "Copper mine", res, Vector.empty, 10000).finish.run(worker)
+    val (facility, _) = Outpost("Copper mine", res, Vector.empty, 10000).finish.run(worker)
     val (s, f) = Storage.empty.tick(TimeUnit.minute / 6, Vector(facility))
     val (stopped, _) = f.head.stop
     val (sameS, sameStopped) = s.tick(TimeUnit.minute, Vector(stopped))

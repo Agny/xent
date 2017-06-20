@@ -5,7 +5,7 @@ import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.battle.unit.inventory.Backpack
 import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core._
-import ru.agny.xent.core.utils.{SubTyper, NESeq}
+import ru.agny.xent.core.utils.NESeq
 
 case class User(id: UserId, name: String, city: City, lands: Lands, queue: ProductionQueue, souls: Workers, lastAction: Long) {
 
@@ -22,31 +22,39 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
   }
 
   def addProduction(facility: ItemId, res: ItemStack): Either[Response, User] =
-    city.producers.find(_.id == facility) match {
-      case Some(v) => v.addToQueue(res)(city.storage) match {
-        case Left(l) => Left(l)
-        case Right((s, f)) => Right(copy(city = city.update(f, s)))
-      }
-      case _ => Left(Response(s"Unable to find building $facility"))
+    for {
+      building <- findProducer(facility).right
+      storageWithB <- building.addToQueue(res)(city.storage).right
+    } yield copy(city = city.update(storageWithB._2, storageWithB._1))
+
+  def build(cell: ContainerCell, cost: Cost): Either[Response, User] =
+    for {
+      userFacility <- (cell match {
+        case LocalCell(x, y, mb) => buildInCity(mb.get, Coordinate(x, y), cost)
+        case WorldCell(x, y, mo, _, _, _) => buildOutpost(mo.get, cost)
+      }).right
+    } yield {
+      userFacility._1.copy(queue = userFacility._1.queue.in(userFacility._2, 1))
     }
 
-  def build(cell: ContainerCell): User = {
-    val facility = cell.building.get.build
-    val q = queue.in(facility, 1)
-    //TODO modify citymap
-    copy(queue = q)
+  private def findProducer(facility: ItemId) = city.producers.find(f => f.id == facility).
+    map(Right(_)) getOrElse Left(Response(s"Unable to find working building $facility"))
+
+  private def buildInCity(b: Building, where: Coordinate, cost: Cost) =
+    for {
+      c <- city.place(b, ShapeProvider.get(b.name).form(where)).right
+      user <- copy(city = c).spend(cost).right
+    } yield (user, b)
+
+  private def buildOutpost(o: Outpost, cost: Cost) = {
+    for {user <- spend(cost).right} yield (user, o)
   }
 
-  def spend(recipe: Cost): Either[Response, User] = {
-    work(DoNothing) match {
-      case Left(v) => Left(v)
-      case Right(v) =>
-        v.city.storage.spend(recipe) match {
-          case Left(s) => Left(s)
-          case Right(s) => Right(v.copy(city = v.city.copy(storage = s)))
-        }
-    }
-  }
+  private def spend(recipe: Cost): Either[Response, User] =
+    for {
+      u <- work(DoNothing).right
+      s <- u.city.storage.spend(recipe).right
+    } yield u.copy(city = u.city.copy(storage = s))
 
   def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): (User, Option[Troop]) = {
     val (remains, units) = souls.callToArms(soulsId)
