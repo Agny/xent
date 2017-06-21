@@ -13,7 +13,7 @@ case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) {
 
   import FacilitySubTyper.implicits._
 
-  lazy val producers = map.buildings
+  lazy val producers = map.buildings.filter(_.isFunctioning)
 
   def produce(period: ProgressTime, outposts: Vector[Outpost]): (City, Vector[Outpost]) = {
     val (s, p) = storage.tick(period, producers ++ outposts)
