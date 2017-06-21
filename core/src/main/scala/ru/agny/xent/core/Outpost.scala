@@ -42,6 +42,6 @@ final case class Outpost(id: ItemId,
 }
 
 object Outpost {
-  def apply(name: String, main: Extractable, obtainables: Vector[Obtainable], yieldTime: ProgressTime): Outpost =
-    Outpost(ItemIdGenerator.next, name, main, obtainables, ExtractionQueue(main), yieldTime, Facility.Init)
+  def apply(name: String, main: Extractable, obtainables: Vector[Obtainable], buildTime: ProgressTime): Outpost =
+    Outpost(ItemIdGenerator.next, name, main, obtainables, ExtractionQueue(main), buildTime, Facility.Init)
 }
