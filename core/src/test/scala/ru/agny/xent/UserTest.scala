@@ -1,6 +1,6 @@
 package ru.agny.xent
 
-import org.scalatest.{EitherValues, Matchers, FlatSpec}
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, FlatSpec}
 import ru.agny.xent.battle.{Waiting, Military, Movement}
 import ru.agny.xent.battle.core.LevelBar
 import ru.agny.xent.battle.unit.inventory.Equipment
@@ -8,7 +8,7 @@ import ru.agny.xent.battle.unit.{SpiritBar, Soul}
 import ru.agny.xent.core.utils.{OutpostTemplate, BuildingTemplate}
 import ru.agny.xent.core._
 
-class UserTest extends FlatSpec with Matchers with EitherValues {
+class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
   import Item.implicits._
 
@@ -16,11 +16,13 @@ class UserTest extends FlatSpec with Matchers with EitherValues {
   val waitingCoordinate = new Waiting(Coordinate(0, 0), 0)
   val woodId = 1
 
-  def prepareShapes() = {
+  override protected def beforeAll(): Unit = {
     ShapeProvider.add(BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, ""))
   }
 
-  prepareShapes()
+  override protected def afterAll(): Unit = {
+    ShapeProvider.delete("Test")
+  }
 
   "User" should "create troop from the souls" in {
     val soul1 = (Soul(1, LevelBar(0, 0, 0), SpiritBar(1, 1, 0), Equipment.empty, 0, Vector.empty), waitingCoordinate)

@@ -12,6 +12,8 @@ object ShapeProvider {
     bt.shape
   }
 
+  def delete(bName: String): Option[Shape] = shapes.remove(bName)
+
   def get(bName: String): Shape = shapes(bName)
 
 }
