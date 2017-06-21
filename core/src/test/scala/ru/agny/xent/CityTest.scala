@@ -1,23 +1,23 @@
 package ru.agny.xent
 
-import org.scalatest.{EitherValues, BeforeAndAfterAll, Matchers, FlatSpec}
+import org.scalatest.{EitherValues, Matchers, FlatSpec}
 import ru.agny.xent.battle.core.LevelBar
 import ru.agny.xent.battle.unit.inventory.Equipment
 import ru.agny.xent.battle.unit.{SpiritBar, Soul}
-import ru.agny.xent.core.utils.{BuildingTemplate, TimeUnit}
+import ru.agny.xent.core.Shape.FourShape
 import ru.agny.xent.core._
 
 class CityTest extends FlatSpec with Matchers with EitherValues {
 
   val worker = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
   val bName = "Test"
-  val shape = FourShape(Coordinate(0, 0))
+  val shape = FourShape.name
 
   "City" should "place building in the map" in {
     val prod = Producible(1, "Test prod", ProductionSchema(500, Cost(Vector.empty), Set.empty))
     val b = Building(bName, Vector(prod), 500)
     val city = City.empty(0, 0)
-    val res = city.place(b, shape.form(Coordinate(2, 1))).right.value
+    val res = city.place(b, Shape.values(shape).form(Coordinate(2, 1))).right.value
     city should not be res
   }
 
@@ -33,7 +33,7 @@ class CityTest extends FlatSpec with Matchers with EitherValues {
       val (b, _) = Building(bName, Vector(prod), 500).finish.run(worker)
       b.addToQueue(ItemStack(2, prodId))(Storage.empty).right.value._2
     }
-    val res = City.empty(0, 0).place(building, shape.form(Coordinate(2, 1)))
+    val res = City.empty(0, 0).place(building, Shape.values(shape).form(Coordinate(2, 1)))
     val (city, Vector(outpost)) = res.right.value.produce(progress, Vector(o))
     outpost.queue.progress should be(progress - extrTime)
     city.producers.find(_.name == bName).get.queue.progress should be(progress - prodTime)

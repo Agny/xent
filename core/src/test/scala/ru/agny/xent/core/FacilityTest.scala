@@ -10,7 +10,6 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   import Item.implicits._
 
-  val shape = FourShape(Coordinate(1, 1))
   val worker = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
   val woodId = 1
   val prodId = 2

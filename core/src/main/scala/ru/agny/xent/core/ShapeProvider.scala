@@ -8,7 +8,7 @@ object ShapeProvider {
   private val shapes = mutable.Map[String, Shape]()
 
   def add(bt: BuildingTemplate) = {
-    shapes += bt.name -> bt.shape
+    shapes += bt.name -> Shape.values(bt.shape)
     bt.shape
   }
 

@@ -13,11 +13,6 @@
     }
   ],
   "buildTime": 10000,
-  "shape": {
-    "core": {
-      "x": 0,
-      "y": 0
-    }
-  },
+  "shape": "SquareFour",
   "since": ""
 }

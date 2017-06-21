@@ -22,7 +22,8 @@ object CityGenerator {
 
   private def createDefaultBuilding(): (Building, ResultShape) = {
     val building = buildingGen(1)
-    building.find(b => b.name == initBuilding).map(bt => (Building(bt.name, bt.producibles, bt.buildTime).finish, bt.shape.form(Coordinate(0, 1)))).get
+    building.find(b => b.name == initBuilding).map(bt =>
+      (Building(bt.name, bt.producibles, bt.buildTime).finish, ShapeProvider.get(bt.name).form(Coordinate(0, 1)))).get
   }
 
 }

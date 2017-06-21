@@ -1,11 +1,11 @@
 package ru.agny.xent.core
 
-case class ShapeMap(private val cellsMap: CellsMap[LocalCell], shapes: Vector[ResultShape]) {
+case class ShapeMap(private val cellsMap: CellsMap[LocalCell], private val shapes: Vector[ResultShape]) {
   def buildings: Vector[Building] = withBuildings().map(_.building.get)
 
   def isAvailable(s: ResultShape): Boolean = !shapes.exists(_.isIntersected(s))
 
-  def add(b:Building, s: ResultShape): ShapeMap =  {
+  def add(b: Building, s: ResultShape): ShapeMap = {
     val lc = LocalCell(s.core.x, s.core.y, Some(b))
     ShapeMap(cellsMap.update(lc), s +: shapes)
   }

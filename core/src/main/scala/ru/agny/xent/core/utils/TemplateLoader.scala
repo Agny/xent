@@ -60,7 +60,9 @@ object TemplateLoader {
       val t = parse(fromFile(f).mkString).extract[BuildingTemplateJson]
       val pres = t.producible.flatMap(res => producibles.find(x => x.name == res).map(x => x))
       val ores = t.obtainable.flatMap(res => obtainables.find(x => x.name == res).map(x => x))
-      BuildingTemplate(t.name, pres, ores, Cost(t.cost), t.buildTime, t.shape, t.since)
+      val bt = BuildingTemplate(t.name, pres, ores, Cost(t.cost), t.buildTime, t.shape, t.since)
+      ShapeProvider.add(bt)
+      bt
     })
   }
 }
@@ -78,7 +80,7 @@ sealed trait FacilityTemplate {
   val since: String
 }
 case class OutpostTemplate(name: String, extractable: String, obtainables: Vector[Obtainable], producibles: Vector[Producible], cost: Cost, buildTime: Long, since: String) extends FacilityTemplate
-case class BuildingTemplate(name: String, producibles: Vector[Producible], obtainables: Vector[Obtainable], cost: Cost, buildTime: Long, shape: FourShape, since: String) extends FacilityTemplate
+case class BuildingTemplate(name: String, producibles: Vector[Producible], obtainables: Vector[Obtainable], cost: Cost, buildTime: Long, shape: String, since: String) extends FacilityTemplate
 
 case class OutpostTemplateJson(name: String, extractable: String, obtainable: Vector[String], cost: Vector[ItemStack], buildTime: Long, since: String)
-case class BuildingTemplateJson(name: String, obtainable: Vector[String], producible: Vector[String], cost: Vector[ItemStack], buildTime: Long, shape: FourShape, since: String)
+case class BuildingTemplateJson(name: String, obtainable: Vector[String], producible: Vector[String], cost: Vector[ItemStack], buildTime: Long, shape: String, since: String)

@@ -5,6 +5,7 @@ import ru.agny.xent.battle.{Waiting, Military, Movement}
 import ru.agny.xent.battle.core.LevelBar
 import ru.agny.xent.battle.unit.inventory.Equipment
 import ru.agny.xent.battle.unit.{SpiritBar, Soul}
+import ru.agny.xent.core.Shape.FourShape
 import ru.agny.xent.core.utils.{OutpostTemplate, BuildingTemplate}
 import ru.agny.xent.core._
 
@@ -12,7 +13,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
 
   import Item.implicits._
 
-  val shape = FourShape(Coordinate(0, 0))
+  val shape = FourShape.name
   val waitingCoordinate = new Waiting(Coordinate(0, 0), 0)
   val woodId = 1
 
@@ -48,7 +49,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
     val toProduce = Producible(1, "meh", ProductionSchema(1000, Cost(Vector.empty), Set.empty))
     val building = Building("Test", Vector(toProduce), 1000).finish
     val facilityId = building.id
-    val city = City.empty(0, 0).place(building, shape.form(Coordinate(2, 2)))
+    val city = City.empty(0, 0).place(building, Shape.values(shape).form(Coordinate(2, 2)))
     val user = User(1, "Vasya", city.right.value, Lands.empty, ProductionQueue.empty, Workers.empty, 0)
     val res = user.addProduction(facilityId, ItemStack(4, 1))
     val queue = res.right.value.city.producers.find(_.id == facilityId).get.queue
