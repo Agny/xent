@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import io.netty.channel.Channel
 
-case class MessageHandler(queue: MessageQueue) {
+case class MessageHandler(queue: MessageQueue[Message]) {
 
   val last = new AtomicLong(0)
 

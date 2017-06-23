@@ -1,35 +1,32 @@
 package ru.agny.xent
 
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.locks.ReentrantLock
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-//Class is not thread safe: it shouldn't be used in scenarios where is several consumer threads exist
-case class MessageQueue() {
+case class MessageQueue[T]() {
 
-  var messages: Vector[(Message, Long)] = Vector.empty
-  val lock = new ReentrantReadWriteLock()
+  private var messages: Vector[(T, Long)] = Vector.empty
+  private val lock = new ReentrantLock()
 
-  def push(msg: Message, number: Long): Future[Long] = {
+  def push(msg: T, number: Long): Future[Long] = {
     pushUntilSuccess(msg, number)
   }
 
-  private def pushUntilSuccess(msg: Message, number: Long): Future[Long] = Future {
+  private def pushUntilSuccess(msg: T, number: Long): Future[Long] = Future {
     println(s"MESSAGE: $msg")
-    val rLock = lock.readLock()
-    while (!rLock.tryLock()) Thread.sleep(10)
+    lock.lock()
     messages = (msg, number) +: messages
-    rLock.unlock()
+    lock.unlock()
     number
   }
 
-  def take(): Vector[Message] = {
-    val res = messages.map(_._1).reverse
-    lock.writeLock().tryLock()
+  def take(): Vector[T] = {
+    lock.lock()
+    val res = messages
     messages = Vector.empty
-    lock.writeLock().unlock()
-    res
+    lock.unlock()
+    res.map(_._1).reverse
   }
 }

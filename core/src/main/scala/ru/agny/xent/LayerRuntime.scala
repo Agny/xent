@@ -1,6 +1,6 @@
 package ru.agny.xent
 
-class LayerRuntime(queue: MessageQueue) {
+class LayerRuntime(queue: MessageQueue[Message]) {
   private var lastState: Vector[Layer] = Vector.empty
 
   private def run(initialState: Vector[Layer]): Vector[Layer] = {
@@ -78,7 +78,7 @@ class LayerRuntime(queue: MessageQueue) {
 }
 
 object LayerRuntime {
-  def run(layers: Vector[Layer], queue: MessageQueue) = {
+  def run(layers: Vector[Layer], queue: MessageQueue[Message]) = {
     val runtime = new LayerRuntime(queue)
     runtime.run(layers)
     runtime
