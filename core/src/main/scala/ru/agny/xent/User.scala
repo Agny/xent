@@ -7,7 +7,7 @@ import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core._
 import ru.agny.xent.core.utils.NESeq
 
-case class User(id: UserId, name: String, city: City, lands: Lands, queue: ProductionQueue, souls: Workers, lastAction: Long) {
+case class User(id: UserId, name: String, city: City, lands: Lands, queue: ProductionQueue, souls: Workers, power: LifePower, lastAction: Long) {
 
   import User._
 
@@ -75,7 +75,7 @@ object Lands {
 
 object User {
   def apply(id: UserId, name: String, city: City): User = {
-    User(id, name, city, Lands.empty, ProductionQueue.empty, Workers.empty, System.currentTimeMillis())
+    User(id, name, city, Lands.empty, ProductionQueue.empty, Workers.empty, LifePower.default, System.currentTimeMillis())
   }
 
   private def handleQueue(items: Vector[Facility], state: User): User = items match {
