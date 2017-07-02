@@ -1,9 +1,8 @@
 package ru.agny.xent.battle.unit
 
-import ru.agny.xent.battle.core.attributes.{Piercing, Slashing}
-import ru.agny.xent.battle.core.{Defensive, Dice, Offensive, Property}
-import ru.agny.xent.battle.unit.inventory.{Accessory, Armor, Weapon}
 import ru.agny.xent.core.Item._
+import ru.agny.xent.core.unit.equip._
+import ru.agny.xent.core.unit.equip.attributes.{Piercing, Slashing}
 import ru.agny.xent.core.{Cost, ProductionSchema}
 
 package object helperClasses {

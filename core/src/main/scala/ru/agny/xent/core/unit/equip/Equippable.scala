@@ -1,6 +1,5 @@
-package ru.agny.xent.battle.unit.inventory
+package ru.agny.xent.core.unit.equip
 
-import ru.agny.xent.battle.core.Property
 import ru.agny.xent.core.Producible
 
 trait Equippable extends Producible {

@@ -1,6 +1,6 @@
 package ru.agny.xent.battle.unit
 
-import ru.agny.xent.battle.core.{Attribute, Property}
+import ru.agny.xent.core.unit.equip.{Attribute, Property}
 
 /**
   * Describe effectiveness of equipment to resist/inflict damage with attribute

@@ -1,6 +1,6 @@
 package ru.agny.xent.core.inventory
 
-import ru.agny.xent.battle.unit.inventory.{Accessory, Armor, Weapon, Equippable}
+import ru.agny.xent.core.unit.equip.{Weapon, Equippable, Armor, Accessory}
 import ru.agny.xent.core.{ItemStack, Item}
 
 trait ItemMerger[-From <: Item, To <: Item] {

@@ -1,10 +1,10 @@
 package ru.agny.xent.battle
 
 import org.scalatest.{EitherValues, Matchers, FlatSpec}
-import ru.agny.xent.battle.core.LevelBar
-import ru.agny.xent.battle.unit.inventory.{Backpack, Equipment}
-import ru.agny.xent.battle.unit.{Troop, SpiritBar, Soul}
+import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.unit.equip.Equipment
+import ru.agny.xent.core.unit.{LevelBar, SpiritBar, Soul}
 import ru.agny.xent.core.utils.{TimeUnit, NESeq}
 
 class MilitaryTest extends FlatSpec with Matchers with EitherValues {

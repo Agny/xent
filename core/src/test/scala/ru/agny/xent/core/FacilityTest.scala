@@ -1,9 +1,8 @@
 package ru.agny.xent.core
 
 import org.scalatest.{EitherValues, Matchers, FlatSpec}
-import ru.agny.xent.battle.core.LevelBar
-import ru.agny.xent.battle.unit.inventory.Equipment
-import ru.agny.xent.battle.unit.{SpiritBar, Soul}
+import ru.agny.xent.core.unit.equip.Equipment
+import ru.agny.xent.core.unit.{LevelBar, SpiritBar, Soul}
 import ru.agny.xent.core.utils.TimeUnit
 
 class FacilityTest extends FlatSpec with Matchers with EitherValues {

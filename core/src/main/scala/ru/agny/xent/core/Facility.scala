@@ -1,7 +1,7 @@
 package ru.agny.xent.core
 
 import Progress.ProgressTime
-import ru.agny.xent.battle.unit.Soul
+import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.utils.SubTyper
 
 trait Facility extends DelayableItem {

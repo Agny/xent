@@ -2,8 +2,8 @@ package ru.agny.xent.battle.unit
 
 import ru.agny.xent.UserType.{UserId, ObjectId}
 import ru.agny.xent.battle.Fatigue
-import ru.agny.xent.battle.core.OutcomeDamage
-import ru.agny.xent.battle.unit.inventory.Backpack
+import ru.agny.xent.core.unit.Soul
+import ru.agny.xent.core.unit.equip.OutcomeDamage
 import ru.agny.xent.core.utils.NESeq
 import ru.agny.xent.core.{Item, Coordinate}
 

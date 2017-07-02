@@ -1,4 +1,4 @@
-package ru.agny.xent.battle.unit
+package ru.agny.xent.core.unit
 
 import ru.agny.xent.core.utils.TimeUnit
 

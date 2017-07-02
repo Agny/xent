@@ -1,6 +1,7 @@
 package ru.agny.xent.battle.unit.inventory
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
+import ru.agny.xent.battle.unit.Backpack
 import ru.agny.xent.battle.unit.helperClasses.StubWeapon
 import ru.agny.xent.core.ItemStack
 import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot}

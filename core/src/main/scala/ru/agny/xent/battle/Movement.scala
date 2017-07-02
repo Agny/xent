@@ -1,6 +1,7 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.battle.unit.Speed._
+import ru.agny.xent.core.unit.{Occupation, Speed}
+import Speed._
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress._
 

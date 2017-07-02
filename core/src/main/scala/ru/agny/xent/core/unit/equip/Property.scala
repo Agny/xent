@@ -1,4 +1,4 @@
-package ru.agny.xent.battle.core
+package ru.agny.xent.core.unit.equip
 
 case class Property(attr: Attribute, value: Int, mode: Mode) {
   val name: String = attr.getClass.getSimpleName

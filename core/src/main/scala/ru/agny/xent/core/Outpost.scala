@@ -1,9 +1,9 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.battle.unit.Soul
 import ru.agny.xent.core.Facility.{Working, Idle, InConstruction}
 import ru.agny.xent.core.Item._
 import ru.agny.xent.core.Progress._
+import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.utils.ItemIdGenerator
 
 final case class Outpost(id: ItemId,

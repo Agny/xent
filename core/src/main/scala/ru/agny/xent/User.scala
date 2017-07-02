@@ -1,8 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.{ObjectId, UserId}
-import ru.agny.xent.battle.unit.Troop
-import ru.agny.xent.battle.unit.inventory.Backpack
+import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core._
 import ru.agny.xent.core.utils.NESeq

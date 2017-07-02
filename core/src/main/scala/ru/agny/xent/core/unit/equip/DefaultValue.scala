@@ -1,10 +1,8 @@
-package ru.agny.xent.battle.unit.inventory
+package ru.agny.xent.core.unit.equip
 
-import ru.agny.xent.battle.core.attributes.Blunt
-import ru.agny.xent.battle.core.{Offensive, Dice, Property}
-import ru.agny.xent.battle.core.Dice._
-import ru.agny.xent.core.{Item, ProductionSchema}
+import Dice._
 import ru.agny.xent.core.Item._
+import ru.agny.xent.core.{Item, ProductionSchema}
 
 trait DefaultValue[T] extends Item {
   this: T =>

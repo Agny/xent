@@ -1,8 +1,9 @@
-package ru.agny.xent.battle.unit
+package ru.agny.xent.core.unit
 
 import ru.agny.xent.UserType.ObjectId
-import ru.agny.xent.battle.core._
-import ru.agny.xent.battle.unit.inventory.{Weapon, Equipment}
+import ru.agny.xent.battle.Tactic
+import ru.agny.xent.battle.unit.{Potential, Troop}
+import ru.agny.xent.core.unit.equip._
 
 case class Soul(id: ObjectId, level: LevelBar, spirit: SpiritBar, equip: Equipment, speed: Int, skills: Vector[Skill]) {
   //TODO should depends on stats

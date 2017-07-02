@@ -1,4 +1,4 @@
-package ru.agny.xent.battle.core
+package ru.agny.xent.core.unit.equip
 
 import scala.util.Random
 

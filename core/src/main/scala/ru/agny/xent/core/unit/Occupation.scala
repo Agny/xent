@@ -1,8 +1,9 @@
-package ru.agny.xent.battle
+package ru.agny.xent.core.unit
 
-import ru.agny.xent.battle.unit.Speed.Speed
+import ru.agny.xent.battle.Battle
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress.ProgressTime
+import ru.agny.xent.core.unit.Speed.Speed
 import ru.agny.xent.core.utils.SubTyper
 
 trait Occupation {

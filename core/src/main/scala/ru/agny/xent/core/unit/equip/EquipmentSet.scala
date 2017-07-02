@@ -1,4 +1,4 @@
-package ru.agny.xent.battle.unit.inventory
+package ru.agny.xent.core.unit.equip
 
 import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.utils.SubTyper

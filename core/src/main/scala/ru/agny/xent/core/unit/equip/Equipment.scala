@@ -1,8 +1,7 @@
-package ru.agny.xent.battle.unit.inventory
+package ru.agny.xent.core.unit.equip
 
-import ru.agny.xent.battle.core._
-import ru.agny.xent.battle.unit.inventory.DefaultValue.implicits.DefaultWeapon
 import ru.agny.xent.core.inventory._
+import ru.agny.xent.core.unit.equip.DefaultValue.implicits.DefaultWeapon
 
 case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, Equippable] {
 

@@ -1,4 +1,4 @@
-package ru.agny.xent.battle.unit.inventory
+package ru.agny.xent.battle.unit
 
 import ru.agny.xent.core.Item
 

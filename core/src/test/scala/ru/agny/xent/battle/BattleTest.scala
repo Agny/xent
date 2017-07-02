@@ -1,10 +1,10 @@
 package ru.agny.xent.battle
 
 import org.scalatest.{EitherValues, Matchers, FlatSpec}
-import ru.agny.xent.battle.core.LevelBar
-import ru.agny.xent.battle.unit.{SpiritBar, Soul, Troop}
-import ru.agny.xent.battle.unit.inventory.{Equipment, Backpack}
+import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.unit.equip.Equipment
+import ru.agny.xent.core.unit.{LevelBar, SpiritBar, Soul}
 import ru.agny.xent.core.utils.NESeq
 
 class BattleTest extends FlatSpec with Matchers with EitherValues {

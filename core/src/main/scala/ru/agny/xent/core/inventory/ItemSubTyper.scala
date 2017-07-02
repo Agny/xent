@@ -1,7 +1,7 @@
 package ru.agny.xent.core.inventory
 
-import ru.agny.xent.battle.unit.inventory.{Accessory, Armor, Equippable, Weapon}
 import ru.agny.xent.core.Item
+import ru.agny.xent.core.unit.equip.{Weapon, Equippable, Armor, Accessory}
 import ru.agny.xent.core.utils.SubTyper
 
 object ItemSubTyper {

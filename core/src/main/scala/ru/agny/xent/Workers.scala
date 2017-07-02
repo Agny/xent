@@ -1,9 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.ObjectId
-import ru.agny.xent.battle.Occupation
-import ru.agny.xent.battle.unit.Soul
-
+import ru.agny.xent.core.unit.{Occupation, Soul}
 
 // TODO have to handle soul transition from cell to cell
 case class Workers(souls: Vector[(Soul, Occupation)]) {
