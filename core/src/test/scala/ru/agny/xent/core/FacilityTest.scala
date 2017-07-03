@@ -9,7 +9,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   import Item.implicits._
 
-  val worker = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+  val worker = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
   val woodId = 1
   val prodId = 2
   val copperId = 3
@@ -21,7 +21,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
   }
 
   it should "replace worker" in {
-    val replacement = Soul(2, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+    val replacement = Soul(2, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
     val res = Producible(prodId, "Test res", ProductionSchema(1000, Cost(Vector(ItemStack(5, woodId))), Set.empty))
     val (facility, _) = Building("test", Vector(res), 0).finish.run(worker)
     val (facilityUpdated, ex) = facility.run(replacement)

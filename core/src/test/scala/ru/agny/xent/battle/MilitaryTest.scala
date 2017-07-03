@@ -13,8 +13,8 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val start = {
       val userOne = 1
       val userTwo = 2
-      val dummySoul = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val toughSoul = Soul(2, Level(1, 1, 1), Spirit(10, 1, 1), Equipment.empty, 10, Vector.empty)
+      val dummySoul = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val toughSoul = Soul(2, Level(1, 1), Spirit(10, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, Coordinate(1, 1))
       val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, Coordinate(2, 2))
       val attacking = Vector(troopOne).map(x => x -> Movement(x.pos, Coordinate(2, 2)))
@@ -30,9 +30,9 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val start = {
       val userOne = 1
       val userTwo = 2
-      val dummySoul = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val toughSoul = Soul(2, Level(1, 1, 1), Spirit(10, 1, 1), Equipment.empty, 10, Vector.empty)
-      val quickSoul = Soul(3, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 15, Vector.empty)
+      val dummySoul = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val toughSoul = Soul(2, Level(1, 1), Spirit(10, 1, 1), Equipment.empty, 10, Vector.empty)
+      val quickSoul = Soul(3, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 15, Vector.empty)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, Coordinate(1, 1))
       val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, Coordinate(2, 2))
       val troopThree = Troop(3, NESeq(quickSoul +: Vector.empty), Backpack.empty, userOne, Coordinate(3, 3))

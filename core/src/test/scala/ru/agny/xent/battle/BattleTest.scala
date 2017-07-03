@@ -16,7 +16,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
     val (start, queue) = {
       val userOne = 1
       val userTwo = 2
-      val dummySoul = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val dummySoul = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(dummySoul +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, pos)
@@ -32,7 +32,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
     val start = {
       val userOne = 1
       val userTwo = 2
-      val dummySoul = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val dummySoul = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(dummySoul +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, pos)
@@ -48,8 +48,8 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
     val start = {
       val userOne = 1
       val userTwo = 2
-      val soulOne = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulTwo = Soul(2, Level(1, 1, 1), Spirit(10, 1, 10), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(2, Level(1, 1), Spirit(10, 1, 10), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userTwo, pos)
       val troops = Vector(troopOne, troopTwo).map(_ -> defaultOccupation)
@@ -66,10 +66,10 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       val userOne = 1
       val userTwo = 2
       val userThree = 3
-      val soulOne = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulTwo = Soul(2, Level(1, 1, 1), Spirit(10, 1, 10), Equipment.empty, 10, Vector.empty)
-      val soulThree = Soul(userThree, Level(1, 1, 1), Spirit(1, 1, 10), Equipment.empty, 10, Vector.empty)
-      val soulFour = Soul(userThree, Level(1, 1, 1), Spirit(1, 1, 10), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(2, Level(1, 1), Spirit(10, 1, 10), Equipment.empty, 10, Vector.empty)
+      val soulThree = Soul(userThree, Level(1, 1), Spirit(1, 1, 10), Equipment.empty, 10, Vector.empty)
+      val soulFour = Soul(userThree, Level(1, 1), Spirit(1, 1, 10), Equipment.empty, 10, Vector.empty)
 
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userTwo, pos)

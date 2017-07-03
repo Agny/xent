@@ -8,7 +8,7 @@ import ru.agny.xent.core.unit.{Level, Spirit, Soul}
 
 class CityTest extends FlatSpec with Matchers with EitherValues {
 
-  val worker = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+  val worker = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
   val bName = "Test"
   val shape = FourShape.name
 
