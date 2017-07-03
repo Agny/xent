@@ -4,7 +4,7 @@ import org.scalatest.{EitherValues, Matchers, FlatSpec}
 import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.unit.equip.Equipment
-import ru.agny.xent.core.unit.{LevelBar, SpiritBar, Soul}
+import ru.agny.xent.core.unit.{Level, Spirit, Soul}
 import ru.agny.xent.core.utils.NESeq
 
 class CombatantsTest extends FlatSpec with Matchers with EitherValues {
@@ -14,7 +14,7 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
 
   "Combatants" should "add troops to the queue" in {
     val (start, added) = {
-      val dummySoul = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val dummySoul = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, 1, pos) -> defaultOccupation
       val toQueue = Vector(Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, 1, pos) -> defaultOccupation)
       (Combatants(NESeq(troopOne +: Vector.empty), Vector.empty), toQueue)
@@ -28,7 +28,7 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
     val (start, expected) = {
       val userOne = 1
       val userTwo = 2
-      val dummySoul = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val dummySoul = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(dummySoul +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, pos)
@@ -48,9 +48,9 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
   it should "test troops if the battle must go on" in {
     val start = {
       val userOne = 1
-      val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(userOne, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val userTwo = 2
-      val soulTwo = Soul(userTwo, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(userTwo, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userTwo, pos)
       Vector(troopOne, troopTwo)
@@ -62,11 +62,11 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
   it should "test troops if the battle must go on with queued troops" in {
     val (t, q) = {
       val userOne = 1
-      val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(userOne, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val userTwo = 2
-      val soulTwo = Soul(userTwo, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(userTwo, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val userThree = 3
-      val soulThree = Soul(userThree, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulThree = Soul(userThree, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopQueue = Vector(Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userThree, pos))
@@ -78,7 +78,7 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
   }
 
   it should "test troops if the battle must end" in {
-    val dummySoul = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+    val dummySoul = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
     val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, 1, pos)
     Combatants.isBattleNeeded(Vector(troopOne)) should be(false)
   }
@@ -86,9 +86,9 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
   it should "test troops if the battle must end with queued troops" in {
     val (t, q) = {
       val userOne = 1
-      val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulTwo = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulThree = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(userOne, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(userOne, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulThree = Soul(userOne, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userOne, pos)
       val troopQueue = Vector(Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userOne, pos))
@@ -102,9 +102,9 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
   it should "free all troops" in {
     val (start, expected) = {
       val userOne = 1
-      val soulOne = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulTwo = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulThree = Soul(userOne, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(userOne, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(userOne, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulThree = Soul(userOne, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userOne, pos)
       val troopQueue = Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userOne, pos)
@@ -120,12 +120,12 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
       val userOne = 1
       val userTwo = 2
       val userThree = 3
-      val soulOne = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulTwo = Soul(2, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
-      val soulThree = Soul(3, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulOne = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulTwo = Soul(2, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val soulThree = Soul(3, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
 
-      val fallen = Soul(1, LevelBar(1, 1, 1), SpiritBar(0, 1, 1), Equipment.empty, 10, Vector.empty)
-      val fallenTwo = Soul(2, LevelBar(1, 1, 1), SpiritBar(0, 1, 1), Equipment.empty, 10, Vector.empty)
+      val fallen = Soul(1, Level(1, 1, 1), Spirit(0, 1, 1), Equipment.empty, 10, Vector.empty)
+      val fallenTwo = Soul(2, Level(1, 1, 1), Spirit(0, 1, 1), Equipment.empty, 10, Vector.empty)
 
       val troopOne = Troop(1, NESeq(Vector(soulOne, fallen)), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(Vector(soulTwo, fallenTwo)), Backpack.empty, userTwo, pos, Fatigue.MAX)
@@ -147,7 +147,7 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
     val (pool, adjustment, expected) = {
       val userOne = 1L
       val userTwo = 2L
-      val dummySoul = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+      val dummySoul = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(dummySoul +: Vector.empty), Backpack.empty, userTwo, pos, Fatigue.MAX)
       val troopThree = Troop(3, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, pos, Fatigue.MAX)

@@ -4,11 +4,11 @@ import org.scalatest.{EitherValues, Matchers, FlatSpec}
 import ru.agny.xent.core.Shape.FourShape
 import ru.agny.xent.core._
 import ru.agny.xent.core.unit.equip.Equipment
-import ru.agny.xent.core.unit.{LevelBar, SpiritBar, Soul}
+import ru.agny.xent.core.unit.{Level, Spirit, Soul}
 
 class CityTest extends FlatSpec with Matchers with EitherValues {
 
-  val worker = Soul(1, LevelBar(1, 1, 1), SpiritBar(1, 1, 1), Equipment.empty, 10, Vector.empty)
+  val worker = Soul(1, Level(1, 1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
   val bName = "Test"
   val shape = FourShape.name
 

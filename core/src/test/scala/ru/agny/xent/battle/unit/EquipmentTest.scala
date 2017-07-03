@@ -1,11 +1,10 @@
-package ru.agny.xent.battle.unit.inventory
+package ru.agny.xent.battle.unit
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
-import ru.agny.xent.battle.unit.helperClasses.{StubAccessory, StubArmor, StubWeapon}
-import ru.agny.xent.core.unit.equip._
-import DefaultValue.implicits.DefaultWeapon
 import ru.agny.xent.core.Storage
 import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot}
+import ru.agny.xent.core.unit.equip.DefaultValue.implicits.DefaultWeapon
+import ru.agny.xent.core.unit.equip._
 import ru.agny.xent.core.unit.equip.attributes.{Piercing, Slashing}
 
 import scala.collection.immutable.Vector

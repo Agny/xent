@@ -5,7 +5,7 @@ import ru.agny.xent.battle.Tactic
 import ru.agny.xent.battle.unit.{Potential, Troop}
 import ru.agny.xent.core.unit.equip._
 
-case class Soul(id: ObjectId, level: LevelBar, spirit: SpiritBar, equip: Equipment, speed: Int, skills: Vector[Skill]) {
+case class Soul(id: ObjectId, level: Level, spirit: Spirit, equip: Equipment, speed: Int, skills: Vector[Skill]) extends Levelable {
   //TODO should depends on stats
   lazy val weight = 10
   lazy val endurance = 3

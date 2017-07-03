@@ -1,11 +1,11 @@
-package ru.agny.xent.battle.unit
+package ru.agny.xent.battle
 
 import ru.agny.xent.core.Item._
 import ru.agny.xent.core.unit.equip._
 import ru.agny.xent.core.unit.equip.attributes.{Piercing, Slashing}
 import ru.agny.xent.core.{Cost, ProductionSchema}
 
-package object helperClasses {
+package object unit {
   case class StubWeapon(id: ItemId = -1) extends Weapon {
     override val damage: Dice = Dice(1, 1)
     override val attrs: Vector[Property] = Vector(Property(Slashing, 10, Offensive), Property(Slashing, 1, Defensive))
