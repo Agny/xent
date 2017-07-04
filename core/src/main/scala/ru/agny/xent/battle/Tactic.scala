@@ -27,10 +27,11 @@ trait Tactic {
 case class BasicTactic(self: Soul) extends Tactic {
 
   def damageOutcome(enemy: Troop) = {
-    val weapon = self.equip.weapons.maxBy(_.damage)
-    val attackBy = self.attackPotential(weapon).strongestRaw
-    val cast = weapon.damage.cast
-    OutcomeDamage(attackBy, cast)
+    implicit val target = enemy
+    val (wpn, rates) = self.attackRates
+    val (attackBy, bonus) = rates.maxBy(_._1.value)
+    val cast = wpn.damage.cast
+    OutcomeDamage(attackBy, cast + bonus.cast)
   }
 
   def chooseTarget(enemy: Troop): Vector[Soul] = Vector(enemy.activeUnits.head)

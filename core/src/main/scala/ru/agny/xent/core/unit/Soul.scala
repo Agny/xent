@@ -2,28 +2,31 @@ package ru.agny.xent.core.unit
 
 import ru.agny.xent.UserType.ObjectId
 import ru.agny.xent.battle.Tactic
-import ru.agny.xent.battle.unit.{Potential, Troop}
+import ru.agny.xent.battle.unit.Troop
+import ru.agny.xent.core.unit.SoulData.PotentialDetailed
 import ru.agny.xent.core.unit.equip._
 
-case class Soul(id: ObjectId, level: Level, spirit: Spirit, equip: Equipment, speed: Int, skills: Vector[Skill]) extends Levelable {
-  //TODO should depends on stats
-  lazy val weight = 10
-  lazy val endurance = 3
-  lazy val initiative = 5
-  lazy val state = spirit.points match {
+case class Soul(id: ObjectId, stats: SoulData, private val equip: Equipment) extends Levelable {
+
+  private implicit val eq = equip
+
+  lazy val weight = stats.weight
+  lazy val endurance = stats.endurance
+  lazy val initiative = stats.initiative
+  lazy val speed = stats.speed
+  lazy val spirit = stats.spirit
+  lazy val state = stats.spirit match {
     case alive if alive > 0 => Soul.Active
     case _ => Soul.Fallen
   }
 
-  def defensePotential = Potential(equip.props()(Defensive))
-
-  def attackPotential(wpn: Weapon) = Potential(equip.props(wpn)(Offensive))
+  def attackRates(implicit target: Troop): (Weapon, PotentialDetailed) = stats.attackModifiers
 
   def attack(target: Troop): (Soul, Troop) = Tactic.get(this).execute(target)
 
   def receiveDamage(d: OutcomeDamage) = {
-    val damage = IncomeDamage(d.attr, defensePotential, equip.armor.value, d.calc())
-    copy(spirit = spirit.change(-damage.calc()))
+    val damage = IncomeDamage(d.attr, stats.defenseModifiers(equip), equip.armor.value, d.calc())
+    copy(stats = stats.receiveDamage(-damage.calc()))
   }
 
   def lose(): (Soul, Equipment) = (copy(equip = Equipment.empty), equip)

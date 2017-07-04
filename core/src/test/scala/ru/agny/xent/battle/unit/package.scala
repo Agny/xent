@@ -11,6 +11,7 @@ package object unit {
     override val attrs: Vector[Property] = Vector(Property(Slashing, 10, Offensive), Property(Slashing, 1, Defensive))
     override val name: String = "knife"
     override val schema: ProductionSchema = ProductionSchema(0, Cost(Vector.empty), Set.empty)
+    override val weight: Int = 0
   }
   case class StubArmor() extends Armor {
     override val attrs: Vector[Property] = Vector(Property(Slashing, 4, Defensive), Property(Piercing, 6, Defensive))
@@ -18,12 +19,14 @@ package object unit {
     override val schema: ProductionSchema = ProductionSchema(0, Cost(Vector.empty), Set.empty)
     override val id: ItemId = -1
     override val value: Int = 0
+    override val weight: Int = 0
   }
   case class StubAccessory() extends Accessory {
     override val attrs: Vector[Property] = Vector(Property(Slashing, 1, Offensive), Property(Slashing, 1, Defensive), Property(Piercing, 1, Defensive))
     override val name: String = "guard charm"
     override val schema: ProductionSchema = ProductionSchema(0, Cost(Vector.empty), Set.empty)
     override val id: ItemId = -1
+    override val weight: Int = 0
   }
 
 }

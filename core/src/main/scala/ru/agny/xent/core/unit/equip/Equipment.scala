@@ -18,6 +18,8 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
 
   def toSpoil = holder.set.items.flatMap(_.flatten)
 
+  def weight = holder.items.foldLeft(0)((w, eq) => w + eq.weight)
+
   def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Vector[Property] = (mode match {
     case Defensive => holder.items.foldLeft(Map.empty[Attribute, Int])((a, b) =>
       b.attrs.foldLeft(a)(collectAllPotential)

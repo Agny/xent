@@ -1,15 +1,17 @@
 package ru.agny.xent.core
 
 import org.scalatest.{EitherValues, Matchers, FlatSpec}
+import ru.agny.xent.TestHelper
 import ru.agny.xent.core.unit.equip.Equipment
 import ru.agny.xent.core.unit.{Level, Spirit, Soul}
 import ru.agny.xent.core.utils.TimeUnit
 
 class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
+  import TestHelper._
   import Item.implicits._
 
-  val worker = Soul(1, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+  val worker = defaultSoul(1)
   val woodId = 1
   val prodId = 2
   val copperId = 3
@@ -21,7 +23,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
   }
 
   it should "replace worker" in {
-    val replacement = Soul(2, Level(1, 1), Spirit(1, 1, 1), Equipment.empty, 10, Vector.empty)
+    val replacement = defaultSoul(2)
     val res = Producible(prodId, "Test res", ProductionSchema(1000, Cost(Vector(ItemStack(5, woodId))), Set.empty))
     val (facility, _) = Building("test", Vector(res), 0).finish.run(worker)
     val (facilityUpdated, ex) = facility.run(replacement)

@@ -4,17 +4,20 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, FlatSpec}
 import ru.agny.xent.battle.{Waiting, Military, Movement}
 import ru.agny.xent.core.Shape.FourShape
 import ru.agny.xent.core.unit.equip.Equipment
-import ru.agny.xent.core.unit.{Level, Spirit, Soul}
+import ru.agny.xent.core.unit._
 import ru.agny.xent.core.utils.{OutpostTemplate, BuildingTemplate}
 import ru.agny.xent.core._
 
 class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
+  import TestHelper._
   import Item.implicits._
 
   val shape = FourShape.name
   val waitingCoordinate = new Waiting(Coordinate(0, 0), 0)
   val woodId = 1
+  val soulOne = defaultSoul(1)
+  val soulTwo = defaultSoul(2)
 
   override protected def beforeAll(): Unit = {
     ShapeProvider.add(BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, ""))
@@ -25,8 +28,8 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
   }
 
   "User" should "create troop from the souls" in {
-    val soul1 = (Soul(1, Level(0, 0), Spirit(1, 1, 0), Equipment.empty, 0, Vector.empty), waitingCoordinate)
-    val soul2 = (Soul(2, Level(0, 0), Spirit(1, 1, 0), Equipment.empty, 0, Vector.empty), waitingCoordinate)
+    val soul1 = (soulOne, waitingCoordinate)
+    val soul2 = (soulTwo, waitingCoordinate)
     val souls = Workers(Vector(soul1, soul2))
     val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, ProductionQueue.empty, souls, LifePower.default, 0)
     val (soulless, troop) = user.createTroop(3, Vector(1, 2))
@@ -35,8 +38,8 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
   }
 
   it should "not take occupied souls to the troop" in {
-    val soul1 = (Soul(1, Level(0, 0), Spirit(1, 1, 0), Equipment.empty, 0, Vector.empty), waitingCoordinate)
-    val soul2 = (Soul(2, Level(0, 0), Spirit(1, 1, 0), Equipment.empty, 0, Vector.empty), Movement(Coordinate(0, 0), Coordinate(1, 2), 0))
+    val soul1 = (soulOne, waitingCoordinate)
+    val soul2 = (soulTwo, Movement(Coordinate(0, 0), Coordinate(1, 2), 0))
     val souls = Workers(Vector(soul1, soul2))
     val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, ProductionQueue.empty, souls, LifePower.default, 0)
     val (userWithSoul, troop) = user.createTroop(3, Vector(1, 2))
