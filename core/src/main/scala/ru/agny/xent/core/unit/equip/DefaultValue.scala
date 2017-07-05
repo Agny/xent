@@ -14,7 +14,7 @@ object DefaultValue {
     implicit object DefaultAccessory extends Accessory with DefaultValue[Accessory] {
       override val id: ItemId = -1
       override val name = "Default"
-      override val attrs: Vector[Property] = Vector.empty
+      override val attrs: Vector[AttrProperty] = Vector.empty
       override val schema: ProductionSchema = ProductionSchema.default()
       override val weight: Int = 0
     }
@@ -22,7 +22,7 @@ object DefaultValue {
     implicit object DefaultArmor extends Armor with DefaultValue[Armor] {
       override val id: ItemId = -1
       override val value: Int = 0
-      override val attrs: Vector[Property] = Vector.empty
+      override val attrs: Vector[AttrProperty] = Vector.empty
       override val name = "Default"
       override val schema: ProductionSchema = ProductionSchema.default()
       override val weight: Int = 0

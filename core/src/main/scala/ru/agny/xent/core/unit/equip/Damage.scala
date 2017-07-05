@@ -22,8 +22,8 @@ case class IncomeDamage(attr: Attribute, defensePotential: Potential, armor: Int
   * DiceCast * EffectiveAttack
   *
   */
-case class OutcomeDamage(attribute: Property, baseDamage: Int) extends Damage[Double] {
-  val attr = attribute.attr
+case class OutcomeDamage(attribute: AttrProperty, baseDamage: Int) extends Damage[Double] {
+  val attr = attribute.prop
 
   def calc(): Double = baseDamage * ((100d + attribute.value) / 100)
 }

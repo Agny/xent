@@ -1,7 +1,7 @@
 package ru.agny.xent.core.unit
 
 import ru.agny.xent.battle.unit.Potential
-import ru.agny.xent.core.unit.equip.{Weapon, Property, Dice, Equipment}
+import ru.agny.xent.core.unit.equip.{Weapon, AttrProperty, Dice, Equipment}
 
 case class SoulData(level: Level, private val spiritPower: Spirit, private val stats: Stats, private val skills: Vector[Skill]) {
 
@@ -33,5 +33,5 @@ case class SoulData(level: Level, private val spiritPower: Spirit, private val s
 
 object SoulData {
   type BonusDamage = Dice
-  type PotentialDetailed = Vector[(Property, BonusDamage)]
+  type PotentialDetailed = Vector[(AttrProperty, BonusDamage)]
 }

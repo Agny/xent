@@ -4,6 +4,6 @@ import ru.agny.xent.core.Producible
 
 trait Equippable extends Producible {
   val name: String
-  val attrs: Vector[Property]
+  val attrs: Vector[AttrProperty]
   val weight: Int
 }

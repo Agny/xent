@@ -20,16 +20,16 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
 
   def weight = holder.items.foldLeft(0)((w, eq) => w + eq.weight)
 
-  def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Vector[Property] = (mode match {
+  def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Vector[AttrProperty] = (mode match {
     case Defensive => holder.items.foldLeft(Map.empty[Attribute, Int])((a, b) =>
       b.attrs.foldLeft(a)(collectAllPotential)
     )
     case Offensive => //TODO second weapon attack potential? Skill|reduced effect|something else
-      val wpnAttrs = wpn.attrs.map(x => x.attr -> x.value).toMap
+      val wpnAttrs = wpn.attrs.map(x => x.prop -> x.value).toMap
       (wpn +: holder.passiveItems).foldLeft(wpnAttrs)((a, b) =>
         b.attrs.foldLeft(a)(collectSpecifiedPotential)
       )
-  }).map { case (attr, power) => Property(attr, power, mode) }.toVector
+  }).map { case (attr, power) => AttrProperty(attr, power, mode) }.toVector
 
   override def add[U <: Equippable](v: U)(implicit ev: ItemMerger[Equippable, U]): (Equipment, Slot[Equippable]) = {
     val idx = holder.getIndexForEquippable(v)
@@ -57,19 +57,19 @@ object Equipment {
 
   def apply(slots: Vector[Slot[Equippable]]): Equipment = Equipment(EquippableHolder(EquipmentSet(slots)))
 
-  private def collectAllPotential(attrs: Map[Attribute, Int], prop: Property)(implicit mode: Mode) = prop.mode match {
+  private def collectAllPotential(attrs: Map[Attribute, Int], prop: AttrProperty)(implicit mode: Mode) = prop.mode match {
     case wanted if mode == wanted =>
-      if (attrs.contains(prop.attr)) {
-        attrs + (prop.attr -> (attrs(prop.attr) + prop.value))
+      if (attrs.contains(prop.prop)) {
+        attrs + (prop.prop -> (attrs(prop.prop) + prop.value))
       } else {
-        attrs + (prop.attr -> prop.value)
+        attrs + (prop.prop -> prop.value)
       }
     case _ => attrs
   }
 
-  private def collectSpecifiedPotential(attrs: Map[Attribute, Int], prop: Property)(implicit mode: Mode) = prop.mode match {
-    case correct if correct == mode && attrs.contains(prop.attr) =>
-      attrs + (prop.attr -> (attrs(prop.attr) + prop.value))
+  private def collectSpecifiedPotential(attrs: Map[Attribute, Int], prop: AttrProperty)(implicit mode: Mode) = prop.mode match {
+    case correct if correct == mode && attrs.contains(prop.prop) =>
+      attrs + (prop.prop -> (attrs(prop.prop) + prop.value))
     case _ => attrs
   }
 }

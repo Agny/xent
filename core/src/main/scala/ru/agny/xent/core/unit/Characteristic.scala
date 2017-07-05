@@ -1,22 +1,8 @@
 package ru.agny.xent.core.unit
 
-sealed trait Characteristic extends Levelable {
+sealed trait Characteristic {
   val name: String = getClass.getSimpleName
-  val level: Level
   val weightModifier: Int
-
-  def toLifePower: Int = {
-    val expBonus = level.exp * weightModifier / level.capacity
-    scaledWeight + expBonus
-  }
-
-  private def scaledWeight = {
-    val step = 10
-    val scale = level.value / step
-    val tiersWeight = (1 + scale) * (scale * step) * weightModifier / 2
-    val levelsWeight = (1 + scale) * (level.value - (scale * step)) * weightModifier
-    tiersWeight + levelsWeight
-  }
 }
 
 sealed trait Primary extends Characteristic {
@@ -28,10 +14,12 @@ sealed trait Secondary extends Characteristic {
   val weightModifier = 2
 }
 
-case class Agility(level: Level) extends Primary
-case class Strength(level: Level) extends Primary
-case class Intelligence(level: Level) extends Primary
-case class PresencePower(level: Level) extends Primary
-case class CritRate(level: Level) extends Secondary
-case class CritPower(level: Level) extends Secondary
-case class Initiative(level: Level) extends Secondary
+package object characteristic {
+  case object Agility extends Primary
+  case object Strength extends Primary
+  case object Intelligence extends Primary
+  case object PresencePower extends Primary
+  case object CritRate extends Secondary
+  case object CritPower extends Secondary
+  case object Initiative extends Secondary
+}
