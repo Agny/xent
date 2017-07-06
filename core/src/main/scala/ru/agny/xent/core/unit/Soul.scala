@@ -15,7 +15,7 @@ case class Soul(id: ObjectId, stats: SoulData, private val equip: Equipment) ext
   lazy val initiative = stats.initiative
   lazy val speed = stats.speed
   lazy val spirit = stats.spirit
-  lazy val state = stats.spirit match {
+  lazy val state = spirit.points match {
     case alive if alive > 0 => Soul.Active
     case _ => Soul.Fallen
   }
@@ -25,7 +25,7 @@ case class Soul(id: ObjectId, stats: SoulData, private val equip: Equipment) ext
   def attack(target: Troop): (Soul, Troop) = Tactic.get(this).execute(target)
 
   def receiveDamage(d: OutcomeDamage) = {
-    val damage = IncomeDamage(d.attr, stats.defenseModifiers(equip), equip.armor.value, d.calc())
+    val damage = IncomeDamage(d.attr, stats.defenseModifiers, stats.armor, d.calc())
     copy(stats = stats.receiveDamage(-damage.calc()))
   }
 

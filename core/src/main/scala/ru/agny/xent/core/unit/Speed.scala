@@ -7,4 +7,6 @@ object Speed {
   implicit class SpeedI(tilesPerHour: Speed) {
     def in(millis: Long): Int = math.floor(millis * tilesPerHour / TimeUnit.hour).toInt
   }
+
+  val default = 10
 }
