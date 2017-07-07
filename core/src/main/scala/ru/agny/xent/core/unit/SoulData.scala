@@ -1,12 +1,11 @@
 package ru.agny.xent.core.unit
 
 import ru.agny.xent.battle.unit.Potential
-import ru.agny.xent.core.unit.equip.{Weapon, AttrProperty, Dice, Equipment}
+import ru.agny.xent.core.unit.Stats.WeaponRate
+import ru.agny.xent.core.unit.equip.{Defensive, Equipment}
 
 //TODO Equipment boosting stats
 case class SoulData(level: Level, private val spiritPower: Spirit, private val stats: Stats, private val skills: Vector[Skill]) {
-
-  import SoulData._
 
   def armor(implicit equipment: Equipment): Int = stats.effectiveArmor(equipment)
 
@@ -16,23 +15,14 @@ case class SoulData(level: Level, private val spiritPower: Spirit, private val s
 
   def weight(implicit equipment: Equipment): Int = equipment.weight + stats.weight
 
-  def endurance(implicit equipment: Equipment): Int = ???
+  def endurance(implicit equipment: Equipment): Int = stats.effectiveEndurance(equipment)
 
-  def initiative(implicit equipment: Equipment): Int = ???
+  def initiative(implicit equipment: Equipment): Int = stats.effectiveInitiative(equipment)
 
-  def attackModifiers(implicit equip: Equipment): (Weapon, PotentialDetailed) = ???
+  def attackModifiers(implicit equipment: Equipment): Vector[WeaponRate] = stats.attackModifiers(equipment)
 
-  def defenseModifiers(implicit equip: Equipment): Potential = ???
+  def defenseModifiers(implicit equipment: Equipment): Potential = Potential(equipment.props()(Defensive))
 
-  def speedModifiers(implicit equip: Equipment) = ???
+  def receiveDamage(dmg: Int)(implicit equipment: Equipment): SoulData = copy(spiritPower = spirit.change(dmg))
 
-  def spiritModifiers(implicit equip: Equipment) = ???
-
-  def receiveDamage(dmg: Int)(implicit equip: Equipment): SoulData = copy(spiritPower = spirit.change(dmg))
-
-}
-
-object SoulData {
-  type BonusDamage = Dice
-  type PotentialDetailed = Vector[(AttrProperty, BonusDamage)]
 }

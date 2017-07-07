@@ -4,7 +4,8 @@ import org.scalatest.{EitherValues, Matchers, FlatSpec}
 import ru.agny.xent.TestHelper
 import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.Coordinate
-import ru.agny.xent.core.unit.equip.Equipment
+import ru.agny.xent.core.unit.characteristic.PresencePower
+import ru.agny.xent.core.unit.equip.{StatProperty, Equipment}
 import ru.agny.xent.core.unit._
 import ru.agny.xent.core.utils.NESeq
 
@@ -18,7 +19,6 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
   val userOne = 1
   val userTwo = 2
   val soulOne = defaultSoul(1)
-  val soulTwo = defaultSoul(2)
 
   "Battle" should "add troops to the queue" in {
     val (start, queue) = {
@@ -49,7 +49,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
   it should "end battle in one round" in {
     val start = {
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
-      val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userTwo, pos)
+      val troopTwo = Troop(2, NESeq(defaultSoul(2) +: Vector.empty), Backpack.empty, userTwo, pos)
       val troops = Vector(troopOne, troopTwo).map(_ -> defaultOccupation)
       Battle(pos, NESeq(troops))
     }
@@ -61,11 +61,12 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
 
   it should "end battle in two or three rounds" in {
     val start = {
-      val soulThree = defaultSoul(3)
-      val soulFour = defaultSoul(4)
+      val toughSoul = Soul(2, SoulData(Level(1, 1), Spirit(10, 1, 10), Stats(Vector(StatProperty(PresencePower, Level(20, 0)))), Vector.empty), Equipment.empty)
+      val soulThree = Soul(3, SoulData(Level(1, 1), Spirit(3, 1, 3), Stats(Vector(StatProperty(PresencePower, Level(5, 0)))), Vector.empty), Equipment.empty)
+      val soulFour = Soul(4, SoulData(Level(1, 1), Spirit(1, 1, 1), Stats(Vector(StatProperty(PresencePower, Level(5, 0)))), Vector.empty), Equipment.empty)
       val userThree = 3
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
-      val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userTwo, pos)
+      val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userThree, pos)
       val troopFour = Troop(4, NESeq(soulFour +: Vector.empty), Backpack.empty, userThree, pos)
       val troops = Vector(troopOne, troopTwo, troopThree, troopFour).map(_ -> defaultOccupation)

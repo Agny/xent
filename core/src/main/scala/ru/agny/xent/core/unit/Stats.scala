@@ -1,10 +1,14 @@
 package ru.agny.xent.core.unit
 
-import ru.agny.xent.core.unit.characteristic.{Agility, PresencePower, Strength}
-import ru.agny.xent.core.unit.equip.{Equipment, StatProperty}
+import ru.agny.xent.core.unit.characteristic._
+import ru.agny.xent.core.unit.equip._
+import ru.agny.xent.core.unit.equip.attributes.{Siege, Blunt, Piercing, Slashing}
 
 //TODO game balancing
 case class Stats(private val s: Vector[StatProperty]) {
+
+  import Stats._
+
   /**
     * Effective armor value defined as
     * math.floor(equipment_armor*(1 + strength * 0.2 + presence * 0.12 + agility * 0.07))
@@ -38,14 +42,66 @@ case class Stats(private val s: Vector[StatProperty]) {
     Spirit(spirit.points, regen + math.floor(regenBonus.sum).toInt, capacity + capacityBonus.sum)
   }
 
+  /**
+    * Effective speed value defined as
+    * speed_default + math.floor(agility * 0.5))
+    */
   def effectiveSpeed(eq: Equipment): Int = s.find(_.prop == Agility) match {
     case Some(agility) => Speed.default + math.floor(agility.level.value * 0.5).toInt
     case _ => Speed.default
   }
 
   def weight: Int = s.map(_.toLifePower).sum
+
+  /**
+    * Effective endurance value defined as
+    * endurance_default + math.floor(presence * 0.2))
+    */
+  def effectiveEndurance(eq: Equipment): Int = s.find(_.prop == PresencePower) match {
+    case Some(ppower) => Endurance.default + math.floor(ppower.level.value * 0.2).toInt
+    case _ => Endurance.default
+  }
+
+  /**
+    * Effective initiative value defined as
+    * math.floor(base_initiative + agility * 0.2 - presence * 0.1 - intelligence * 0.1)
+    */
+  def effectiveInitiative(eq: Equipment): Int = {
+    val initiative = getValueOrZero(Initiative, s)
+    val agility = getValueOrZero(Agility, s)
+    val presence = getValueOrZero(PresencePower, s)
+    val intelligence = getValueOrZero(Intelligence, s)
+    math.floor(initiative + agility * 0.2 - presence * 0.1 - intelligence * 0.1).toInt
+  }
+
+  /**
+    * Attack modifiers are simple bonus dice casts now, which value depends on the weapon type attack and corresponding Characteristic
+    * bonus_value = sum(Dice(characteristic_level_in_tier, level_tier) for each level tier that characteristic got)
+    *
+    */
+  def attackModifiers(eq: Equipment): Vector[WeaponRate] = {
+    val mh = eq.holder.set.mainHand
+    val oh = eq.holder.set.offHand
+    val mhAttrs = eq.props(mh)(Offensive)
+    val ohAttrs = eq.props(oh)(Offensive)
+    Vector((mh, attributesWithBonus(mhAttrs, s)), (oh, attributesWithBonus(ohAttrs, s)))
+  }
+
 }
 
 object Stats {
+  type BonusDamage = Int
+  type WeaponRate = (Weapon, Vector[(AttrProperty, BonusDamage)])
   val default: Stats = Stats(Vector.empty)
+
+  private def getValueOrZero(prop: Characteristic, from: Vector[StatProperty]) = from.find(_.prop == prop).map(_.level.value) getOrElse 0
+
+  //TODO add other attribute bonuses
+  private def attributesWithBonus(attrs: Vector[AttrProperty], stats: Vector[StatProperty]): Vector[(AttrProperty, BonusDamage)] = {
+    attrs.map {
+      case x@AttrProperty(Blunt, _, Offensive) =>
+        val castsSum = stats.find(_.prop == Strength).map(_.level.tiered.map(x => Dice(x._2, x._1).cast).sum)
+        (x, castsSum getOrElse 0)
+    }
+  }
 }

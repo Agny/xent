@@ -6,6 +6,6 @@ import ru.agny.xent.core.unit.equip.Equipment
 
 object TestHelper {
 
-  def defaultSoul(id: ObjectId): Soul = Soul(id, SoulData(Level(1, 1), Spirit(1, 1, 1), Stats.default, Vector.empty), Equipment.empty)
+  def defaultSoul(id: ObjectId, eq: Equipment = Equipment.empty): Soul = Soul(id, SoulData(Level(1, 1), Spirit(1, 1, 1), Stats.default, Vector.empty), eq)
 
 }

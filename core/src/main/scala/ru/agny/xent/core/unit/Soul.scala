@@ -3,7 +3,6 @@ package ru.agny.xent.core.unit
 import ru.agny.xent.UserType.ObjectId
 import ru.agny.xent.battle.Tactic
 import ru.agny.xent.battle.unit.Troop
-import ru.agny.xent.core.unit.SoulData.PotentialDetailed
 import ru.agny.xent.core.unit.equip._
 
 case class Soul(id: ObjectId, stats: SoulData, private val equip: Equipment) extends Levelable {
@@ -20,7 +19,7 @@ case class Soul(id: ObjectId, stats: SoulData, private val equip: Equipment) ext
     case _ => Soul.Fallen
   }
 
-  def attackRates(implicit target: Troop): (Weapon, PotentialDetailed) = stats.attackModifiers
+  def attackRates(implicit target: Troop) = stats.attackModifiers
 
   def attack(target: Troop): (Soul, Troop) = Tactic.get(this).execute(target)
 
