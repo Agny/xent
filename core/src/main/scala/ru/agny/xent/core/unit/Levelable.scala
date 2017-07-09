@@ -1,5 +1,6 @@
 package ru.agny.xent.core.unit
 
+//TODO add mechanic to gain experience
 trait Levelable
 
 case class Level(value: Int, exp: Int) {
@@ -8,7 +9,7 @@ case class Level(value: Int, exp: Int) {
   def tiered: Seq[(Int, Int)] = {
     val tiers = value / 10
     val lvlInLastTier = value % 10
-    1 to tiers map (x => x -> (if (value / (x * 10) > 0) 10 else lvlInLastTier))
+    1 to tiers + 1 map (x => x -> (if (x > tiers) lvlInLastTier else 10))
   }
 }
 object Level {

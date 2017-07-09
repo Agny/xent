@@ -2,7 +2,6 @@ package ru.agny.xent.core.unit
 
 import ru.agny.xent.core.unit.characteristic._
 import ru.agny.xent.core.unit.equip._
-import ru.agny.xent.core.unit.equip.attributes._
 
 //TODO game balancing
 case class Stats(private val s: Vector[StatProperty]) {
@@ -11,7 +10,7 @@ case class Stats(private val s: Vector[StatProperty]) {
 
   /**
     * Effective armor value defined as
-    * math.floor(equipment_armor*(1 + strength * 0.2 + presence * 0.12 + agility * 0.07))
+    * math.floor(equipment_armor + strength * 0.2 + presence * 0.12 + agility * 0.07)
     */
   def effectiveArmor(eq: Equipment): Int = {
     val armor = eq.armor.value //TODO Armor class, e.g. heavy/light?
@@ -22,7 +21,7 @@ case class Stats(private val s: Vector[StatProperty]) {
       case StatProperty(Agility, lvl) => lvl.value * 0.07
       case _ => 0d
     }.sum
-    math.floor(armor * (1 + modifier)).toInt
+    math.floor(armor + modifier).toInt
   }
 
   /**
@@ -75,8 +74,8 @@ case class Stats(private val s: Vector[StatProperty]) {
   }
 
   /**
-    * Attack modifiers are simple bonus dice casts now, which value depends on the weapon type attack and corresponding Characteristic
-    * bonus_value = sum(Dice(characteristic_level_in_tier, level_tier) for each level tier that characteristic got)
+    * Attack modifiers are bonus dice casts, which value depends on the weapon type attack and corresponding Characteristic
+    * bonus_value = sum(Dice(characteristic_level_in_tier, level_tier) for each level tier that characteristic got) * characteristic_modifier
     *
     */
   def attackModifiers(eq: Equipment): Vector[WeaponRate] = {
@@ -96,7 +95,7 @@ object Stats {
 
   private def getValueOrZero(prop: Characteristic, from: Vector[StatProperty]) = from.find(_.prop == prop).map(_.level.value) getOrElse 0
 
-  private def attributesWithBonus(attrs: Vector[AttrProperty], stats: Vector[StatProperty]):Vector[(AttrProperty, BonusDamage)] = {
+  private def attributesWithBonus(attrs: Vector[AttrProperty], stats: Vector[StatProperty]): Vector[(AttrProperty, BonusDamage)] = {
     attrs.map(a => a -> stats.map(_.bonusDamage(a.prop)).sum)
   }
 }

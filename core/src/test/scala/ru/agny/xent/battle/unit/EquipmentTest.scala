@@ -114,7 +114,7 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
     val items = Vector(ItemSlot(mh), ItemSlot(oh), ItemSlot(armor), ItemSlot(accessory))
     val eq = Equipment(EquippableHolder(EquipmentSet(items)))
     val res = eq.props(mh)(Offensive)
-    val expected = Vector(AttrProperty(Slashing, 12, Offensive))
+    val expected = Vector(AttrProperty(Slashing, 11, Offensive))
     res should be(expected)
   }
 

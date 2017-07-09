@@ -18,7 +18,7 @@ package object unit {
     override val name: String = "leather jacket"
     override val schema: ProductionSchema = ProductionSchema(0, Cost(Vector.empty), Set.empty)
     override val id: ItemId = -1
-    override val value: Int = 0
+    override val value: Int = 3
     override val weight: Int = 0
   }
   case class StubAccessory() extends Accessory {

@@ -2,6 +2,7 @@ package ru.agny.xent.core.unit.equip
 
 import Dice._
 import ru.agny.xent.core.Item._
+import ru.agny.xent.core.unit.equip.attributes.Blunt
 import ru.agny.xent.core.{Item, ProductionSchema}
 
 trait DefaultValue[T] extends Item {
@@ -31,6 +32,7 @@ object DefaultValue {
     implicit object DefaultWeapon extends Weapon with DefaultValue[Weapon] {
       override val id: ItemId = -1
       val damage: Dice = 1 d 2
+      override val attrs = Vector(AttrProperty(Blunt, 1, Offensive))
       override val name = "Unarmed"
       override val schema: ProductionSchema = ProductionSchema.default()
       override val weight: Int = 1

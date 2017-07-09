@@ -3,6 +3,7 @@ package ru.agny.xent.core.unit
 import org.scalatest.{FlatSpec, Matchers}
 import ru.agny.xent.core.unit.characteristic.{CritPower, Agility}
 import ru.agny.xent.core.unit.equip.StatProperty
+import ru.agny.xent.core.unit.equip.attributes.Piercing
 
 class CharacteristicTest extends FlatSpec with Matchers {
 
@@ -12,6 +13,16 @@ class CharacteristicTest extends FlatSpec with Matchers {
 
     primary.toLifePower should be(24)
     secondary.toLifePower should be(169)
+  }
+
+  "StatProperty" should "calculate bonus damage" in {
+    val agility = StatProperty(Agility, Level(20, 90))
+    val times = 100
+    for (_ <- 1 to times) {
+      val bonus = agility.bonusDamage(Piercing)
+      val (minValue, maxValue) = (6, 9) // (10d1 cast + 10d2 cast) * PiercingModifier(=0.3)
+      bonus should (be >= minValue and be <= maxValue)
+    }
   }
 
 }

@@ -25,8 +25,8 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
       b.attrs.foldLeft(a)(collectAllPotential)
     )
     case Offensive => //TODO second weapon attack potential? Skill|reduced effect|something else
-      val wpnAttrs = wpn.attrs.map(x => x.prop -> x.value).toMap
-      (wpn +: holder.passiveItems).foldLeft(wpnAttrs)((a, b) =>
+      val wpnAttrs = wpn.attrs.filter(_.mode == mode).map(x => x.prop -> x.value).toMap
+      holder.passiveItems.foldLeft(wpnAttrs)((a, b) =>
         b.attrs.foldLeft(a)(collectSpecifiedPotential)
       )
   }).map { case (attr, power) => AttrProperty(attr, power, mode) }.toVector
