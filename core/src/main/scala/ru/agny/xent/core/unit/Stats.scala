@@ -2,7 +2,7 @@ package ru.agny.xent.core.unit
 
 import ru.agny.xent.core.unit.characteristic._
 import ru.agny.xent.core.unit.equip._
-import ru.agny.xent.core.unit.equip.attributes.{Siege, Blunt, Piercing, Slashing}
+import ru.agny.xent.core.unit.equip.attributes._
 
 //TODO game balancing
 case class Stats(private val s: Vector[StatProperty]) {
@@ -96,12 +96,7 @@ object Stats {
 
   private def getValueOrZero(prop: Characteristic, from: Vector[StatProperty]) = from.find(_.prop == prop).map(_.level.value) getOrElse 0
 
-  //TODO add other attribute bonuses
-  private def attributesWithBonus(attrs: Vector[AttrProperty], stats: Vector[StatProperty]): Vector[(AttrProperty, BonusDamage)] = {
-    attrs.map {
-      case x@AttrProperty(Blunt, _, Offensive) =>
-        val castsSum = stats.find(_.prop == Strength).map(_.level.tiered.map(x => Dice(x._2, x._1).cast).sum)
-        (x, castsSum getOrElse 0)
-    }
+  private def attributesWithBonus(attrs: Vector[AttrProperty], stats: Vector[StatProperty]):Vector[(AttrProperty, BonusDamage)] = {
+    attrs.map(a => a -> stats.map(_.bonusDamage(a.prop)).sum)
   }
 }

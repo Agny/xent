@@ -24,4 +24,6 @@ package object attributes {
   case object Void extends Magic
   case object SummonSpirit extends Summon
   case object SummonThing extends Summon
+
+  val magicRelated = List(Fire, Water, Earth, Wind, Light, Dark, Void)
 }

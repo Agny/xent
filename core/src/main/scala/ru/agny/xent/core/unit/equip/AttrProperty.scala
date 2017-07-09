@@ -13,6 +13,10 @@ case class StatProperty(prop: Characteristic, level: Level) extends SoulProperty
     scaledWeight + expBonus
   }
 
+  def bonusDamage(forAttr: Attribute): Int = {
+    math.floor(level.tiered.map(x => Dice(x._2, x._1).cast).sum * prop.bonusModifier(forAttr)).toInt
+  }
+
   private def scaledWeight = {
     val step = 10
     val scale = level.value / step
