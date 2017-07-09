@@ -29,7 +29,7 @@ class TroopTest extends FlatSpec with Matchers with EitherValues {
     val t1 = Troop(1, NESeq(Vector(soul1, soul2)), Backpack.empty, 1, Coordinate(1, 1))
     val spoils = ItemSlot(StubWeapon(1))
     val backpackLoot = ItemSlot(StubArmor())
-    val t2 = Troop(2, NESeq(Vector(TestHelper.defaultSoul(1, Equipment(Vector(spoils))))), Backpack(Vector(backpackLoot)), 2, Coordinate(1, 1))
+    val t2 = Troop(2, NESeq(Vector(TestHelper.defaultSoul(1, Equipment.empty.add(spoils.get)._1))), Backpack(Vector(backpackLoot)), 2, Coordinate(1, 1))
     val (t1u, t2u) = t1.attack(t2)
     t1u.backpack.holder.slots should be(Vector(spoils, backpackLoot))
     t2u.activeUnits should be(Vector.empty)

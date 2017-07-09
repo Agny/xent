@@ -8,7 +8,7 @@ trait Inventory[S <: Inventory[_, T], T <: Item] {
   val holder: SlotHolder[T]
   val self: InventoryLike[S, T]
 
-  protected def add[U <: T](v: U)(implicit ev: ItemMerger[T, U]): (S, Slot[T]) = v match {
+  protected def add(v: T)(implicit ev: ItemMerger[T, T]): (S, Slot[T]) = v match {
     case r: ItemStack => getSlot(r.id) match {
       case is@ItemSlot(x) =>
         is.set(v) match {
@@ -45,7 +45,7 @@ trait Inventory[S <: Inventory[_, T], T <: Item] {
         case Some(y) =>
           val (toInv, old) = that.add(y)
           val (fromInv, _) = ths.set(idx, old)
-          (fromInv, that.apply(toInv.holder.slots))
+          (fromInv, toInv)
         case _ => (ths.apply(holder.slots), that.apply(that.holder.slots))
       }
       case _ => (ths.apply(holder.slots), that.apply(that.holder.slots))

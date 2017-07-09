@@ -3,7 +3,7 @@ package ru.agny.xent.battle.unit
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.core.Storage
 import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot}
-import ru.agny.xent.core.unit.equip.DefaultValue.implicits.DefaultWeapon
+import ru.agny.xent.core.unit.equip.DefaultValue.implicits.{DefaultArmor, DefaultWeapon}
 import ru.agny.xent.core.unit.equip._
 import ru.agny.xent.core.unit.equip.attributes.{Piercing, Slashing}
 
@@ -53,7 +53,7 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
   it should "replace main weapon if slot isn't empty" in {
     val wpn = StubWeapon(1)
     val toSet = StubWeapon(2)
-    val eq = Equipment(Vector(ItemSlot(wpn)))
+    val (eq, _) = Equipment.empty.add(wpn)
     val (res, old) = eq.set(mainWeaponIdx, ItemSlot(toSet))
     res.weapons should be(Vector(toSet, DefaultWeapon))
     res.holder.set.mainHand should be(toSet)
@@ -77,7 +77,7 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
     val armor = StubArmor()
     val accessory = StubAccessory()
     val items = Vector(ItemSlot(mh), ItemSlot(oh), ItemSlot(armor), ItemSlot(accessory))
-    val res = Equipment(items)
+    val res = Equipment(EquippableHolder(EquipmentSet(items)))
     res.weapons should be(Vector(mh, oh))
     res.armor should be(armor)
     res.accessory should be(accessory)
@@ -100,7 +100,7 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
     val armor = StubArmor()
     val accessory = StubAccessory()
     val items = Vector(ItemSlot(mh), ItemSlot(oh), ItemSlot(armor), ItemSlot(accessory))
-    val eq = Equipment(items)
+    val eq = Equipment(EquippableHolder(EquipmentSet(items)))
     val res = eq.props(mh)(Defensive)
     val expected = Vector(AttrProperty(Slashing, 7, Defensive), AttrProperty(Piercing, 7, Defensive))
     res should be(expected)
@@ -112,7 +112,7 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
     val armor = StubArmor()
     val accessory = StubAccessory()
     val items = Vector(ItemSlot(mh), ItemSlot(oh), ItemSlot(armor), ItemSlot(accessory))
-    val eq = Equipment(items)
+    val eq = Equipment(EquippableHolder(EquipmentSet(items)))
     val res = eq.props(mh)(Offensive)
     val expected = Vector(AttrProperty(Slashing, 12, Offensive))
     res should be(expected)
@@ -122,7 +122,7 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
     val mh = StubWeapon(1)
     val armor = StubArmor()
     val storage = Storage(Vector(ItemSlot(mh), ItemSlot(armor)))
-    val eq = Equipment(Vector.empty)
+    val eq = Equipment.empty
     val (ustorage, ueq) = storage.move(0, eq)
     val (resStorage, resEq) = ustorage.move(0, ueq)
     resStorage.holder.slots should be(Vector.empty)
@@ -134,7 +134,7 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
     val wpn1 = StubWeapon(1)
     val wpn2 = StubWeapon(2)
     val storage = Storage(Vector(ItemSlot(wpn1), ItemSlot(wpn2)))
-    val eq = Equipment(Vector.empty)
+    val eq = Equipment.empty
     val (ustorage, ueq) = storage.move(0, eq)
     val (resStorage, resEq) = ustorage.move(0, ueq)
     resStorage.holder.slots should be(Vector.empty)
@@ -143,14 +143,22 @@ class EquipmentTest extends FlatSpec with Matchers with EitherValues {
 
   it should "take off weapon if needed" in {
     val wpn = StubWeapon(1)
-    val eq = Equipment(Vector(ItemSlot(wpn)))
-    val (res, oldWpn) = eq.set(0, EmptySlot)
+    val (eq, _) = Equipment.empty.add(wpn)
+    val (res, oldWpn) = eq.set(Equipment.mainWeaponIdx, EmptySlot)
     res.weapons should be(Vector(DefaultWeapon, DefaultWeapon))
     oldWpn.get should be(wpn)
   }
 
+  it should "take off armor if needed" in {
+    val armor = StubArmor()
+    val (eq, _) = Equipment.empty.add(armor)
+    val (res, oldArmor) = eq.set(Equipment.armorIdx, EmptySlot)
+    res.armor should be(DefaultArmor)
+    oldArmor.get should be(armor)
+  }
+
   it should "return same equipment object if there were no change" in {
-    val equip = Equipment(Vector.empty)
+    val equip = Equipment.empty
     val (res, _) = equip.set(0, EmptySlot)
     res should be theSameInstanceAs equip
   }
