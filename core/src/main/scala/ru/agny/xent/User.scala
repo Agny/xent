@@ -22,16 +22,16 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
 
   def addProduction(facility: ItemId, res: ItemStack): Either[Response, User] =
     for {
-      building <- findProducer(facility).right
-      storageWithB <- building.addToQueue(res)(city.storage).right
+      building <- findProducer(facility)
+      storageWithB <- building.addToQueue(res)(city.storage)
     } yield copy(city = city.update(storageWithB._2, storageWithB._1))
 
   def build(cell: ContainerCell, cost: Cost): Either[Response, User] =
     for {
-      userFacility <- (cell match {
+      userFacility <- cell match {
         case LocalCell(x, y, mb) => buildInCity(mb.get, Coordinate(x, y), cost)
         case WorldCell(x, y, mo, _, _, _) => buildOutpost(mo.get, cost)
-      }).right
+      }
     } yield {
       userFacility._1.copy(queue = userFacility._1.queue.in(userFacility._2, 1))
     }
@@ -41,18 +41,18 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
 
   private def buildInCity(b: Building, where: Coordinate, cost: Cost) =
     for {
-      c <- city.place(b, ShapeProvider.get(b.name).form(where)).right
-      user <- copy(city = c).spend(cost).right
+      c <- city.place(b, ShapeProvider.get(b.name).form(where))
+      user <- copy(city = c).spend(cost)
     } yield (user, b)
 
   private def buildOutpost(o: Outpost, cost: Cost) = {
-    for {user <- spend(cost).right} yield (user, o)
+    for {user <- spend(cost)} yield (user, o)
   }
 
   private def spend(recipe: Cost): Either[Response, User] =
     for {
-      u <- work(DoNothing).right
-      s <- u.city.storage.spend(recipe).right
+      u <- work(DoNothing)
+      s <- u.city.storage.spend(recipe)
     } yield u.copy(city = u.city.copy(storage = s))
 
   def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): (User, Option[Troop]) = {

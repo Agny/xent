@@ -17,10 +17,10 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: Cell) exten
     resource match {
       case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
         for {
-          user <- findUser(userId, layer.users).right
-          outpost <- createFromTemplate(facilityName, x.resource.get, layer.facilities).right
-          updatedCell <- Right(x.copy(owner = Some(user.id), building = Some(outpost))).right
-          updatedUser <- user.build(updatedCell, facilityT.get.cost).right
+          user <- findUser(userId, layer.users)
+          outpost <- createFromTemplate(facilityName, x.resource.get, layer.facilities)
+          updatedCell <- Right(x.copy(owner = Some(user.id), building = Some(outpost)))
+          updatedUser <- user.build(updatedCell, facilityT.get.cost)
         } yield {
           val updatedLayer = layer.copy(users = updatedUser +: layer.users.filterNot(_.id == user.id))
           updatedLayer.updateMap(updatedCell)
