@@ -2,7 +2,7 @@ package ru.agny.xent
 
 case class LifePower(points: Int, capacity: Int) {
   def spend(cost: Int): Either[Response, LifePower] =
-    if (cost < points) Left(Response("Not enough life power"))
+    if (cost > points) Left(Response(s"Not enough life power: $cost>$points"))
     else Right(LifePower(points - cost, capacity))
 
   def regain(power: Int, growth: Int): LifePower = {
