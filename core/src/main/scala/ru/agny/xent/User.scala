@@ -36,6 +36,12 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
       userFacility._1.copy(queue = userFacility._1.queue.in(userFacility._2, 1))
     }
 
+  def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): (User, Option[Troop]) = {
+    val (remains, units) = souls.callToArms(soulsId)
+    if (units.nonEmpty) (copy(souls = remains), Some(Troop(troopId, NESeq(units), Backpack.empty, id, city.c)))
+    else (this, None)
+  }
+
   private def findProducer(facility: ItemId) = city.producers.find(f => f.id == facility).
     map(Right(_)) getOrElse Left(Response(s"Unable to find working building $facility"))
 
@@ -55,21 +61,7 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
       s <- u.city.storage.spend(recipe)
     } yield u.copy(city = u.city.copy(storage = s))
 
-  def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): (User, Option[Troop]) = {
-    val (remains, units) = souls.callToArms(soulsId)
-    if (units.nonEmpty) (copy(souls = remains), Some(Troop(troopId, NESeq(units), Backpack.empty, id, city.c)))
-    else (this, None)
-  }
-
   override def toString = s"id=$id name=$name time=$lastAction"
-}
-
-case class Lands(outposts: Vector[Outpost]) {
-  def add(outpost: Outpost): Lands = Lands(outpost +: outposts)
-}
-
-object Lands {
-  val empty = Lands(Vector.empty)
 }
 
 object User {
