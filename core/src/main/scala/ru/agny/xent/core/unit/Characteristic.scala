@@ -9,6 +9,17 @@ sealed trait Characteristic {
   protected val relatedAttributesWithModifier: Map[Attribute, Double]
 
   final def bonusModifier(attr: Attribute): Double = relatedAttributesWithModifier(attr)
+
+  override def toString = name
+}
+
+object Characteristic {
+
+  import ru.agny.xent.core.unit.characteristic._
+
+  private val all = Vector(Agility, Strength, Intelligence, PresencePower, CritRate, CritPower, Initiative)
+
+  def from(name: String): Option[Characteristic] = all.find(_.name.equalsIgnoreCase(name))
 }
 
 sealed trait Primary extends Characteristic {
