@@ -1,7 +1,7 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.Response
-import ru.agny.xent.core.Facility.{Working, Idle, InConstruction}
+import ru.agny.xent.core.Facility.{Idle, InConstruction, Working}
 import ru.agny.xent.core.Item._
 import ru.agny.xent.core.Progress._
 import ru.agny.xent.core.unit.Soul

@@ -12,7 +12,11 @@ case class Level(value: Int, exp: Int) {
     1 to tiers + 1 map (x => x -> (if (x > tiers) lvlInLastTier else 10))
   }
 }
+
 object Level {
+
+  val start: Level = Level(1, 0)
+
   //TODO game balancing
   def capacity(lvl: Int): Int = lvl match {
     case firstTier if lvl <= 9 => 100 + lvl * 10
