@@ -1,6 +1,8 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.ObjectId
+import ru.agny.xent.battle.Waiting
+import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.unit.{Occupation, Soul}
 
 // TODO have to handle soul transition from cell to cell
@@ -11,6 +13,8 @@ case class Workers(souls: Vector[(Soul, Occupation)]) {
     }
     (Workers(remains), called.unzip._1)
   }
+
+  def addNew(soul: Soul, cityPos: Coordinate): Workers = Workers((soul, new Waiting(cityPos)) +: souls)
 }
 
 object Workers {

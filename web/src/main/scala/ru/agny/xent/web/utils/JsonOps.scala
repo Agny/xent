@@ -1,8 +1,12 @@
 package ru.agny.xent.web.utils
 
 import java.util.concurrent.atomic.AtomicLong
-import ru.agny.xent._
+
 import org.json4s._
+import ru.agny.xent.core.unit.Characteristic
+import ru.agny.xent.messages._
+import ru.agny.xent.messages.production._
+import ru.agny.xent.messages.unit.{CreateSoulMessage, StatPropertySimple}
 //import org.json4s.JsonDSL._ can't do this. Somehow it produce error in scala implicits
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
@@ -21,12 +25,13 @@ object JsonOps {
       case x if x.tpe == "resource_claim" => parse(x.body).extract[ResourceClaimMessage]
       case x if x.tpe == "building_construction" => parse(x.body).extract[BuildingConstructionMessage]
       case x if x.tpe == "add_production" => parse(x.body).extract[AddProductionMessage]
+      case x if x.tpe == "create_soul" => parse(x.body).extract[CreateSoulMessage]
       case x => throw new UnsupportedOperationException(s"No converter for message ${x.tpe}")
     }
   }
 
   //TODO compact(render(fields)) with JsonDSL._
-  def toJson(fields:Map[String, String]):JValue = {
+  def toJson(fields: Map[String, String]): JValue = {
     JObject(fields.toList.map { case (k, v) ⇒ JField(k, JString(v)) })
   }
 
@@ -39,6 +44,7 @@ object JsonOps {
 
 /**
   * <code>type UserId = Long</code> can't be serialized
+  *
   * @see <a href="https://github.com/json4s/json4s/issues/76">json4s/issues/76</a>
   *
   */
@@ -75,4 +81,21 @@ object VectorSerializer extends Serializer[Vector[_]] {
   override def serialize(implicit format: Formats) = {
     case vector: Vector[_] => JArray(vector.toList.map(Extraction.decompose))
   }
+}
+
+object StatPropertySimpleSerializer extends Serializer[StatPropertySimple] {
+  val StatPropertySimpleClass = classOf[StatPropertySimple]
+
+  override def deserialize(implicit format: Formats) = {
+    case (TypeInfo(StatPropertySimpleClass, _), JObject(xs)) =>
+      (for {
+        prop <- xs.find(_._1 == "prop")
+        ch <- Characteristic.from(prop._2.as[String])
+        level <- xs.find(_._1 == "level")
+      } yield StatPropertySimple(ch, level._2.as[Int])
+        ) getOrElse (throw new UnsupportedOperationException(s"No Characteristic for ${xs.find(_._1 == "prop").get._2}"))
+
+  }
+
+  override def serialize(implicit format: Formats) = ??? //don't care
 }
