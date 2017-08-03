@@ -3,6 +3,7 @@ package ru.agny.xent
 import java.util.concurrent.atomic.AtomicLong
 
 import io.netty.channel.Channel
+import ru.agny.xent.messages.Message
 
 case class MessageHandler(queue: MessageQueue[Message]) {
 
