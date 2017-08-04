@@ -40,7 +40,7 @@ object RedisEntity {
             import ru.agny.xent.persistence.tokens.Nodes._
             import ru.agny.xent.persistence.MessageHandler
 
-            def create(v:String):RedisMessage = {
+            def create(v:String):ru.agny.xent.persistence.RedisMessage = {
               val result = Parser.extract(v, Vector.empty)._1
               $parsedTree
             }
@@ -59,6 +59,7 @@ class Helper[C <: blackbox.Context](val c: C) {
   import c.universe._
 
   val prims = List("String", "Long", "Double", "Int")
+  val containers = List("Vector")
 
   def extractAnnotationParameters(tree: Trees#Tree) = tree match {
     case q"new $name($col, $idf, $key)" => (
@@ -73,7 +74,7 @@ class Helper[C <: blackbox.Context](val c: C) {
 
   /**
     * @param params seq of seq (presumably) valDefs
-    * @return tuple3 of lists
+    * @return tuple2 of lists
     *         1 - Type of parameter
     *         2 - name of parameter as it stands in constructor definition
     */
@@ -85,7 +86,13 @@ class Helper[C <: blackbox.Context](val c: C) {
             case Ident(TypeName(v)) =>
               val baseType = c.typecheck(tq"$tp", c.TYPEmode).tpe.erasure
               (complexTypes :+ baseType, names :+ name)
-            case m@tq"$tpt[..$tpts]" => c.abort(c.enclosingPosition, s"Type classes are not supported yet $name:$m") //TODO think about it
+            case singleTyped@tq"$_[$_]" =>
+              val containerTyped = c.typecheck(tq"$singleTyped", c.TYPEmode).tpe
+              if (containers.contains(containerTyped.typeSymbol.name.toString)) {
+                (complexTypes :+ containerTyped, names :+ name)
+              } else {
+                c.abort(c.enclosingPosition, s"Typed class $name:$singleTyped is not supported yet. Is Vector not sufficient?")
+              }
           }
         case _ => c.abort(c.enclosingPosition, s"Can't extract ValDef from $params")
       }
@@ -105,31 +112,46 @@ class Helper[C <: blackbox.Context](val c: C) {
   def getConstructorParamsExpr(constructor: TermName, basicTypes: Seq[String], types: Seq[Type], names: Seq[TermName], shift: Int): Tree = {
     val params = for (i <- basicTypes.indices) yield {
       if (prims.contains(basicTypes(i))) {
-        getPrimitiveExpr(basicTypes, names, i)
+        getPrimitiveExpr(basicTypes(i), names(i))
+      } else if (containers.contains(types(i).typeSymbol.name.toString)) {
+        val constructorType = types(i)
+        val elementType = constructorType.typeArgs.head
+        val containerName = typeToTerm(constructorType)
+        val elementName = typeToTerm(elementType)
+        val companionConstructor = extractParametersFromMembers(constructorType.erasure.companion.members, TermName("apply")).map(_.unzip3 match {
+          case (_, _, _) =>
+            val defaultConstructor = extractParametersFromMembers(elementType.members, termNames.CONSTRUCTOR).map(_.unzip3 match {
+              case (s, bt, tn) if s.nonEmpty =>
+                getContainerExpr(containerName, names(i), getConstructorParamsExpr(elementName, s, bt, tn, shift + i))
+              case _ => c.abort(c.enclosingPosition, s"$constructor has a type class parameter which is not supported yet: ${names(i)}:${elementType.toString}")
+            })
+            defaultConstructor.get
+          case _ => c.abort(c.enclosingPosition, s"Container $constructor doesn't have method apply")
+        })
+        companionConstructor.get
       } else {
         val tpe = types(i)
-        val shortName = tpe.typeSymbol.name match {
-          case TypeName(v) => TermName(v)
-        }
+        val shortName = typeToTerm(tpe)
         val defaultConstructor = extractParametersFromMembers(tpe.members, termNames.CONSTRUCTOR).map(_.unzip3 match {
           case (s, bt, tn) if s.nonEmpty => getConstructorParamsExpr(shortName, s, bt, tn, shift + i)
           case _ => c.abort(c.enclosingPosition, s"$constructor has a type class parameter which is not supported yet: ${names(i)}:${tpe.toString}")
         })
         defaultConstructor.get
-        //        val companionConstructor = extractParametersFromMembers(tpe.companion.members, TermName("apply")).flatMap(_.unzip3 match {
-        //          case (_, _, tn) if tn.nonEmpty =>
-        //            val s = tpe.typeArgs.map(_.toString)
-        //            val bt = tpe.typeArgs
-        //            Some(getConstructorParamsExpr(shortName, s, bt, tn, shift + i))
-        //          case _ => None
-        //        })
       }
     }
     q"$constructor(..$params)"
   }
 
-  def getPrimitiveExpr(basicTypes: Seq[String], names: Seq[TermName], i: Int) = {
-    val code = s"result(${globalId.incrementAndGet()}).materialize[${basicTypes(i)}]"
-    q"${names(i)} = ${c.parse(code)}"
+  private def getPrimitiveExpr(exprType: String, fieldName: TermName) = {
+    val code = s"result(${globalId.incrementAndGet()}).materialize[$exprType]"
+    q"$fieldName = ${c.parse(code)}"
+  }
+
+  private def getContainerExpr(container: TermName, fieldName: TermName, params: Tree) = {
+    q"$fieldName = $container(..$params)"
+  }
+
+  private def typeToTerm(tpe: Type): TermName = tpe.typeSymbol.name match {
+    case TypeName(v) => TermName(v)
   }
 }
