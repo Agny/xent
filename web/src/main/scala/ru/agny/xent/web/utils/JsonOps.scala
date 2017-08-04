@@ -92,7 +92,7 @@ object StatPropertySimpleSerializer extends Serializer[StatPropertySimple] {
         prop <- xs.find(_._1 == "prop")
         ch <- Characteristic.from(prop._2.as[String])
         level <- xs.find(_._1 == "level")
-      } yield StatPropertySimple(ch, level._2.as[Int])
+      } yield StatPropertySimple(prop._1, level._2.as[Int])
         ) getOrElse (throw new UnsupportedOperationException(s"No Characteristic for ${xs.find(_._1 == "prop").get._2}"))
 
   }
