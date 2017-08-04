@@ -67,7 +67,7 @@ class LayerRuntime(queue: MessageQueue[Message]) {
         }
       case x: CreateSoulMessage =>
         layers.find(l => l.id == x.layer) match {
-          case Some(layer) => layer.tick(CreateSoul(x.baseSpirit, x.stats.map(_.lifted)), x.user) match {
+          case Some(layer) => layer.tick(CreateSoul(x.baseSpirit, x.stats.map(_.lift)), x.user) match {
             case Left(v) => x.reply(v); layers
             case Right(v) => x.reply(ResponseOk); v +: layers.diff(Vector(layer))
           }
