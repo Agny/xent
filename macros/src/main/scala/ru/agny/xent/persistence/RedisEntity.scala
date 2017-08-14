@@ -41,7 +41,7 @@ object RedisEntity {
             import ru.agny.xent.persistence.MessageHandler
 
             def create(v:String):ru.agny.xent.persistence.RedisMessage = {
-              val result = Parser.extract(v, Vector.empty)._1
+              val result = TokenParser.tokenize(v)
               $parsedTree
             }
 

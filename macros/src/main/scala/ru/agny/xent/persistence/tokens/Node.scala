@@ -9,7 +9,7 @@ object Nodes {
   implicit object DoubleValue extends Node[Double]
 }
 
-case class Primitive(v: String) {
+case class Token(v: String) {
 
   import Nodes._
 

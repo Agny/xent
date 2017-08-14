@@ -5,6 +5,7 @@ object Dependencies {
   val currentScalaVersion = "2.12.2"
 
   val reflect = "org.scala-lang" % "scala-reflect" % currentScalaVersion
+  val parserCombinator = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.6"
 
   val json4sJackson = "org.json4s" %% "json4s-jackson" % "3.5.2"
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
@@ -12,7 +13,7 @@ object Dependencies {
 
   val netty = "io.netty" % "netty-all" % "4.1.4.Final"
 
-  val macrosDeps = Vector(reflect)
+  val macrosDeps = Vector(reflect, parserCombinator)
   val coreDeps = Vector(json4sJackson, scalatest, scalaRedis)
   val webDeps = Vector(netty)
 }
