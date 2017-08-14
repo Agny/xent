@@ -2,7 +2,7 @@ package ru.agny.xent
 
 import ru.agny.xent.messages.production._
 import ru.agny.xent.messages._
-import ru.agny.xent.messages.unit.CreateSoulMessage
+import ru.agny.xent.messages.unit.{CreateSoulMessage, CreateTroopMessage}
 
 class LayerRuntime(queue: MessageQueue[Message]) {
   private var lastState: Vector[Layer] = Vector.empty
@@ -68,6 +68,14 @@ class LayerRuntime(queue: MessageQueue[Message]) {
       case x: CreateSoulMessage =>
         layers.find(l => l.id == x.layer) match {
           case Some(layer) => layer.tick(CreateSoul(x.baseSpirit, x.stats.map(_.lift)), x.user) match {
+            case Left(v) => x.reply(v); layers
+            case Right(v) => x.reply(ResponseOk); v +: layers.diff(Vector(layer))
+          }
+          case None => x.reply(Response(s"Layer[${x.layer}] isn't found")); layers
+        }
+      case x: CreateTroopMessage =>
+        layers.find(l => l.id == x.layer) match {
+          case Some(layer) => layer.tick(CreateTroop(x.user, x.souls)) match {
             case Left(v) => x.reply(v); layers
             case Right(v) => x.reply(ResponseOk); v +: layers.diff(Vector(layer))
           }

@@ -6,7 +6,7 @@ import org.json4s._
 import ru.agny.xent.core.unit.Characteristic
 import ru.agny.xent.messages._
 import ru.agny.xent.messages.production._
-import ru.agny.xent.messages.unit.{CreateSoulMessage, StatPropertySimple}
+import ru.agny.xent.messages.unit.{CreateSoulMessage, CreateTroopMessage, StatPropertySimple}
 //import org.json4s.JsonDSL._ can't do this. Somehow it produce error in scala implicits
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
@@ -26,6 +26,7 @@ object JsonOps {
       case x if x.tpe == "building_construction" => parse(x.body).extract[BuildingConstructionMessage]
       case x if x.tpe == "add_production" => parse(x.body).extract[AddProductionMessage]
       case x if x.tpe == "create_soul" => parse(x.body).extract[CreateSoulMessage]
+      case x if x.tpe == "create_troop" => parse(x.body).extract[CreateTroopMessage]
       case x => throw new UnsupportedOperationException(s"No converter for message ${x.tpe}")
     }
   }

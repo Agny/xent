@@ -36,10 +36,10 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
       userFacility._1.copy(queue = userFacility._1.queue.in(userFacility._2, 1))
     }
 
-  def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): (User, Option[Troop]) = {
+  def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): Either[Response, (User, Troop)] = {
     val (remains, units) = souls.callToArms(soulsId)
-    if (units.nonEmpty) (copy(souls = remains), Some(Troop(troopId, NESeq(units), Backpack.empty, id, city.c)))
-    else (this, None)
+    if (units.nonEmpty) Right((copy(souls = remains), Troop(troopId, NESeq(units), Backpack.empty, id, city.c)))
+    else Left(Response(s"Cannot create troop with souls $soulsId"))
   }
 
   private def findProducer(facility: ItemId) = city.producers.find(f => f.id == facility).

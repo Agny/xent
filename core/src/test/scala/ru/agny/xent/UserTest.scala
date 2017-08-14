@@ -32,9 +32,9 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
     val soul2 = (soulTwo, waitingCoordinate)
     val souls = Workers(Vector(soul1, soul2))
     val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, ProductionQueue.empty, souls, LifePower.default, 0)
-    val (soulless, troop) = user.createTroop(3, Vector(1, 2))
+    val (soulless, troop) = user.createTroop(3, Vector(1, 2)).right.value
     soulless.souls should be(Workers.empty)
-    troop.get.activeUnits should be(Vector(soul1._1, soul2._1))
+    troop.activeUnits should be(Vector(soul1._1, soul2._1))
   }
 
   it should "not take occupied souls to the troop" in {
@@ -42,9 +42,9 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
     val soul2 = (soulTwo, Movement(Coordinate(0, 0), Coordinate(1, 2), 0))
     val souls = Workers(Vector(soul1, soul2))
     val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, ProductionQueue.empty, souls, LifePower.default, 0)
-    val (userWithSoul, troop) = user.createTroop(3, Vector(1, 2))
+    val (userWithSoul, troop) = user.createTroop(3, Vector(1, 2)).right.value
     userWithSoul.souls should be(Workers(Vector(soul2)))
-    troop.get.activeUnits should be(Vector(soul1._1))
+    troop.activeUnits should be(Vector(soul1._1))
   }
 
   it should "add production to facility queue" in {

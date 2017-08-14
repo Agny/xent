@@ -2,6 +2,8 @@ package ru.agny.xent
 
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.battle.Military
+import ru.agny.xent.battle.unit.Troop
+import ru.agny.xent.core.unit.Occupation
 import ru.agny.xent.core.{CellsMap, WorldCell}
 import ru.agny.xent.core.utils.FacilityTemplate
 
@@ -23,5 +25,11 @@ case class Layer(id: String, level: Int, users: Vector[User], armies: Military, 
 
   def updateMap(cell: WorldCell): Layer = {
     Layer(id, level, users, armies, map.update(cell), facilities)
+  }
+
+  //TODO handle quitting troops
+  def addArmy(army: (Troop, Occupation)): Layer = {
+    val (updated, _) = armies.tick()
+    copy(armies = Military(army +: updated.troops))
   }
 }

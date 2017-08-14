@@ -8,5 +8,7 @@ package object unit {
 
   @RedisEntity("user", "user", System.nanoTime().toString)
   case class CreateSoulMessage(user: UserId, layer: String, baseSpirit: Spirit, stats: Vector[StatPropertySimple]) extends Message
+  @RedisEntity("user", "user", System.nanoTime().toString)
+  case class CreateTroopMessage(user: UserId, layer: String, souls: Vector[Long]) extends Message
 
 }
