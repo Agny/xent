@@ -52,8 +52,8 @@ object Military {
   private def collide(positioned: Map[Coordinate, Vector[TO]], time: ProgressTime) =
     positioned.foldLeft(Vector.empty[TO], Vector.empty[Troop]) { (a, b) =>
       val (inBattle, out) = findBattle(b._1, b._2, time)
-      val (moving, fallenArrived) = arrive(out, time)
-      (moving ++ inBattle ++ a._1, fallenArrived ++ a._2)
+      val (alive, fallenArrived) = arrive(out, time)
+      (alive ++ inBattle ++ a._1, fallenArrived ++ a._2)
     }
 
   private def addPos(ct: Map[Coordinate, Vector[TO]], pos: Coordinate, t: TO) = ct.updated(pos, t +: ct(pos))
@@ -84,11 +84,14 @@ object Military {
   }
 
   //TODO send troop back to city upon arriving
-  private def arrive(troops: Iterable[TO], time: ProgressTime): (Vector[TO], Vector[Troop]) = troops.foldLeft(Vector.empty[TO], Vector.empty[Troop]) { (res, x) =>
-    x match {
-      case (fallen, m: Movement) if !fallen.isActive && m.pos(Troop.FALLEN_SPEED, time) == m.to => (res._1, fallen +: res._2)
-      case (alive, m: Movement) if m.pos(alive.moveSpeed, time) == m.to => ((alive, new Waiting(m.to, time)) +: res._1, res._2)
-      case _ => (x +: res._1, res._2)
+  private def arrive(troops: Iterable[TO], time: ProgressTime): (Vector[TO], Vector[Troop]) = {
+    def isFallenAndArrived(t: Troop, m: MovementPlan) = !t.isActive && m.pos(Troop.FALLEN_SPEED, time) == m.home
+
+    troops.foldLeft(Vector.empty[TO], Vector.empty[Troop]) { (res, x) =>
+      x match {
+        case (fallen, m: MovementPlan) if isFallenAndArrived(fallen, m) => (res._1, fallen +: res._2)
+        case _ => (x +: res._1, res._2)
+      }
     }
   }
 }
