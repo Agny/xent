@@ -2,7 +2,6 @@ package ru.agny.xent.battle
 
 import ru.agny.xent.UserType._
 import ru.agny.xent.battle.unit.Troop
-import ru.agny.xent.core.unit.Occupation
 import ru.agny.xent.core.utils.NESeq
 
 case class Combatants(troops: NESeq[Troop], queue: Vector[Troop]) {
@@ -25,25 +24,15 @@ object Combatants {
   def isBattleNeeded(troops: Seq[Troop]) = troops.filter(_.isAbleToFight).map(_.user).distinct.length > 1
 
   def prepareToNextRound(self: Combatants, afterBattle: Vector[Troop]): (Option[Combatants], Vector[Troop]) = {
-    val withOccupation = self.troops.map(x => x.id -> x).toMap
-    val (fallen, alive) = sendFallenToHome(afterBattle, withOccupation)
-    val (exhausted, fresh) = freeExhaustedFromBattle(alive, withOccupation)
+    val (alive, fallen) = getFallen(afterBattle)
+    val (fresh, exhausted) = getExhausted(alive)
     val out = fallen ++ exhausted
-    val ready = resumePreviousOccupation(fresh, withOccupation) ++ self.queue
+    val ready = fresh ++ self.queue
     if (isBattleNeeded(ready.unzip._1)) (Some(Combatants(NESeq(ready), Vector.empty)), out)
     else (None, out ++ ready)
   }
 
-  //TODO calculate home coordinates for fallen
-  private def sendFallenToHome(troops: Vector[Troop], occupations: Map[ObjectId, Occupation]) = {
-    val (alive, fallen) = troops.partition(_.isActive)
-    (fallen.map(x => x -> occupations(x.id)), alive)
-  }
+  private def getFallen(troops: Vector[Troop]) = troops.partition(_.isActive)
 
-  private def freeExhaustedFromBattle(troops: Vector[Troop], occupations: Map[ObjectId, Occupation]) = {
-    val (fresh, exhausted) = troops.partition(_.endurance > 0)
-    (resumePreviousOccupation(exhausted, occupations), fresh)
-  }
-
-  private def resumePreviousOccupation(troops: Vector[Troop], occupations: Map[ObjectId, Occupation]) = troops.map(x => x -> occupations(x.id))
+  private def getExhausted(troops: Vector[Troop]) = troops.partition(_.endurance > 0)
 }
