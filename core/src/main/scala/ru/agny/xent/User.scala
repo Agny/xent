@@ -1,6 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.UserType.{ObjectId, UserId}
+import ru.agny.xent.battle.MovementPlan
 import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.Item.ItemId
 import ru.agny.xent.core._
@@ -38,7 +39,7 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
 
   def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): Either[Response, (User, Troop)] = {
     val (remains, units) = souls.callToArms(soulsId)
-    if (units.nonEmpty) Right((copy(souls = remains), Troop(troopId, NESeq(units), Backpack.empty, id, city.c)))
+    if (units.nonEmpty) Right((copy(souls = remains), Troop(troopId, NESeq(units), Backpack.empty, id, MovementPlan.idle(city.c))))
     else Left(Response(s"Cannot create troop with souls $soulsId"))
   }
 

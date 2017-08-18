@@ -28,7 +28,7 @@ object Combatants {
     val (fresh, exhausted) = getExhausted(alive)
     val out = fallen ++ exhausted
     val ready = fresh ++ self.queue
-    if (isBattleNeeded(ready.unzip._1)) (Some(Combatants(NESeq(ready), Vector.empty)), out)
+    if (isBattleNeeded(ready)) (Some(Combatants(NESeq(ready), Vector.empty)), out)
     else (None, out ++ ready)
   }
 

@@ -56,7 +56,7 @@ case class CreateTroop(id: UserId, souls: Vector[Long]) extends LayerAction {
     } yield {
       val (updateUser, troop) = userWithTroop
       val updatedLayer = layer.copy(users = updateUser +: layer.users.filterNot(_.id == user.id))
-      updatedLayer.addArmy((troop, new Waiting(user.city.c)))
+      updatedLayer.addTroop(troop)
     }
   }
 

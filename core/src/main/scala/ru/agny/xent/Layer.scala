@@ -28,8 +28,8 @@ case class Layer(id: String, level: Int, users: Vector[User], armies: Military, 
   }
 
   //TODO handle quitting troops
-  def addArmy(army: (Troop, Occupation)): Layer = {
+  def addTroop(t: Troop): Layer = {
     val (updated, _) = armies.tick()
-    copy(armies = Military(army +: updated.troops))
+    copy(armies = updated.copy(troops = t +: updated.troops))
   }
 }

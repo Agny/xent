@@ -79,7 +79,7 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
     attacker.attack(target)
   }
 
-  val troops = combatants.free.unzip._1
+  val troops = combatants.free
 
 }
 
