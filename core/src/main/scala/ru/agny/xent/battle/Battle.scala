@@ -1,7 +1,7 @@
 package ru.agny.xent.battle
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.unit.{Occupation, Speed}
+import ru.agny.xent.core.unit.{Speed}
 import Speed.Speed
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
@@ -11,26 +11,26 @@ import ru.agny.xent.core.utils.NESeq
 import scala.annotation.tailrec
 import scala.util.Random
 
-case class Battle(pos: Coordinate, private val combatants: Combatants, start: ProgressTime, round: Round) extends Occupation {
+case class Battle(pos: Coordinate, private val combatants: Combatants, start: ProgressTime, round: Round) extends Event {
 
   import Combatants._
 
-  def tick(from: ProgressTime = System.currentTimeMillis()): (Option[Battle], Vector[TO]) = {
+  def tick(from: ProgressTime = System.currentTimeMillis()): (Option[Battle], Vector[Troop]) = {
     val timeRemains = (start + round.story + round.duration) - from
     if (timeRemains <= 0) toNextRound(timeRemains)
     else (Some(this), Vector.empty)
   }
 
-  def addTroops(t: Vector[(Troop, Occupation)]): Battle = copy(combatants = combatants.queue(t))
+  def addTroops(t: Vector[Troop]): Battle = copy(combatants = combatants.queue(t))
 
   //TODO unite troops to Squads
-  private def toNextRound(remainder: ProgressTime): (Option[Battle], Vector[TO]) = {
+  private def toNextRound(remainder: ProgressTime): (Option[Battle], Vector[Troop]) = {
     val troopsByUser = combatants.groupByUsers
     val (troopsResult, _) = nextAttack(troopsByUser.values.flatten.unzip._2.toVector, troopsByUser)
     val (next, out) = prepareToNextRound(combatants, troopsResult)
     next match {
       case Some(v) =>
-        val r = Round(round, NESeq(v.troops.unzip._1))
+        val r = Round(round, NESeq(v.troops))
         (Some(Battle(pos, v, start, r)), out)
       case None => (None, out)
     }
@@ -81,12 +81,9 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
 
   val troops = combatants.free.unzip._1
 
-  override val isBusy = true
-
-  override def pos(speed: Speed, time: ProgressTime): Coordinate = pos
 }
 
 object Battle {
-  def apply(pos: Coordinate, troops: NESeq[(Troop, Occupation)], start: ProgressTime = System.currentTimeMillis()): Battle =
-    Battle(pos, Combatants(troops, Vector.empty), start, Round(1, NESeq(troops.unzip._1)))
+  def apply(pos: Coordinate, troops: NESeq[Troop], start: ProgressTime = System.currentTimeMillis()): Battle =
+    Battle(pos, Combatants(troops, Vector.empty), start, Round(1, NESeq(troops)))
 }

@@ -1,13 +1,13 @@
 package ru.agny.xent.battle.unit
 
-import ru.agny.xent.UserType.{UserId, ObjectId}
-import ru.agny.xent.battle.Fatigue
+import ru.agny.xent.UserType.{ObjectId, UserId}
+import ru.agny.xent.battle.{Fatigue, MovementPlan}
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.unit.equip.OutcomeDamage
 import ru.agny.xent.core.utils.NESeq
-import ru.agny.xent.core.{Item, Coordinate}
+import ru.agny.xent.core.Item
 
-case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpack, user: UserId, pos: Coordinate, fatigue: Fatigue) {
+case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpack, user: UserId, pos: MovementPlan, fatigue: Fatigue) {
 
   import Fatigue._
 
@@ -72,7 +72,7 @@ object Troop {
 
   val FALLEN_SPEED = 10
 
-  def apply(id: ObjectId, units: NESeq[Soul], backpack: Backpack, user: UserId, pos: Coordinate): Troop = Troop(id, units, backpack, user, pos, Fatigue(0))
+  def apply(id: ObjectId, units: NESeq[Soul], backpack: Backpack, user: UserId, pos: MovementPlan): Troop = Troop(id, units, backpack, user, pos, Fatigue(0))
 
   def groupByUsers(troops: Iterable[Troop]) = {
     val empty = Map.empty[UserId, Vector[Troop]].withDefaultValue(Vector.empty)

@@ -3,63 +3,66 @@ package ru.agny.xent.battle
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress._
-import ru.agny.xent.core.unit.{OccupationSubTyper, Occupation}
+import ru.agny.xent.core.unit.{Occupation}
 import ru.agny.xent.core.utils.{NESeq, SubTyper}
 
 import scala.annotation.tailrec
 
-case class Military(troops: Vector[(Troop, Occupation)]) {
+case class Military(troops: Vector[Troop], events: Vector[Event]) {
 
   import ru.agny.xent.battle.Military._
 
   def tick(from: ProgressTime = System.currentTimeMillis()): (Military, Vector[Troop]) = {
     val steps = (from - System.currentTimeMillis()) / Round.timeLimitMin
-    quantify(this, from, steps, Round.timeLimitMin, Vector.empty)
+    quantify(this, from, steps, Round.timeLimitMin)
   }
 
 }
 
 object Military {
 
-  import OccupationSubTyper.implicits._
-
-  private type TO = (Troop, Occupation)
   private type TB = (Troop, Battle)
 
-  val empty = Military(Vector.empty)
+  val empty = Military(Vector.empty, Vector.empty)
 
-  @tailrec private def quantify(m: Military, time: ProgressTime, stepsRemains: Long, by: ProgressTime, erased: Vector[Troop]): (Military, Vector[Troop]) = {
+  @tailrec private def quantify(m: Military, time: ProgressTime, stepsRemains: Long, by: ProgressTime): Military = {
     val quantum = time - stepsRemains * by
     val troopsPositions = moveTick(m.troops)(quantum)
-    val (alive, toErase) = collide(troopsPositions, quantum)
-    val res = Military(alive)
+    val (freeTroops, updatedEvents) = collide(m.events, troopsPositions, quantum)
+    val res = Military(freeTroops, updatedEvents)
 
     if (stepsRemains > 0) {
-      quantify(res, time, stepsRemains - 1, by, erased ++ toErase)
+      quantify(res, time, stepsRemains - 1, by)
     } else {
-      (res, erased ++ toErase)
+      res
     }
   }
 
-  private def moveTick(troops: Vector[TO])(time: ProgressTime) = {
-    val empty = Map.empty[Coordinate, Vector[TO]].withDefaultValue(Vector.empty)
+  private def moveTick(troops: Vector[Troop])(time: ProgressTime) = {
+
+    def addPos(ct: Map[Coordinate, Vector[Troop]], pos: Coordinate, t: Troop) = ct.updated(pos, t +: ct(pos))
+
+    val empty = Map.empty[Coordinate, Vector[Troop]].withDefaultValue(Vector.empty)
     troops.foldLeft(empty) { (positioned, t) =>
-      val pos = t._2.pos(t._1.moveSpeed, time)
+      val pos = t.pos.now(t.moveSpeed, time)
       addPos(positioned, pos, t)
     }
   }
 
-  private def collide(positioned: Map[Coordinate, Vector[TO]], time: ProgressTime) =
-    positioned.foldLeft(Vector.empty[TO], Vector.empty[Troop]) { (a, b) =>
-      val (inBattle, out) = findBattle(b._1, b._2, time)
-      val (alive, fallenArrived) = arrive(out, time)
-      (alive ++ inBattle ++ a._1, fallenArrived ++ a._2)
+  private def collide(ongoingEvents: Vector[Event], positioned: Map[Coordinate, Vector[Troop]], time: ProgressTime): (Vector[Troop], Vector[Event]) = {
+    ongoingEvents.map {
+      case b: Battle => b.tick()
     }
+  }
 
-  private def addPos(ct: Map[Coordinate, Vector[TO]], pos: Coordinate, t: TO) = ct.updated(pos, t +: ct(pos))
+  //    positioned.foldLeft(Vector.empty[TM], Vector.empty[Troop]) { (a, b) =>
+  //      val (inBattle, out) = findBattle(b._1, b._2, time)
+  //      val (alive, fallenArrived) = arrive(out, time)
+  //      (alive ++ inBattle ++ a._1, fallenArrived ++ a._2)
+  //    }
 
-  private def findBattle(pos: Coordinate, inArea: Vector[TO], time: ProgressTime): (Iterable[TB], Iterable[TO]) = inArea match {
-    case multiple@h +: t if t.nonEmpty =>
+  private def findBattle(pos: Coordinate, inArea: Vector[TM], time: ProgressTime): (Iterable[TB], Iterable[TM]) = inArea match {
+    case multiple@_ +: t if t.nonEmpty =>
       val (inBattle, queueing) = SubTyper.partition[Battle, Occupation, Troop](multiple)
       val (battle, moving) = battleTick(pos, inBattle, queueing, time)
       val tb = battle match {
@@ -70,7 +73,7 @@ object Military {
     case x => (Vector.empty, x)
   }
 
-  private def battleTick(pos: Coordinate, inBattle: Vector[TB], queueing: Vector[TO], time: ProgressTime): (Option[Battle], Vector[TO]) = inBattle match {
+  private def battleTick(pos: Coordinate, inBattle: Vector[TB], queueing: Vector[TM], time: ProgressTime): (Option[Battle], Vector[TM]) = inBattle match {
     case (_, b) +: _ =>
       val (inProcess, leaving) = b.tick(time)
       inProcess match {
@@ -84,10 +87,10 @@ object Military {
   }
 
   //TODO send troop back to city upon arriving
-  private def arrive(troops: Iterable[TO], time: ProgressTime): (Vector[TO], Vector[Troop]) = {
-    def isFallenAndArrived(t: Troop, m: MovementPlan) = !t.isActive && m.pos(Troop.FALLEN_SPEED, time) == m.home
+  private def arrive(troops: Iterable[TM], time: ProgressTime): (Vector[TM], Vector[Troop]) = {
+    def isFallenAndArrived(t: Troop, m: MovementPlan) = !t.isActive && m.now(Troop.FALLEN_SPEED, time) == m.home
 
-    troops.foldLeft(Vector.empty[TO], Vector.empty[Troop]) { (res, x) =>
+    troops.foldLeft(Vector.empty[TM], Vector.empty[Troop]) { (res, x) =>
       x match {
         case (fallen, m: MovementPlan) if isFallenAndArrived(fallen, m) => (res._1, fallen +: res._2)
         case _ => (x +: res._1, res._2)
