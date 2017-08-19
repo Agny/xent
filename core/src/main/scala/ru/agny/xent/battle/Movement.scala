@@ -9,10 +9,14 @@ case class Movement(from: Coordinate, to: Coordinate, start: ProgressTime = Syst
   override val isBusy = true
   private val path = from.path(to)
 
+  private var traveled: Distance = 0
+  private var lastCall: ProgressTime = start
+
   override def pos(by: Speed, current: ProgressTime): Coordinate = {
-    val elapsed = current - start
-    val distance = by in elapsed
-    path.probe(distance)
+    val elapsed = current - lastCall
+    traveled = traveled + (by in elapsed)
+    lastCall = current
+    path.probe(traveled tiles)
   }
 
   override val condition = ???
