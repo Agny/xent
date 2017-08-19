@@ -13,8 +13,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
 
   import TestHelper._
 
-  val pos = Coordinate(1, 1)
-  val defaultOccupation = new Waiting(pos, System.currentTimeMillis())
+  val pos = MovementPlan.idle(Coordinate(1, 1))
 
   val userOne = 1
   val userTwo = 2
@@ -26,11 +25,11 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       val troopTwo = Troop(2, NESeq(soulOne +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopQueue = Troop(4, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
-      val troops = Vector(troopOne, troopTwo, troopThree).map(_ -> defaultOccupation)
-      (Battle(pos, NESeq(troops)), Vector(troopQueue -> defaultOccupation))
+      val troops = Vector(troopOne, troopTwo, troopThree)
+      (Battle(pos.home, NESeq(troops)), Vector(troopQueue))
     }
     val updated = start.addTroops(queue)
-    updated.troops should contain allElementsOf (start.troops ++ queue.unzip._1)
+    updated.troops should contain allElementsOf (start.troops ++ queue)
   }
 
   "Battle tick" should "return current instance if the round time still remains" in {
@@ -38,8 +37,8 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulOne +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
-      val troops = Vector(troopOne, troopTwo, troopThree).map(_ -> defaultOccupation)
-      Battle(pos, NESeq(troops))
+      val troops = Vector(troopOne, troopTwo, troopThree)
+      Battle(pos.home, NESeq(troops))
     }
     val (mbBattle, out) = start.tick()
     mbBattle.get should be theSameInstanceAs start
@@ -50,12 +49,12 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
     val start = {
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(defaultSoul(2) +: Vector.empty), Backpack.empty, userTwo, pos)
-      val troops = Vector(troopOne, troopTwo).map(_ -> defaultOccupation)
-      Battle(pos, NESeq(troops))
+      val troops = Vector(troopOne, troopTwo)
+      Battle(pos.home, NESeq(troops))
     }
     val r = start.round
     val (result, out) = start.tick(System.currentTimeMillis() + r.duration + 10)
-    out.count(x => x._1.isActive) should be(1)
+    out.count(x => x.isActive) should be(1)
     result should be(None)
   }
 
@@ -69,8 +68,8 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userThree, pos)
       val troopFour = Troop(4, NESeq(soulFour +: Vector.empty), Backpack.empty, userThree, pos)
-      val troops = Vector(troopOne, troopTwo, troopThree, troopFour).map(_ -> defaultOccupation)
-      Battle(pos, NESeq(troops))
+      val troops = Vector(troopOne, troopTwo, troopThree, troopFour)
+      Battle(pos.home, NESeq(troops))
     }
 
     val (second, outFirst) = start.tick(System.currentTimeMillis() + start.round.duration)

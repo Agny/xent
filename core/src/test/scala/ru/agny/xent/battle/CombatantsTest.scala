@@ -12,8 +12,7 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
 
   import TestHelper._
 
-  val pos = Coordinate(1, 1)
-  val defaultOccupation = new Waiting(pos, System.currentTimeMillis())
+  val pos = MovementPlan.idle(Coordinate(1, 1))
   val userOne = 1L
   val userTwo = 2L
   val soulOne = defaultSoul(1)
@@ -21,8 +20,8 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
 
   "Combatants" should "add troops to the queue" in {
     val (start, added) = {
-      val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, 1, pos) -> defaultOccupation
-      val toQueue = Vector(Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, 1, pos) -> defaultOccupation)
+      val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, 1, pos)
+      val toQueue = Vector(Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, 1, pos))
       (Combatants(NESeq(troopOne +: Vector.empty), Vector.empty), toQueue)
     }
 
@@ -36,8 +35,8 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
       val troopTwo = Troop(2, NESeq(soulOne +: Vector.empty), Backpack.empty, userTwo, pos)
       val troopThree = Troop(3, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopQueue = Troop(4, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
-      val troops = Vector(troopOne, troopTwo, troopThree).map(_ -> defaultOccupation)
-      val start = Combatants(NESeq(troops), Vector(troopQueue -> defaultOccupation))
+      val troops = Vector(troopOne, troopTwo, troopThree)
+      val start = Combatants(NESeq(troops), Vector(troopQueue))
       (start, Map(
         userOne -> Map(1 -> troopOne, 3 -> troopThree),
         userTwo -> Map(2 -> troopTwo)
@@ -96,8 +95,8 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulTwo +: Vector.empty), Backpack.empty, userOne, pos)
       val troopQueue = Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userOne, pos)
-      val troops = Vector(troopOne, troopTwo).map(_ -> defaultOccupation)
-      val queue = Vector(troopQueue).map(_ -> defaultOccupation)
+      val troops = Vector(troopOne, troopTwo)
+      val queue = Vector(troopQueue)
       (Combatants(NESeq(troops), queue), troops ++ queue)
     }
     start.free should be(expected)
@@ -114,14 +113,14 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
       val troopOne = Troop(1, NESeq(Vector(soulOne, fallen)), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(Vector(soulTwo, fallenTwo)), Backpack.empty, userTwo, pos, Fatigue.MAX)
       val troopQueue = Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userThree, pos)
-      val troops = Vector(troopOne, troopTwo).map(_ -> defaultOccupation)
+      val troops = Vector(troopOne, troopTwo)
 
-      (Combatants(NESeq(troops), Vector(troopQueue -> defaultOccupation)),
-        Vector(troopOne, troopQueue).map(_ -> defaultOccupation),
-        Vector(troopTwo).map(_ -> defaultOccupation))
+      (Combatants(NESeq(troops), Vector(troopQueue)),
+        Vector(troopOne, troopQueue),
+        Vector(troopTwo))
     }
 
-    val (res, outRes) = Combatants.prepareToNextRound(start, start.troops.unzip._1.toVector)
+    val (res, outRes) = Combatants.prepareToNextRound(start, start.troops.toVector)
     res.get.troops should be(toNext)
     outRes should be(out)
     res.get.queue should be(Vector.empty)

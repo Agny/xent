@@ -15,5 +15,5 @@ case class MovementPlan(steps: Vector[Step], home: Coordinate, start: ProgressTi
 }
 
 object MovementPlan {
-  def idle(pos: Coordinate): MovementPlan = ???
+  def idle(pos: Coordinate): MovementPlan = MovementPlan(Vector.empty, pos)
 }
