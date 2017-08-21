@@ -1,6 +1,6 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.core.unit.Speed
+import ru.agny.xent.core.unit.{Distance, Speed}
 import Speed._
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress._
@@ -14,7 +14,7 @@ case class Movement(from: Coordinate, to: Coordinate) extends Step {
 
   override def pos(distance: Distance): (Coordinate, Distance) = {
     traveled = traveled + distance
-    val (tiles, excessive) = tilesWithRemainder(traveled)
+    val (tiles, excessive) = Distance.tilesWithRemainder(traveled)
     currentPathIdx = tiles
     currentPathIdx - path.tiles match {
       case over if over >= 0 => finishStep(over, excessive)
@@ -23,10 +23,10 @@ case class Movement(from: Coordinate, to: Coordinate) extends Step {
   }
 
   private def finishStep(tilesWalkedOver: Int, distanceOfLastTile: Distance) = {
-    (path.probe(currentPathIdx), tileToDistance(tilesWalkedOver) + distanceOfLastTile)
+    (path.probe(currentPathIdx), Distance.tileToDistance(tilesWalkedOver) + distanceOfLastTile)
   }
 
-  override def isComplete = traveled >= tileToDistance(path.tiles)
+  override def isComplete = traveled >= Distance.tileToDistance(path.tiles) + Distance.centerOfTile
 }
 
 class Waiting(pos: Coordinate, start: ProgressTime = System.currentTimeMillis()) extends Movement(pos, pos) {
