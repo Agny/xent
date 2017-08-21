@@ -2,15 +2,13 @@ package ru.agny.xent.core.unit
 
 import ru.agny.xent.battle.Battle
 import ru.agny.xent.core.Coordinate
-import ru.agny.xent.core.Progress.ProgressTime
-import ru.agny.xent.core.unit.Speed.Speed
+import ru.agny.xent.core.unit.Speed.Distance
 import ru.agny.xent.core.utils.SubTyper
 
 trait Occupation {
   val isBusy = false
-  val start: ProgressTime
 
-  def pos(speed: Speed, time: ProgressTime): Coordinate
+  def pos(distance: Distance): (Coordinate, Distance)
 }
 
 object OccupationSubTyper {

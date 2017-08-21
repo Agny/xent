@@ -5,23 +5,30 @@ import Speed._
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress._
 
-case class Movement(from: Coordinate, to: Coordinate, start: ProgressTime = System.currentTimeMillis()) extends Step {
+case class Movement(from: Coordinate, to: Coordinate) extends Step {
   override val isBusy = true
   private val path = from.path(to)
 
   private var traveled: Distance = 0
-  private var lastCall: ProgressTime = start
+  private var currentPathIdx = 0
 
-  override def pos(by: Speed, current: ProgressTime): Coordinate = {
-    val elapsed = current - lastCall
-    traveled = traveled + (by in elapsed)
-    lastCall = current
-    path.probe(traveled tiles)
+  override def pos(distance: Distance): (Coordinate, Distance) = {
+    traveled = traveled + distance
+    val (tiles, excessive) = tilesWithRemainder(traveled)
+    currentPathIdx = tiles
+    currentPathIdx - path.tiles match {
+      case over if over >= 0 => finishStep(over, excessive)
+      case ok => (path.probe(currentPathIdx), 0)
+    }
   }
 
-  override val condition = ???
+  private def finishStep(tilesWalkedOver: Int, distanceOfLastTile: Distance) = {
+    (path.probe(currentPathIdx), tileToDistance(tilesWalkedOver) + distanceOfLastTile)
+  }
+
+  override def isComplete = traveled >= tileToDistance(path.tiles)
 }
 
-class Waiting(pos: Coordinate, start: ProgressTime = System.currentTimeMillis()) extends Movement(pos, pos, start) {
+class Waiting(pos: Coordinate, start: ProgressTime = System.currentTimeMillis()) extends Movement(pos, pos) {
   override val isBusy = false
 }

@@ -11,6 +11,8 @@ case class Path(from: Coordinate, to: Coordinate) {
     case maxed if idx >= cells.length => cells.last
   }
 
+  def tiles = cells.length - 1
+
   @tailrec private def path_rec(start: Coordinate, end: Coordinate, acc: Vector[Coordinate]): Vector[Coordinate] = {
     val (sx, sy) = (start.x, start.y)
     val (ex, ey) = (end.x, end.y)

@@ -7,5 +7,5 @@ import ru.agny.xent.core.Progress.ProgressTime
 trait Event {
   val pos: Coordinate
 
-  def tick(from: ProgressTime = System.currentTimeMillis()): (Option[Event], Vector[Troop])
+  def tick(from: ProgressTime): (Option[Event], Vector[Troop])
 }

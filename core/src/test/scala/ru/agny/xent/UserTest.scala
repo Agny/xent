@@ -39,7 +39,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
 
   it should "not take occupied souls to the troop" in {
     val soul1 = (soulOne, waitingCoordinate)
-    val soul2 = (soulTwo, Movement(Coordinate(0, 0), Coordinate(1, 2), 0))
+    val soul2 = (soulTwo, Movement(Coordinate(0, 0), Coordinate(1, 2)))
     val souls = Workers(Vector(soul1, soul2))
     val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, ProductionQueue.empty, souls, LifePower.default, 0)
     val (userWithSoul, troop) = user.createTroop(3, Vector(1, 2)).right.value

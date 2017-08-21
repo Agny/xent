@@ -2,10 +2,11 @@ package ru.agny.xent.battle.unit
 
 import ru.agny.xent.UserType.{ObjectId, UserId}
 import ru.agny.xent.battle.{Fatigue, MovementPlan}
-import ru.agny.xent.core.unit.Soul
+import ru.agny.xent.core.Progress.ProgressTime
+import ru.agny.xent.core.unit.{Soul, Speed}
 import ru.agny.xent.core.unit.equip.OutcomeDamage
 import ru.agny.xent.core.utils.NESeq
-import ru.agny.xent.core.Item
+import ru.agny.xent.core.{Coordinate, Item}
 
 case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpack, user: UserId, pos: MovementPlan, fatigue: Fatigue) {
 
@@ -23,7 +24,7 @@ case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpac
 
   val moveSpeed = activeUnits match {
     case x@h +: t => x.minBy(_.speed).speed
-    case _ => 0
+    case _ => Speed.default
   }
 
   lazy val initiative = if (activeUnits.nonEmpty)
@@ -66,6 +67,10 @@ case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpac
     (unitState +: oldSate, newTroopState)
   }
 
+  def move(time: ProgressTime): Coordinate = {
+    if (isActive) pos.now(moveSpeed, time)
+    else pos.goHome(moveSpeed, time)
+  }
 }
 
 object Troop {

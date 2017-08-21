@@ -8,9 +8,10 @@ object Speed {
   implicit class SpeedI(tilesPerHour: Speed) {
     def in(millis: Long): Distance = millis * tilesPerHour
   }
-  implicit class DistanceI(traveled: Distance) {
-    def tiles: Int = math.floor(traveled / TimeUnit.hour).toInt
-  }
+
+  def tilesWithRemainder(traveled: Distance): (Int, Distance) = (math.floor(traveled / TimeUnit.hour).toInt, traveled % TimeUnit.hour)
+
+  def tileToDistance(tiles: Int): Distance = tiles * TimeUnit.hour
 
   val default = 10
 }

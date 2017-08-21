@@ -19,7 +19,7 @@ case class Military(troops: Vector[Troop], events: Vector[Event]) {
   }
 
   private def releaseArrivedFallen(time: ProgressTime): (Military, Vector[Troop]) = {
-    val (fallen, alive) = troops.partition(x => !x.isActive && x.pos.now(x.moveSpeed, time) == x.pos.home)
+    val (fallen, alive) = troops.partition(x => !x.isActive && x.move(time) == x.pos.home)
     (copy(troops = alive), fallen)
   }
 
