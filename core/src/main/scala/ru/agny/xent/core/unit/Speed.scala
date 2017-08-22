@@ -17,7 +17,9 @@ object Distance {
 
   val centerOfTile = tileToDistance(1) / 2
 
-  def tilesWithRemainder(traveled: Distance): (Int, Distance) = (math.floor(traveled / TimeUnit.hour).toInt, traveled % TimeUnit.hour)
+  def tiles(traveled: Distance): Int = math.floor(traveled / TimeUnit.hour).toInt
+
+  def tilesWithRemainder(traveled: Distance): (Int, Distance) = (tiles(traveled), traveled % TimeUnit.hour)
 
   def tileToDistance(tiles: Int): Distance = tiles * TimeUnit.hour
 }

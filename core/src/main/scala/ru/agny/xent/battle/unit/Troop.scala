@@ -67,10 +67,7 @@ case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpac
     (unitState +: oldSate, newTroopState)
   }
 
-  def move(time: ProgressTime): Coordinate = {
-    if (isActive) pos.now(moveSpeed, time)
-    else pos.goHome(moveSpeed, time)
-  }
+  def move(time: ProgressTime): Coordinate = pos.now(moveSpeed, time)
 }
 
 object Troop {

@@ -8,7 +8,8 @@ import ru.agny.xent.core.utils.SubTyper
 trait Occupation {
   val isBusy = false
 
-  def pos(distance: Distance): (Coordinate, Distance)
+  def pos(): Coordinate
+  def tick(distance: Distance): (Occupation, Distance)
 }
 
 object OccupationSubTyper {
