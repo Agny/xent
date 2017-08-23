@@ -1,8 +1,6 @@
 package ru.agny.xent.battle
 
 import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.unit.{Speed}
-import Speed.Speed
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress.ProgressTime
@@ -11,33 +9,30 @@ import ru.agny.xent.core.utils.NESeq
 import scala.annotation.tailrec
 import scala.util.Random
 
-case class Battle(pos: Coordinate, private val combatants: Combatants, start: ProgressTime, round: Round) extends Event {
+case class Battle(pos: Coordinate, private val combatants: Combatants, round: Round) extends Event {
 
+  import Battle._
   import Combatants._
 
-  def tick(from: ProgressTime = System.currentTimeMillis()): (Option[Battle], Vector[Troop]) = {
-    val timeRemains = (start + round.story + round.duration) - from
-    if (timeRemains <= 0) toNextRound(timeRemains)
-    else (Some(this), Vector.empty)
-  }
+  def tick(progress: ProgressTime): (Option[Battle], Vector[Troop]) = rec_tick(progress, Some(this), Vector.empty)
 
   def addTroops(t: Vector[Troop]): Battle = copy(combatants = combatants.queue(t))
 
   //TODO unite troops to Squads
-  private def toNextRound(remainder: ProgressTime): (Option[Battle], Vector[Troop]) = {
+  private def toNextRound: (Option[Battle], Vector[Troop]) = {
     val troopsByUser = combatants.groupByUsers
     val (troopsResult, _) = nextAttack(troopsByUser.values.flatten.unzip._2.toVector, troopsByUser)
     val (next, out) = prepareToNextRound(combatants, troopsResult)
     next match {
       case Some(v) =>
-        val r = Round(round, NESeq(v.troops))
-        (Some(Battle(pos, v, start, r)), out)
+        val r = round.next(NESeq(v.troops))
+        (Some(Battle(pos, v, r)), out)
       case None => (None, out)
     }
   }
 
   @tailrec private def nextAttack(attackers: Vector[Troop], pool: Pool): (Vector[Troop], Pool) = {
-    val (mostInitiative +: tail) = attackers.sortBy(_.initiative)
+    val (mostInitiative +: tail) = attackers.sortBy(-_.initiative)
     val target = claimEnemy(mostInitiative.user, pool.map(x => x._1 -> x._2.values))
     val (attacker, attacked) = attack(mostInitiative, target)
     val poolWithAttacker = Combatants.adjustPool(pool, attacker)
@@ -84,6 +79,19 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, start: Pr
 }
 
 object Battle {
-  def apply(pos: Coordinate, troops: NESeq[Troop], start: ProgressTime = System.currentTimeMillis()): Battle =
-    Battle(pos, Combatants(troops, Vector.empty), start, Round(1, NESeq(troops)))
+  def apply(pos: Coordinate, troops: NESeq[Troop]): Battle =
+    Battle(pos, Combatants(troops, Vector.empty), Round(1, NESeq(troops)))
+
+  def rec_tick(progress: ProgressTime, battle: Option[Battle], leavers: Vector[Troop]): (Option[Battle], Vector[Troop]) = {
+    battle match {
+      case Some(b) =>
+        val currentProgress = b.round.progress + progress
+        if (currentProgress >= b.round.duration) {
+          val (mb, nextLeavers) = b.toNextRound
+          rec_tick(currentProgress - b.round.duration, mb, leavers ++ nextLeavers)
+        }
+        else (Some(b.copy(round = b.round.tick(progress))), leavers)
+      case _ => (None, leavers) //TODO persist battle result
+    }
+  }
 }

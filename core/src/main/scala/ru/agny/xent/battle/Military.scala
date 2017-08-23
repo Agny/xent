@@ -3,23 +3,22 @@ package ru.agny.xent.battle
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.Progress._
-import ru.agny.xent.core.unit.{Occupation}
-import ru.agny.xent.core.utils.{NESeq, SubTyper}
+import ru.agny.xent.core.utils.NESeq
 
 import scala.annotation.tailrec
 
-case class Military(troops: Vector[Troop], events: Vector[Event]) {
+case class Military(troops: Vector[Troop], events: Vector[Event], lastTick: ProgressTime) {
 
   import ru.agny.xent.battle.Military._
 
   def tick(from: ProgressTime = System.currentTimeMillis()): (Military, Vector[Troop]) = {
-    val steps = (from - System.currentTimeMillis()) / Round.timeLimitMin
-    val updated = quantify(this, from, steps, Round.timeLimitMin)
-    updated.releaseArrivedFallen(from)
+    val progress = from - lastTick
+    val updated = quantify(this, progress, Round.timeLimitMin)
+    updated.releaseArrivedFallen()
   }
 
-  private def releaseArrivedFallen(time: ProgressTime): (Military, Vector[Troop]) = {
-    val (fallen, alive) = troops.partition(x => !x.isActive && x.move(time) == x.pos.home)
+  private def releaseArrivedFallen(): (Military, Vector[Troop]) = {
+    val (fallen, alive) = troops.partition(x => !x.isActive && x.move(0) == x.pos.home)
     (copy(troops = alive), fallen)
   }
 
@@ -27,16 +26,16 @@ case class Military(troops: Vector[Troop], events: Vector[Event]) {
 
 object Military {
 
-  val empty = Military(Vector.empty, Vector.empty)
+  val empty = Military(Vector.empty, Vector.empty, System.currentTimeMillis())
 
-  @tailrec private def quantify(m: Military, time: ProgressTime, stepsRemains: Long, by: ProgressTime): Military = {
-    val quantum = time - stepsRemains * by
+  @tailrec private def quantify(m: Military, time: ProgressTime, by: ProgressTime): Military = {
+    val quantum = if (time > by) by else time
     val troopsPositions = moveTick(m.troops)(quantum)
     val (freeTroops, updatedEvents) = collide(m.events, troopsPositions, quantum)
-    val res = Military(freeTroops, updatedEvents)
+    val res = Military(freeTroops, updatedEvents, m.lastTick + quantum)
 
-    if (stepsRemains > 0) {
-      quantify(res, time, stepsRemains - 1, by)
+    if (time > by) {
+      quantify(res, time - by, by)
     } else {
       res
     }
@@ -63,7 +62,7 @@ object Military {
     }
 
     val (newEvents, movingTroops) = positioned.filterKeys(x => !updatedEvents.exists(_.pos == x)).foldLeft(Vector.empty[Event], Vector.empty[Troop]) {
-      case ((events, troops), (x, ts)) if Combatants.isBattleNeeded(ts) => (Battle(x, NESeq(ts), time) +: events, troops)
+      case ((events, troops), (x, ts)) if Combatants.isBattleNeeded(ts) => (Battle(x, NESeq(ts)) +: events, troops)
       case ((events, troops), (x, ts)) => (events, troops ++ ts)
     }
     (outgoingTroops ++ movingTroops, updatedEvents ++ newEvents)

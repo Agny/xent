@@ -24,9 +24,10 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
       val move = MovementPlan(Vector(Movement(pos1, pos2)), pos1)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, move)
       val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, MovementPlan.idle(pos2))
-      Military(Vector(troopOne, troopTwo), Vector.empty)
+      Military(Vector(troopOne, troopTwo), Vector.empty, System.currentTimeMillis())
     }
-    val (result, out) = start.tick(System.currentTimeMillis() + TimeUnit.minute * 30)
+    val enoughTime = System.currentTimeMillis() + (Distance.tileToDistance(3) * 2) / Speed.default + Round.timeLimitMax // Time to loose 1 round in battle and reach home
+    val (result, out) = start.tick(enoughTime)
     result.troops.size should be(1)
     out.size should be(1)
   }
@@ -40,16 +41,16 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, move1)
       val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, MovementPlan.idle(pos2))
       val troopThree = Troop(3, NESeq(quickSoul +: Vector.empty), Backpack.empty, userOne, move3)
-      Military(Vector(troopOne, troopTwo, troopThree), Vector.empty)
+      Military(Vector(troopOne, troopTwo, troopThree), Vector.empty, System.currentTimeMillis())
     }
     val firstBattleStart = System.currentTimeMillis() + TimeUnit.minute * 8
     val secondTroopJoinBattle = firstBattleStart + TimeUnit.minute * 4
-    val twoRoundFightEnds = firstBattleStart + Round.timeLimitMax * 2
-    val (firstEncounter, _) = start.tick(firstBattleStart)
-    val (secondEncounter, _) = start.tick(secondTroopJoinBattle)
-    val (result, out) = start.tick(twoRoundFightEnds)
-    firstEncounter.events.count { case _: Battle => true; case _ => false } should be(2)
-    secondEncounter.events.count { case _: Battle => true; case _ => false } should be(3)
+    val twoRoundFightEnds = secondTroopJoinBattle + Round.timeLimitMax * 2
+    val (firstEncounter, lfirst) = start.tick(firstBattleStart)
+    val (secondEncounter, lsecond) = firstEncounter.tick(secondTroopJoinBattle)
+    val (result, out) = secondEncounter.tick(twoRoundFightEnds)
+    firstEncounter.events.collect { case b: Battle => b.troops.size }.head should be(2)
+    secondEncounter.events.collect { case b: Battle => b.troops.size }.head should be(3)
     result.troops.size should be(1)
     out.size should be(2)
   }

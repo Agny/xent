@@ -4,7 +4,7 @@ import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Progress._
 import ru.agny.xent.core.utils.{NESeq, TimeUnit}
 
-case class Round(n: Int, troops: NESeq[Troop], story: ProgressTime = 0) {
+case class Round(n: Int, troops: NESeq[Troop], progress: ProgressTime = 0) {
 
   import Round._
 
@@ -12,6 +12,10 @@ case class Round(n: Int, troops: NESeq[Troop], story: ProgressTime = 0) {
     val byUsers = Troop.groupByUsers(troops)
     time(byUsers.map { case (uid, ts) => uid -> ts.foldLeft(0)((w, t) => w + t.weight) }.values)
   }
+
+  def tick(t: ProgressTime): Round = copy(progress = progress + t)
+
+  def next(t: NESeq[Troop]): Round = Round(n + 1, t)
 
   private def time(armiesByUserWithWeight: Iterable[Int]): ProgressTime = {
     if (armiesByUserWithWeight.size < 2) 0
@@ -27,6 +31,4 @@ case class Round(n: Int, troops: NESeq[Troop], story: ProgressTime = 0) {
 object Round {
   val timeLimitMax: Long = TimeUnit.minute * 10
   val timeLimitMin: Long = TimeUnit.minute
-
-  def apply(prev: Round, troops: NESeq[Troop]): Round = Round(prev.n + 1, troops, prev.story + prev.duration)
 }

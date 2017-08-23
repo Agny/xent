@@ -1,13 +1,13 @@
 package ru.agny.xent.battle
 
-import org.scalatest.{EitherValues, Matchers, FlatSpec}
+import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.TestHelper
 import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.unit.characteristic.PresencePower
-import ru.agny.xent.core.unit.equip.{StatProperty, Equipment}
+import ru.agny.xent.core.unit.equip.{Equipment, StatProperty}
 import ru.agny.xent.core.unit._
-import ru.agny.xent.core.utils.NESeq
+import ru.agny.xent.core.utils.{NESeq, TimeUnit}
 
 class BattleTest extends FlatSpec with Matchers with EitherValues {
 
@@ -18,6 +18,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
   val userOne = 1
   val userTwo = 2
   val soulOne = defaultSoul(1)
+  val toughSoul = Soul(2, SoulData(Level(1, 1), Spirit(10, 1, 10), Stats(Vector(StatProperty(PresencePower, Level(30, 0)))), Vector.empty), Equipment.empty)
 
   "Battle" should "add troops to the queue" in {
     val (start, queue) = {
@@ -32,7 +33,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
     updated.troops should contain allElementsOf (start.troops ++ queue)
   }
 
-  "Battle tick" should "return current instance if the round time still remains" in {
+  "Battle tick" should "return Battle with updated round time" in {
     val start = {
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(soulOne +: Vector.empty), Backpack.empty, userTwo, pos)
@@ -40,8 +41,21 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       val troops = Vector(troopOne, troopTwo, troopThree)
       Battle(pos.home, NESeq(troops))
     }
-    val (mbBattle, out) = start.tick()
-    mbBattle.get should be theSameInstanceAs start
+    val (mbBattle, out) = start.tick(TimeUnit.minute)
+    mbBattle.get.round.progress should be(TimeUnit.minute)
+    out should be(Vector.empty)
+  }
+
+  it should "go through rounds if needed" in {
+    val start = {
+      val troopOne = Troop(1, NESeq(toughSoul +: Vector.empty), Backpack.empty, userOne, pos)
+      val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, pos)
+      val troops = Vector(troopOne, troopTwo)
+      Battle(pos.home, NESeq(troops))
+    }
+    val sixRounds = 6
+    val (mbBattle, out) = start.tick(Round.timeLimitMax * sixRounds)
+    mbBattle.get.round.n should be(sixRounds + 1)
     out should be(Vector.empty)
   }
 
@@ -72,10 +86,10 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       Battle(pos.home, NESeq(troops))
     }
 
-    val (second, outFirst) = start.tick(System.currentTimeMillis() + start.round.duration)
-    val (third, outSecond) = second.get.tick(System.currentTimeMillis() + second.get.round.story + second.get.round.duration)
+    val (second, outFirst) = start.tick(start.round.duration)
+    val (third, outSecond) = second.get.tick(System.currentTimeMillis() + second.get.round.progress + second.get.round.duration)
     if (outFirst.size == 1 && outSecond.size == 1) {
-      val (last, outThird) = third.get.tick(System.currentTimeMillis() + third.get.round.story + third.get.round.duration)
+      val (last, outThird) = third.get.tick(System.currentTimeMillis() + third.get.round.progress + third.get.round.duration)
       (outFirst ++ outSecond ++ outThird).size should be(4)
       last should be(None)
     } else {
