@@ -12,7 +12,6 @@ case class MovementPlan(steps: Vector[Step], home: Coordinate) {
   private val state = StepsView(steps)
 
   def now(speed: Speed, time: ProgressTime): Coordinate = state.tick(speed in time)
-
 }
 
 object MovementPlan {
@@ -21,7 +20,7 @@ object MovementPlan {
   def idle(pos: Coordinate): MovementPlan = MovementPlan(Vector(Movement(pos, pos)), pos)
 }
 
-case class StepsView(steps: Vector[Step]) {
+private case class StepsView(steps: Vector[Step]) {
 
   private var idx = 0
   private var lastStep = steps.head
