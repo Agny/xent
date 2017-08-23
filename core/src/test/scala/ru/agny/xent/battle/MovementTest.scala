@@ -13,9 +13,9 @@ class MovementTest extends FlatSpec with Matchers with EitherValues {
     val to = Coordinate(5, 10)
     val m = Movement(from, to)
 
-    val res = m.pos(10 in (System.currentTimeMillis() + TimeUnit.hour))
+    val (res, _) = m.tick(10 in TimeUnit.hour)
     val expected = Coordinate(5, 5)
-    res should be(expected)
+    res.pos should be(expected)
   }
 
   it should "change pos only if required amount of time had been passed" in {
@@ -24,18 +24,18 @@ class MovementTest extends FlatSpec with Matchers with EitherValues {
     val m = Movement(from, to)
     val almostHour = 1000 * 60 * 59
 
-    val res = m.pos(7 in (System.currentTimeMillis() + almostHour))
+    val (res, _) = m.tick(7 in almostHour)
     val expected = Coordinate(3, 3)
-    res should be(expected)
+    res.pos() should be(expected)
   }
 
   "Waiting" should "remain the same pos" in {
     val pos = Coordinate(0, 0)
     val m = new Waiting(pos, System.currentTimeMillis())
 
-    val res = m.pos(21 in (System.currentTimeMillis() + TimeUnit.hour))
+    val (res, _) = m.tick(21 in TimeUnit.hour)
     val expected = pos
-    res should be(expected)
+    res.pos() should be(expected)
   }
 
 }
