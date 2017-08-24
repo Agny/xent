@@ -26,21 +26,20 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
       val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, MovementPlan.idle(pos2))
       Military(Vector(troopOne, troopTwo), Vector.empty, System.currentTimeMillis())
     }
-    val enoughTime = System.currentTimeMillis() + (Distance.tileToDistance(3) * 2) / Speed.default + Round.timeLimitMax // Time to loose 1 round in battle and reach home
+    val timeToBattleAndBack = (Distance.tileToDistance(2) * 2) / Speed.default
+    val enoughTime = System.currentTimeMillis() + timeToBattleAndBack + Round.timeLimitMax
     val (result, out) = start.tick(enoughTime)
     result.troops.size should be(1)
     out.size should be(1)
   }
 
-  "Military tick" should "join troops to battles if needed" in {
+  it should "join troops to battles if needed" in {
     val start = {
-      val quickStats = Stats(Vector(StatProperty(Agility, Level(10, 0))))
-      val quickSoul = Soul(3, SoulData(Level(1, 0), Spirit(1, 0, 1), quickStats, Vector.empty), Equipment.empty)
       val move1 = MovementPlan(Vector(Movement(pos1, pos2)), pos1)
       val move3 = MovementPlan(Vector(Movement(pos3, pos2)), pos3)
       val troopOne = Troop(1, NESeq(dummySoul +: Vector.empty), Backpack.empty, userOne, move1)
       val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, MovementPlan.idle(pos2))
-      val troopThree = Troop(3, NESeq(quickSoul +: Vector.empty), Backpack.empty, userOne, move3)
+      val troopThree = Troop(3, NESeq(getQuickSoul(3) +: Vector.empty), Backpack.empty, userOne, move3)
       Military(Vector(troopOne, troopTwo, troopThree), Vector.empty, System.currentTimeMillis())
     }
     val firstBattleStart = System.currentTimeMillis() + TimeUnit.minute * 8
@@ -53,6 +52,44 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     secondEncounter.events.collect { case b: Battle => b.troops.size }.head should be(3)
     result.troops.size should be(1)
     out.size should be(2)
+  }
+
+  it should "send troops back after loosing all souls" in {
+    val quickSoul = getQuickSoul(3)
+    val start = {
+      val move = MovementPlan(Vector(Movement(pos1, pos3)), pos1)
+      val troopOne = Troop(1, NESeq(quickSoul +: Vector.empty), Backpack.empty, userOne, move)
+      val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, MovementPlan.idle(pos2))
+      Military(Vector(troopOne, troopTwo), Vector.empty, System.currentTimeMillis())
+    }
+    val battleStart = System.currentTimeMillis() + Distance.tileToDistance(2) / quickSoul.speed
+    val (withEncounter, _) = start.tick(battleStart)
+    val battleEnd = battleStart + withEncounter.events.head.asInstanceOf[Battle].round.duration
+    val (moved, _) = withEncounter.tick(battleEnd)
+    val (result, out) = moved.tick(battleEnd + Distance.tileToDistance(2) / Speed.default)
+
+    out.head.move(0) should be(Coordinate(1, 1))
+  }
+
+  it should "continue troops movement after battle" in {
+    val quickSoulSample = getQuickSoul(0)
+    val start = {
+      val move = MovementPlan(Vector(Movement(pos1, pos3)), pos1)
+      val troopOne = Troop(1, NESeq(Vector(getQuickSoul(3), getQuickSoul(4), getQuickSoul(5))), Backpack.empty, userOne, move)
+      val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, MovementPlan.idle(pos2))
+      Military(Vector(troopOne, troopTwo), Vector.empty, System.currentTimeMillis())
+    }
+    val battleStart = System.currentTimeMillis() + Distance.tileToDistance(2) / quickSoulSample.speed
+    val (firstRound, _) = start.tick(battleStart)
+    val firstRoundEnd = battleStart + firstRound.events.head.asInstanceOf[Battle].round.duration
+    val (result, _) = firstRound.tick(firstRoundEnd + Distance.tileToDistance(1) / quickSoulSample.speed)
+
+    result.troops.head.move(0) should be(pos3)
+  }
+
+  def getQuickSoul(id: ObjectId) = {
+    val quickStats = Stats(Vector(StatProperty(Agility, Level(10, 0))))
+    Soul(id, SoulData(Level(1, 0), Spirit(1, 0, 1), quickStats, Vector.empty), Equipment.empty)
   }
 
 }

@@ -18,7 +18,7 @@ case class Military(troops: Vector[Troop], events: Vector[Event], lastTick: Prog
   }
 
   private def releaseArrivedFallen(): (Military, Vector[Troop]) = {
-    val (fallen, alive) = troops.partition(x => !x.isActive && x.move(0) == x.pos.home)
+    val (fallen, alive) = troops.partition(x => !x.isActive && x.move(0) == x.home)
     (copy(troops = alive), fallen)
   }
 
@@ -47,7 +47,7 @@ object Military {
 
     val empty = Map.empty[Coordinate, Vector[Troop]].withDefaultValue(Vector.empty)
     troops.foldLeft(empty) { (positioned, t) =>
-      val pos = t.pos.now(t.moveSpeed, time)
+      val pos = t.move(time)
       addPos(positioned, pos, t)
     }
   }

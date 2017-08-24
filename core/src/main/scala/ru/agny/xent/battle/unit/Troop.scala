@@ -8,7 +8,7 @@ import ru.agny.xent.core.unit.equip.OutcomeDamage
 import ru.agny.xent.core.utils.NESeq
 import ru.agny.xent.core.{Coordinate, Item}
 
-case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpack, user: UserId, pos: MovementPlan, fatigue: Fatigue) {
+case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpack, user: UserId, private val pos: MovementPlan, fatigue: Fatigue) {
 
   import Fatigue._
 
@@ -30,6 +30,8 @@ case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpac
   lazy val initiative = if (activeUnits.nonEmpty)
     activeUnits.map(_.initiative).sum / activeUnits.length
   else 0
+
+  val home = pos.home
 
   /**
     * Method should be called if and only if this troop has able to fight units,
@@ -54,6 +56,11 @@ case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpac
     copy(units = NESeq(souls.head, souls.tail))
   }
 
+  def move(time: ProgressTime): Coordinate = {
+    if (isActive) pos.now(moveSpeed, time)
+    else pos.goHome(moveSpeed, time)
+  }
+
   private def concede(): (Troop, Vector[Item]) = {
     val (looserUnits, eq) = units.map(_.lose()).unzip
     val loot = backpack.toSpoil ++ eq.flatMap(_.toSpoil)
@@ -66,8 +73,6 @@ case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpac
     val (unitState, newTroopState) = attacker.attack(troop)
     (unitState +: oldSate, newTroopState)
   }
-
-  def move(time: ProgressTime): Coordinate = pos.now(moveSpeed, time)
 }
 
 object Troop {
