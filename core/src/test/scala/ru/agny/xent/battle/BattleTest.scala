@@ -41,7 +41,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       val troops = Vector(troopOne, troopTwo, troopThree)
       Battle(pos.home, NESeq(troops))
     }
-    val (mbBattle, out) = start.tick(TimeUnit.minute)
+    val (mbBattle, out, _) = start.tick(TimeUnit.minute)
     mbBattle.get.round.progress should be(TimeUnit.minute)
     out should be(Vector.empty)
   }
@@ -54,7 +54,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       Battle(pos.home, NESeq(troops))
     }
     val sixRounds = 6
-    val (mbBattle, out) = start.tick(Round.timeLimitMax * sixRounds)
+    val (mbBattle, out, _) = start.tick(Round.timeLimitMax * sixRounds)
     mbBattle.get.round.n should be(sixRounds + 1)
     out should be(Vector.empty)
   }
@@ -67,7 +67,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       Battle(pos.home, NESeq(troops))
     }
     val r = start.round
-    val (result, out) = start.tick(System.currentTimeMillis() + r.duration + 10)
+    val (result, out, _) = start.tick(System.currentTimeMillis() + r.duration + 10)
     out.count(x => x.isActive) should be(1)
     result should be(None)
   }
@@ -86,10 +86,10 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
       Battle(pos.home, NESeq(troops))
     }
 
-    val (second, outFirst) = start.tick(start.round.duration)
-    val (third, outSecond) = second.get.tick(System.currentTimeMillis() + second.get.round.progress + second.get.round.duration)
+    val (second, outFirst, _) = start.tick(start.round.duration)
+    val (third, outSecond, _) = second.get.tick(System.currentTimeMillis() + second.get.round.progress + second.get.round.duration)
     if (outFirst.size == 1 && outSecond.size == 1) {
-      val (last, outThird) = third.get.tick(System.currentTimeMillis() + third.get.round.progress + third.get.round.duration)
+      val (last, outThird, _) = third.get.tick(System.currentTimeMillis() + third.get.round.progress + third.get.round.duration)
       (outFirst ++ outSecond ++ outThird).size should be(4)
       last should be(None)
     } else {

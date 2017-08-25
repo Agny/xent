@@ -14,7 +14,7 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, round: Ro
   import Battle._
   import Combatants._
 
-  def tick(progress: ProgressTime): (Option[Battle], Vector[Troop]) = rec_tick(progress, Some(this), Vector.empty)
+  def tick(progress: ProgressTime): (Option[Battle], Vector[Troop], ProgressTime) = rec_tick(progress, Some(this), Vector.empty)
 
   def addTroops(t: Vector[Troop]): Battle = copy(combatants = combatants.queue(t))
 
@@ -82,7 +82,7 @@ object Battle {
   def apply(pos: Coordinate, troops: NESeq[Troop]): Battle =
     Battle(pos, Combatants(troops, Vector.empty), Round(1, NESeq(troops)))
 
-  def rec_tick(progress: ProgressTime, battle: Option[Battle], leavers: Vector[Troop]): (Option[Battle], Vector[Troop]) = {
+  def rec_tick(progress: ProgressTime, battle: Option[Battle], leavers: Vector[Troop]): (Option[Battle], Vector[Troop], ProgressTime) = {
     battle match {
       case Some(b) =>
         val currentProgress = b.round.progress + progress
@@ -90,8 +90,8 @@ object Battle {
           val (mb, nextLeavers) = b.toNextRound
           rec_tick(currentProgress - b.round.duration, mb, leavers ++ nextLeavers)
         }
-        else (Some(b.copy(round = b.round.tick(progress))), leavers)
-      case _ => (None, leavers) //TODO persist battle result
+        else (Some(b.copy(round = b.round.tick(progress))), leavers, 0)
+      case _ => (None, leavers, progress) //TODO persist battle result
     }
   }
 }

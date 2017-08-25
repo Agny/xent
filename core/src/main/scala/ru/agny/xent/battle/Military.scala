@@ -30,9 +30,10 @@ object Military {
 
   @tailrec private def quantify(m: Military, time: ProgressTime, by: ProgressTime): Military = {
     val quantum = if (time > by) by else time
-    val troopsPositions = moveTick(m.troops)(quantum)
-    val (freeTroops, updatedEvents) = collide(m.events, troopsPositions, quantum)
-    val res = Military(freeTroops, updatedEvents, m.lastTick + quantum)
+    val (battleActive, fallen) = m.troops.map(x => (x, x.move(quantum))).partition(_._1.isActive)
+    val grouped = groupByPos(battleActive)
+    val (freeTroops, updatedEvents) = collide(m.events, grouped, quantum)
+    val res = Military(freeTroops ++ fallen.unzip._1, updatedEvents, m.lastTick + quantum)
 
     if (time > by) {
       quantify(res, time - by, by)
@@ -41,23 +42,24 @@ object Military {
     }
   }
 
-  private def moveTick(troops: Vector[Troop])(time: ProgressTime) = {
+  private def groupByPos(troops: Vector[(Troop, Coordinate)]) = {
 
     def addPos(ct: Map[Coordinate, Vector[Troop]], pos: Coordinate, t: Troop) = ct.updated(pos, t +: ct(pos))
 
     val empty = Map.empty[Coordinate, Vector[Troop]].withDefaultValue(Vector.empty)
     troops.foldLeft(empty) { (positioned, t) =>
-      val pos = t.move(time)
-      addPos(positioned, pos, t)
+      addPos(positioned, t._2, t._1)
     }
   }
 
   private def collide(ongoingEvents: Vector[Event], positioned: Map[Coordinate, Vector[Troop]], time: ProgressTime): (Vector[Troop], Vector[Event]) = {
     val (updatedEvents, outgoingTroops) = ongoingEvents.foldLeft(Vector.empty[Event], Vector.empty[Troop]) {
       case ((events, troops), event) => event.tick(time) match {
-        case (Some(b: Battle), out) => (b.addTroops(positioned(b.pos)) +: events, out ++ troops)
-        case (Some(other), out) => (other +: events, out ++ troops)
-        case (_, freed) => (events, freed ++ troops)
+        case (Some(b: Battle), out, _) => (b.addTroops(positioned(b.pos)) +: events, out ++ troops)
+        case (Some(other), out, _) => (other +: events, out ++ troops)
+        case (_, freed, progress) =>
+          freed.foreach(_.move(progress))
+          (events, freed ++ troops)
       }
     }
 

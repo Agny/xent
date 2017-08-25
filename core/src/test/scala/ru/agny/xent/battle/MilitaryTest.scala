@@ -17,7 +17,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
   val toughSoul = Soul(2, SoulData(Level(1, 1), Spirit(10, 1, 10), Stats(Vector(StatProperty(PresencePower, Level(5, 0)))), Vector.empty), Equipment.empty)
   val pos1 = Coordinate(1, 1)
   val pos2 = Coordinate(2, 2)
-  val pos3 = Coordinate(3, 3)
+  val pos3 = Coordinate(2, 3)
 
   "Military tick" should "create battles if needed" in {
     val start = {
@@ -49,7 +49,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val (secondEncounter, lsecond) = firstEncounter.tick(secondTroopJoinBattle)
     val (result, out) = secondEncounter.tick(twoRoundFightEnds)
     firstEncounter.events.collect { case b: Battle => b.troops.size }.head should be(2)
-    secondEncounter.events.collect { case b: Battle => b.troops.size }.head should be(3)
+    secondEncounter.events.collect { case b: Battle => b.troops.size }.head should be(2)
     result.troops.size should be(1)
     out.size should be(2)
   }
@@ -84,7 +84,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val firstRoundEnd = battleStart + firstRound.events.head.asInstanceOf[Battle].round.duration
     val (result, _) = firstRound.tick(firstRoundEnd + Distance.tileToDistance(1) / quickSoulSample.speed)
 
-    result.troops.head.move(0) should be(pos3)
+    result.troops.last.move(0) should be(pos3)
   }
 
   def getQuickSoul(id: ObjectId) = {
