@@ -6,7 +6,7 @@ import ru.agny.xent.core.unit.equip.{Defensive, Equipment}
 
 //TODO Equipment boosting stats
 /** @param level is required for equipping items and learning skills. Represents experience, accumulated by the soul in this incarnation */
-case class SoulData(level: Level, private val spiritPower: Spirit, private val stats: Stats, private val skills: Vector[Skill]) {
+case class SoulData(level: Level, spiritPower: Spirit, private val stats: Stats, private val skills: Vector[Skill]) {
 
   def armor(implicit equipment: Equipment): Int = stats.effectiveArmor(equipment)
 
@@ -24,6 +24,6 @@ case class SoulData(level: Level, private val spiritPower: Spirit, private val s
 
   def defenseModifiers(implicit equipment: Equipment): Potential = Potential(equipment.props()(Defensive))
 
-  def receiveDamage(dmg: Int)(implicit equipment: Equipment): SoulData = copy(spiritPower = spirit.change(dmg))
+  def receiveDamage(dmg: Int)(implicit equipment: Equipment): SoulData = copy(spiritPower = spirit.change(-dmg))
 
 }

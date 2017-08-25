@@ -4,7 +4,7 @@ import ru.agny.xent.core.unit.characteristic._
 import ru.agny.xent.core.unit.equip._
 
 //TODO game balancing
-case class Stats(private val s: Vector[StatProperty]) {
+case class Stats(private val s: Vector[StatProperty], private val base: SpiritBase) {
 
   import Stats._
 
@@ -30,8 +30,8 @@ case class Stats(private val s: Vector[StatProperty]) {
     * regen = spirit_regen + math.floor(presence * 0.1 + strength * 0.05)
     */
   def effectiveSpirit(eq: Equipment, spirit: Spirit): Spirit = {
-    val regen = spirit.regen
-    val capacity = spirit.capacity
+    val regen = base.regen
+    val capacity = base.capacity
     val props = s.filter(x => x.prop == Strength || x.prop == PresencePower)
     val (regenBonus, capacityBonus) = props.map {
       case StatProperty(PresencePower, lvl) => (lvl.value * 0.1, lvl.value * 2)
@@ -91,7 +91,10 @@ case class Stats(private val s: Vector[StatProperty]) {
 object Stats {
   type BonusDamage = Int
   type WeaponRate = (Weapon, Vector[(AttrProperty, BonusDamage)])
-  val default: Stats = Stats(Vector.empty)
+  val defaultSpiritBase = SpiritBase(0, 0)
+  val default: Stats = Stats(Vector.empty, defaultSpiritBase)
+
+  def apply(stats: Vector[StatProperty]): Stats = Stats(stats, defaultSpiritBase)
 
   private def getValueOrZero(prop: Characteristic, from: Vector[StatProperty]) = from.find(_.prop == prop).map(_.level.value) getOrElse 0
 

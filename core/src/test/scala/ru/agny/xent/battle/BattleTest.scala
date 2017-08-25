@@ -18,7 +18,8 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
   val userOne = 1
   val userTwo = 2
   val soulOne = defaultSoul(1)
-  val toughSoul = Soul(2, SoulData(Level(1, 1), Spirit(10, 1, 10), Stats(Vector(StatProperty(PresencePower, Level(30, 0)))), Vector.empty), Equipment.empty)
+  val spirit = Spirit(10, 1, 10)
+  val toughSoul = Soul(2, SoulData(Level(1, 1), spirit, Stats(Vector(StatProperty(PresencePower, Level(30, 0)))), Vector.empty), Equipment.empty)
 
   "Battle" should "add troops to the queue" in {
     val (start, queue) = {

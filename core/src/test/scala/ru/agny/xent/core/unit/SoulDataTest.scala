@@ -5,7 +5,7 @@ import ru.agny.xent.core.unit.characteristic._
 import ru.agny.xent.core.unit.equip.attributes.Blunt
 import ru.agny.xent.core.unit.equip.{Offensive, AttrProperty, Equipment, StatProperty}
 
-class StatsTest extends FlatSpec with Matchers {
+class SoulDataTest extends FlatSpec with Matchers {
 
   val level = Level(25, 0)
   val stats = Stats(Vector(
@@ -15,36 +15,45 @@ class StatsTest extends FlatSpec with Matchers {
     StatProperty(Intelligence, level),
     StatProperty(Initiative, level)
   ))
+  val soulData = SoulData(Level(1, 1), Spirit(10, 10, 21), stats, Vector.empty)
   val eq = Equipment.empty
 
   "Stats" should "calculate armor" in {
-    stats.effectiveArmor(eq) should be(9)
+    soulData.armor(eq) should be(9)
   }
 
   it should "calculate spirit" in {
-    val baseSpirit = Spirit(10, 1, 10)
-    val expected = Spirit(10, 4, 60)
-    stats.effectiveSpirit(eq, baseSpirit) should be(expected)
+    val expected = Spirit(10, 3, 50)
+    soulData.spirit(eq) should be(expected)
   }
 
   it should "calculate speed" in {
-    stats.effectiveSpeed(eq) should be(Speed.default + 12)
+    soulData.speed(eq) should be(Speed.default + 12)
   }
 
   it should "calculate endurance" in {
-    stats.effectiveEndurance(eq) should be(Endurance.default + 5)
+    soulData.endurance(eq) should be(Endurance.default + 5)
   }
 
   it should "calculate initiative" in {
-    stats.effectiveInitiative(eq) should be(25)
+    soulData.initiative(eq) should be(25)
   }
 
 
   it should "calculate attack modifiers" in {
-    val (_, rates) = stats.attackModifiers(eq).head
+    val (_, rates) = soulData.attackModifiers(eq).head
     val (attr, modifiers) = rates.unzip
     attr should contain(AttrProperty(Blunt, 1, Offensive))
     all(modifiers) should (be >= 25 and be <= 45) //check damage calculation for default weapon Blunt
+  }
+
+  it should "calculate handle spirit damage" in {
+    val expected1 = Spirit(5, 3, 50)
+    val expected2 = Spirit(2, 3, 50)
+    val updated = soulData.receiveDamage(5)(eq)
+    val next = updated.receiveDamage(3)(eq)
+    updated.spiritPower should be(expected1)
+    next.spiritPower should be(expected2)
   }
 
 }

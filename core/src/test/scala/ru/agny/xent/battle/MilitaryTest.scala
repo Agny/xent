@@ -13,7 +13,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
 
   val userOne = 1L
   val userTwo = 2L
-  val dummySoul = Soul(1, SoulData(Level(1, 1), Spirit(1, 1, 1), Stats.default, Vector.empty), Equipment.empty)
+  val dummySoul = Soul(1, SoulData(Level(1, 1), Spirit(1, 1, 1), Stats(Vector.empty), Vector.empty), Equipment.empty)
   val toughSoul = Soul(2, SoulData(Level(1, 1), Spirit(10, 1, 10), Stats(Vector(StatProperty(PresencePower, Level(5, 0)))), Vector.empty), Equipment.empty)
   val pos1 = Coordinate(1, 1)
   val pos2 = Coordinate(2, 2)

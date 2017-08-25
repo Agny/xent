@@ -25,7 +25,7 @@ case class Soul(id: ObjectId, stats: SoulData, private val equip: Equipment) ext
 
   def receiveDamage(d: OutcomeDamage) = {
     val damage = IncomeDamage(d.attr, stats.defenseModifiers, stats.armor, d.calc())
-    copy(stats = stats.receiveDamage(-damage.calc()))
+    copy(stats = stats.receiveDamage(damage.calc()))
   }
 
   def lose(): (Soul, Equipment) = (copy(equip = Equipment.empty), equip)

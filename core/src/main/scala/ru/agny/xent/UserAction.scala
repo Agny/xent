@@ -37,7 +37,7 @@ case class CreateSoul(spirit: Spirit, stats: Vector[StatProperty]) extends UserA
     for (
       lifePower <- user.power.spend(requiredPower)
     ) yield {
-      val data = SoulData(Level.start, spirit, Stats(stats), Vector.empty)
+      val data = SoulData(Level.start, spirit, Stats(stats, SpiritBase(spirit.regen, spirit.capacity)), Vector.empty)
       val soul = Soul(ItemIdGenerator.next, data, Equipment.empty)
       user.copy(power = lifePower, souls = user.souls.addNew(soul, user.city.c))
     }
