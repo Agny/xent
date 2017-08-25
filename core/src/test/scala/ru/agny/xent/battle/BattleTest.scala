@@ -18,7 +18,7 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
   val userOne = 1
   val userTwo = 2
   val soulOne = defaultSoul(1)
-  val spirit = Spirit(10, 1, 10)
+  val spirit = 10
   val toughSoul = Soul(2, SoulData(Level(1, 1), spirit, Stats(Vector(StatProperty(PresencePower, Level(30, 0)))), Vector.empty), Equipment.empty)
 
   "Battle" should "add troops to the queue" in {
@@ -75,9 +75,9 @@ class BattleTest extends FlatSpec with Matchers with EitherValues {
 
   it should "end battle in two or three rounds" in {
     val start = {
-      val toughSoul = Soul(2, SoulData(Level(1, 1), Spirit(10, 1, 10), Stats(Vector(StatProperty(PresencePower, Level(20, 0)))), Vector.empty), Equipment.empty)
-      val soulThree = Soul(3, SoulData(Level(1, 1), Spirit(3, 1, 3), Stats(Vector(StatProperty(PresencePower, Level(5, 0)))), Vector.empty), Equipment.empty)
-      val soulFour = Soul(4, SoulData(Level(1, 1), Spirit(1, 1, 1), Stats(Vector(StatProperty(PresencePower, Level(5, 0)))), Vector.empty), Equipment.empty)
+      val toughSoul = Soul(2, SoulData(Level(1, 1), 10, Stats(Vector(StatProperty(PresencePower, Level(20, 0)))), Vector.empty), Equipment.empty)
+      val soulThree = Soul(3, SoulData(Level(1, 1), 3, Stats(Vector(StatProperty(PresencePower, Level(5, 0)))), Vector.empty), Equipment.empty)
+      val soulFour = Soul(4, SoulData(Level(1, 1), 1, Stats(Vector(StatProperty(PresencePower, Level(5, 0)))), Vector.empty), Equipment.empty)
       val userThree = 3
       val troopOne = Troop(1, NESeq(soulOne +: Vector.empty), Backpack.empty, userOne, pos)
       val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, pos)

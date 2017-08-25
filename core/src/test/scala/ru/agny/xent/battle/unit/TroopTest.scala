@@ -12,10 +12,10 @@ import ru.agny.xent.core.utils.NESeq
 class TroopTest extends FlatSpec with Matchers with EitherValues {
 
   val pos = MovementPlan.idle(Coordinate(1, 1))
-  val soul1 = Soul(1, SoulData(Level(1, 0), Spirit(50, 0, 50), Stats.default, Vector.empty), Equipment.empty)
-  val soul2 = Soul(2, SoulData(Level(2, 0), Spirit(60, 0, 60), Stats.default, Vector.empty), Equipment.empty)
-  val soul3 = Soul(3, SoulData(Level(3, 0), Spirit(75, 0, 75), Stats.default, Vector.empty), Equipment.empty)
-  val soul4 = Soul(4, SoulData(Level(4, 0), Spirit(75, 0, 75), Stats.default, Vector.empty), Equipment.empty)
+  val soul1 = Soul(1, SoulData(Level(1, 0), 50, Stats.default, Vector.empty), Equipment.empty)
+  val soul2 = Soul(2, SoulData(Level(2, 0), 60, Stats.default, Vector.empty), Equipment.empty)
+  val soul3 = Soul(3, SoulData(Level(3, 0), 75, Stats.default, Vector.empty), Equipment.empty)
+  val soul4 = Soul(4, SoulData(Level(4, 0), 75, Stats.default, Vector.empty), Equipment.empty)
 
   "Troop" should "damage first unit of other troop while using BasicTactic" in {
     val t1 = Troop(1, NESeq(Vector(soul1, soul2)), Backpack.empty, 1, pos)

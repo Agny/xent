@@ -15,7 +15,7 @@ class SoulDataTest extends FlatSpec with Matchers {
     StatProperty(Intelligence, level),
     StatProperty(Initiative, level)
   ))
-  val soulData = SoulData(Level(1, 1), Spirit(10, 10, 21), stats, Vector.empty)
+  val soulData = SoulData(Level(1, 1), 10, stats, Vector.empty)
   val eq = Equipment.empty
 
   "Stats" should "calculate armor" in {
@@ -23,7 +23,7 @@ class SoulDataTest extends FlatSpec with Matchers {
   }
 
   it should "calculate spirit" in {
-    val expected = Spirit(10, 3, 50)
+    val expected = Spirit(10, SpiritBase(3, 50))
     soulData.spirit(eq) should be(expected)
   }
 
@@ -48,12 +48,12 @@ class SoulDataTest extends FlatSpec with Matchers {
   }
 
   it should "calculate handle spirit damage" in {
-    val expected1 = Spirit(5, 3, 50)
-    val expected2 = Spirit(2, 3, 50)
+    val expected1 = Spirit(5, SpiritBase(3, 50))
+    val expected2 = Spirit(2, SpiritBase(3, 50))
     val updated = soulData.receiveDamage(5)(eq)
     val next = updated.receiveDamage(3)(eq)
-    updated.spiritPower should be(expected1)
-    next.spiritPower should be(expected2)
+    updated.spirit(eq) should be(expected1)
+    next.spirit(eq) should be(expected2)
   }
 
 }
