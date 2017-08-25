@@ -29,7 +29,7 @@ case class Stats(private val s: Vector[StatProperty], private val base: SpiritBa
     * capacity = spirit_capacity + presence * 2
     * regen = spirit_regen + math.floor(presence * 0.1 + strength * 0.05)
     */
-  def effectiveSpirit(eq: Equipment, spirit: Spirit): Spirit = {
+  def effectiveSpirit(eq: Equipment, current: Int): Spirit = {
     val regen = base.regen
     val capacity = base.capacity
     val props = s.filter(x => x.prop == Strength || x.prop == PresencePower)
@@ -38,7 +38,7 @@ case class Stats(private val s: Vector[StatProperty], private val base: SpiritBa
       case StatProperty(Strength, lvl) => (lvl.value * 0.05, 0)
       case _ => (0d, 0)
     }.unzip
-    Spirit(spirit.points, regen + math.floor(regenBonus.sum).toInt, capacity + capacityBonus.sum)
+    Spirit(current, SpiritBase(regen + math.floor(regenBonus.sum).toInt, capacity + capacityBonus.sum))
   }
 
   /**

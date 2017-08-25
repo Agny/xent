@@ -1,9 +1,9 @@
 package ru.agny.xent.core.unit
 
-case class Spirit(points: Int, regen: Int, capacity: Int) {
-  def change(x: Int) = Spirit(points + x, regen, capacity)
+case class Spirit(points: Int, base: SpiritBase) {
+  def change(x: Int) = points + x
 
-  def toLifePower: Int = capacity
+  def toLifePower: Int = base.capacity
 }
 
 case class SpiritBase(regen: Int, capacity: Int)
