@@ -7,14 +7,13 @@ import ru.agny.xent.core.unit.Characteristic
 import ru.agny.xent.messages._
 import ru.agny.xent.messages.production._
 import ru.agny.xent.messages.unit.{CreateSoulMessage, CreateTroopMessage, StatPropertySimple}
-//import org.json4s.JsonDSL._ can't do this. Somehow it produce error in scala implicits
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
-import ru.agny.xent.core.{Cell, WorldCell}
+import ru.agny.xent.core.WorldCell
 
 object JsonOps {
 
-  private implicit val formats = DefaultFormats + WorldCellSerializer + VectorSerializer
+  private implicit val formats = DefaultFormats + WorldCellSerializer + VectorSerializer + StatPropertySimpleSerializer
   private val idGen = new AtomicLong(0)
 
   def toMessage(txt: String): Message = {
@@ -91,9 +90,9 @@ object StatPropertySimpleSerializer extends Serializer[StatPropertySimple] {
     case (TypeInfo(StatPropertySimpleClass, _), JObject(xs)) =>
       (for {
         prop <- xs.find(_._1 == "prop")
-        ch <- Characteristic.from(prop._2.as[String])
+        ch <- Characteristic.from(prop._2.extract[String])
         level <- xs.find(_._1 == "level")
-      } yield StatPropertySimple(prop._1, level._2.as[Int])
+      } yield StatPropertySimple(prop._1, level._2.extract[Int])
         ) getOrElse (throw new UnsupportedOperationException(s"No Characteristic for ${xs.find(_._1 == "prop").get._2}"))
 
   }
