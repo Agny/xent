@@ -26,7 +26,8 @@ object RedisEntity {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { ..$body }" :: Nil =>
           val companionName = tpname.toTermName
           val (constr, names) = helper.extractParametersFromTrees(paramss)
-          val parsedTree = helper.getConstructorParamsExpr(companionName, constr.map(_.toString), constr, names)
+          val (parsedTree, innerTypes) = helper.getConstructorParamsExpr(companionName, constr.map(_.toString), constr, names, Seq.empty)
+          val additionalImports = helper.getImportStatement(innerTypes)
           //TODO missing #toPersist actual implementation
           q"""$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents {
             ..$body
@@ -39,6 +40,7 @@ object RedisEntity {
             import ru.agny.xent.persistence.tokens._
             import ru.agny.xent.persistence.tokens.Nodes._
             import ru.agny.xent.persistence.MessageHandler
+            ..$additionalImports
 
             def create(v:String):ru.agny.xent.persistence.RedisMessage = {
               val result = TokenParser.tokenize(v)
@@ -109,26 +111,44 @@ class Helper[C <: blackbox.Context](val c: C) {
 
   val globalId = new AtomicLong(-1)
 
-  def getConstructorParamsExpr(constructor: TermName, basicTypes: Seq[String], types: Seq[Type], names: Seq[TermName]): Tree = {
+  def getConstructorParamsExpr(constructor: TermName, basicTypes: Seq[String], types: Seq[Type], names: Seq[TermName], typesToImport: Seq[String]): (Tree, Seq[String]) = {
     val params = for (i <- basicTypes.indices) yield {
       if (prims.contains(basicTypes(i))) {
-        getPrimitiveFieldAssignment(basicTypes(i), names(i))
+        (getPrimitiveFieldAssignment(basicTypes(i), names(i)), typesToImport)
       } else if (containers.contains(types(i).typeSymbol.name.toString)) {
-        getContainerExpr(types(i), names(i))
+        (getContainerExpr(types(i), names(i)), typesToImport)
       } else {
         val tpe = types(i)
         val shortName = typeToTerm(tpe)
         val defaultConstructor = extractParametersFromMembers(tpe.members, termNames.CONSTRUCTOR).map(_.unzip3 match {
-          case (s, bt, tn) if s.nonEmpty => getConstructorParamsExpr(shortName, s, bt, tn)
+          case (s, bt, tn) if s.nonEmpty => getConstructorParamsExpr(shortName, s, bt, tn, tpe.toString +: typesToImport)
           case _ => c.abort(c.enclosingPosition, s"$constructor has a type class parameter which is not supported yet: ${names(i)}:${tpe.toString}")
         })
         defaultConstructor.get
       }
     }
-    q"$constructor(..$params)"
+    val (cParams, additionalTypes) = params.unzip
+    (q"$constructor(..$cParams)", additionalTypes.flatten)
   }
 
-  private def getContainerExpr(constructorType: Type, fieldName: TermName) = {
+  def getImportStatement(types: Seq[String]): Seq[Import] = {
+
+    def imprt(packge: String, classes: List[String]): Import = {
+      Import(c.parse(packge), classes.map(x => impSelector(x.drop(1))))
+    }
+
+    def impSelector(cls: String): ImportSelector = {
+      val term = TermName(cls)
+      ImportSelector(term, 0, term, 0)
+    }
+
+    val imports = types.map(t => t.splitAt(t.lastIndexOf(".")))
+    val empty = Map.empty[String, Set[String]].withDefaultValue(Set.empty)
+    val packageWithClasses = imports.foldLeft(empty) { case (m, stmt) => m + (stmt._1 -> (m(stmt._1) + stmt._2)) }.map(x => (x._1, x._2.toList))
+    packageWithClasses.foldLeft(Seq.empty[Import]) { case (imp, stmt) => imprt(stmt._1, stmt._2) +: imp }
+  }
+
+  private def getContainerExpr(constructorType: Type, fieldName: TermName): Tree = {
     val elementType = constructorType.typeArgs.head
     val containerName = typeToTerm(constructorType)
     val elementName = typeToTerm(elementType)
@@ -139,7 +159,7 @@ class Helper[C <: blackbox.Context](val c: C) {
         } else {
           val defaultConstructor = extractParametersFromMembers(elementType.members, termNames.CONSTRUCTOR).map(_.unzip3 match {
             case (s, bt, tn) if s.nonEmpty =>
-              getContainerFieldAssignment(containerName, fieldName, getConstructorParamsExpr(elementName, s, bt, tn))
+              getContainerFieldAssignment(containerName, fieldName, getConstructorParamsExpr(elementName, s, bt, tn, Seq.empty)._1)
             case _ => c.abort(c.enclosingPosition, s"$constructorType has a type class parameter which is not supported yet: $fieldName:${elementType.toString}")
           })
           defaultConstructor.get
@@ -149,7 +169,7 @@ class Helper[C <: blackbox.Context](val c: C) {
     companionConstructor.get
   }
 
-  private def getPrimitiveFieldAssignment(exprType: String, fieldName: TermName) = {
+  private def getPrimitiveFieldAssignment(exprType: String, fieldName: TermName): Tree = {
     q"$fieldName = ${getPrimitiveExpr(exprType)}"
   }
 

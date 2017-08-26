@@ -5,5 +5,3 @@ case class Spirit(points: Int, base: SpiritBase) {
 
   def toLifePower: Int = base.capacity
 }
-
-case class SpiritBase(regen: Int, capacity: Int)
