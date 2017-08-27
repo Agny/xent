@@ -17,6 +17,7 @@ val core = project.in(file("core"))
 
 val web = project.in(file("web"))
   .settings(commonSettings, libraryDependencies ++= webDeps)
+  .settings(mainClass in assembly := Some("ru.agny.xent.web.Basic"))
   .dependsOn(core)
 
 lazy val root = project.in(file("."))
