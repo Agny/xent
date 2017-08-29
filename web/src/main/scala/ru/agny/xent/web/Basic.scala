@@ -1,5 +1,7 @@
 package ru.agny.xent.web
 
-object Basic extends App {
-  GameServer.run
+object Basic {
+  def main(args: Array[String]): Unit = {
+    GameServer.run
+  }
 }

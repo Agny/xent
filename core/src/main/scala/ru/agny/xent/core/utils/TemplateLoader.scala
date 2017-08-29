@@ -15,7 +15,7 @@ object TemplateLoader {
   private implicit val formats = DefaultFormats
 
   def loadProducibles(layer: String): Vector[Producible] = {
-    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/item/producible").toURI)
+    val resourcesDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/item/producible").getPath)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
       val t = parse(fromFile(f).mkString).extract[ProducibleTemplate]
@@ -24,7 +24,7 @@ object TemplateLoader {
   }
 
   def loadObtainables(layer: String): Vector[Obtainable] = {
-    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/item/obtainable").toURI)
+    val resourcesDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/item/obtainable").getPath)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
       val t = parse(fromFile(f).mkString).extract[ObtainableTemplate]
@@ -33,7 +33,7 @@ object TemplateLoader {
   }
 
   def loadExtractables(layer: String): Vector[Extractable] = {
-    val resourcesDir = new File(getClass.getResource(s"/layers/$layer/item/extractable").toURI)
+    val resourcesDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/item/extractable").getPath)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
       val t = parse(fromFile(f).mkString).extract[ExtractableTemplate]
@@ -44,7 +44,7 @@ object TemplateLoader {
   def loadOutposts(layer: String): Vector[OutpostTemplate] = {
     val producibles = loadProducibles(layer)
     val obtainables = loadObtainables(layer)
-    val outpostsDir = new File(getClass.getResource(s"/layers/$layer/facility/outpost").toURI)
+    val outpostsDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/facility/outpost").getPath)
     outpostsDir.listFiles().toVector.map(f => {
       val t = parse(fromFile(f).mkString).extract[OutpostTemplateJson]
       val ores = t.obtainable.flatMap(res => obtainables.find(x => x.name == res).map(x => x))
@@ -55,7 +55,7 @@ object TemplateLoader {
   def loadBuildings(layer: String): Vector[BuildingTemplate] = {
     val producibles = loadProducibles(layer)
     val obtainables = loadObtainables(layer)
-    val buildingsDir = new File(getClass.getResource(s"/layers/$layer/facility/building").toURI)
+    val buildingsDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/facility/building").getPath)
     buildingsDir.listFiles().toVector.map(f => {
       val t = parse(fromFile(f).mkString).extract[BuildingTemplateJson]
       val pres = t.producible.flatMap(res => producibles.find(x => x.name == res).map(x => x))
