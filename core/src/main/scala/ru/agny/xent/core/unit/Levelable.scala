@@ -11,6 +11,12 @@ case class Level(value: Int, exp: Int) {
     val lvlInLastTier = value % 10
     1 to tiers + 1 map (x => x -> (if (x > tiers) lvlInLastTier else 10))
   }
+
+  def gainExp(volume: Int): Level = {
+    val total = exp + volume
+    if (total >= capacity) Level(value + 1, total - capacity)
+    else Level(value, total)
+  }
 }
 
 object Level {

@@ -5,7 +5,7 @@ import ru.agny.xent.battle.Tactic
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.unit.equip._
 
-case class Soul(id: ObjectId, stats: SoulData, private val equip: Equipment) extends Levelable {
+case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Equipment) extends Levelable {
 
   private implicit val eq = equip
 
@@ -27,6 +27,8 @@ case class Soul(id: ObjectId, stats: SoulData, private val equip: Equipment) ext
     val damage = IncomeDamage(d.attr, stats.defenseModifiers, stats.armor, d.calc())
     copy(stats = stats.receiveDamage(damage.calc()))
   }
+
+  def gainExp(amount: Int): Soul = copy(stats = stats.gainExp(amount))
 
   def lose(): (Soul, Equipment) = (copy(equip = Equipment.empty), equip)
 }

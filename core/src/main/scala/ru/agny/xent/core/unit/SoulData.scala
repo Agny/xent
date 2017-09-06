@@ -24,6 +24,14 @@ case class SoulData(level: Level, spiritPower: Int, private val stats: Stats, pr
 
   def defenseModifiers(implicit equipment: Equipment): Potential = Potential(equipment.props()(Defensive))
 
-  def receiveDamage(dmg: Int)(implicit equipment: Equipment): SoulData = copy(spiritPower = spirit.change(-dmg))
+  def receiveDamage(dmg: Int)(implicit equipment: Equipment): SoulData = {
+    val updatedSpirit = spirit.change(-dmg)
+    val expEarned = {
+      if (updatedSpirit >= 0) dmg
+      else spirit.points
+    }
+    copy(level = level.gainExp(expEarned), spiritPower = spirit.change(-dmg))
+  }
 
+  def gainExp(amount: Int) = copy(level = level.gainExp(amount))
 }

@@ -10,10 +10,11 @@ trait Tactic {
   def execute(enemy: Troop): (Soul, Troop) = {
     if (enemy.isActive) {
       val damage = damageOutcome(enemy)
+      val expEarned = damage.calc().toInt
       val target = chooseTarget(enemy)
       val res = enemy.receiveDamage(damage, target.map(_.id))
       //TODO fightback
-      (self, res)
+      (self.gainExp(expEarned), res)
     } else {
       (self, enemy)
     }
