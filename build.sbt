@@ -4,7 +4,7 @@ val commonSettings = Seq(
   organization := "ru.agny",
   version := "0.1.0",
   scalaVersion := currentScalaVersion,
-  //scalacOptions ++= Seq("-feature"),
+  scalacOptions ++= Seq("-language:implicitConversions", "-language:postfixOps", "-feature"),
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 )
 
