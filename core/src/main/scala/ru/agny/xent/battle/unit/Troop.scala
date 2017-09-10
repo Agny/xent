@@ -24,7 +24,7 @@ case class Troop(id: ObjectId, private val units: NESeq[Soul], backpack: Backpac
 
   val moveSpeed = activeUnits match {
     case x@h +: t => x.minBy(_.speed).speed
-    case _ => Speed.default
+    case _ => Troop.FALLEN_SPEED
   }
 
   lazy val initiative = if (activeUnits.nonEmpty)
