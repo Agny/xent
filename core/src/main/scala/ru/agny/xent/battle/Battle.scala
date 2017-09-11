@@ -2,7 +2,7 @@ package ru.agny.xent.battle
 
 import ru.agny.xent.UserType.UserId
 import ru.agny.xent.battle.unit.Troop
-import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.{Coordinate, MapObject}
 import ru.agny.xent.core.Progress.ProgressTime
 import ru.agny.xent.core.utils.NESeq
 
@@ -14,14 +14,14 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, round: Ro
   import Battle._
   import Combatants._
 
-  def tick(progress: ProgressTime): (Option[Battle], Vector[Troop], ProgressTime) = rec_tick(progress, Some(this), Vector.empty)
+  def tick(progress: ProgressTime): (Option[Battle], Vector[MapObject], ProgressTime) = rec_tick(progress, Some(this), Vector.empty)
 
   def addTroops(t: Vector[Troop]): Battle = copy(combatants = combatants.queue(t))
 
   //TODO unite troops to Squads
-  private def toNextRound: (Option[Battle], Vector[Troop]) = {
+  private def toNextRound: (Option[Battle], Vector[MapObject]) = {
     val troopsByUser = combatants.groupByUsers
-    val (troopsResult, _) = nextAttack(troopsByUser.values.flatten.unzip._2.toVector, troopsByUser)
+    val (troopsResult, _) = nextAttack(troopsByUser.values.flatten.unzip._2.collect { case t: Troop => t }.toVector, troopsByUser)
     val (next, out) = prepareToNextRound(combatants, troopsResult)
     next match {
       case Some(v) =>
@@ -31,7 +31,7 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, round: Ro
     }
   }
 
-  @tailrec private def nextAttack(attackers: Vector[Troop], pool: Pool): (Vector[Troop], Pool) = {
+  @tailrec private def nextAttack(attackers: Vector[Troop], pool: Pool): (Vector[MapObject], Pool) = {
     val (mostInitiative +: tail) = attackers.sortBy(-_.initiative)
     val target = claimEnemy(mostInitiative.user, pool.map(x => x._1 -> x._2.values))
     val (attacker, attacked) = attack(mostInitiative, target)
@@ -43,12 +43,12 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, round: Ro
     else (updPool.values.flatten.unzip._2.toVector, updPool)
   }
 
-  private def validateAttackers(base: Vector[Troop], attacked: Troop): Vector[Troop] = {
+  private def validateAttackers(base: Vector[Troop], attacked: MapObject): Vector[Troop] = {
     val others = base.filterNot(_.id == attacked.id)
     if (others.size == base.size) others
-    else {
-      if (attacked.isAbleToFight) attacked +: others
-      else others
+    else attacked match {
+      case t: Troop if t.isAbleToFight => t +: others
+      case _ => others
     }
   }
 
@@ -60,17 +60,17 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, round: Ro
     }
   }
 
-  private def claimEnemy(self: UserId, troops: Map[UserId, Iterable[Troop]]): Troop = {
+  private def claimEnemy(self: UserId, troops: Map[UserId, Iterable[MapObject]]): MapObject = {
     val mbtargets = troops.filter(_._1 != self).values.flatten.toVector
     randomTarget(mbtargets)
   }
 
-  private def randomTarget(from: Vector[Troop]): Troop = {
+  private def randomTarget(from: Vector[MapObject]): MapObject = {
     val rnd = Random.nextInt(from.size)
     from(rnd)
   }
 
-  private def attack(attacker: Troop, target: Troop): (Troop, Troop) = {
+  private def attack(attacker: Troop, target: MapObject): (Troop, MapObject) = {
     attacker.attack(target)
   }
 
@@ -79,10 +79,10 @@ case class Battle(pos: Coordinate, private val combatants: Combatants, round: Ro
 }
 
 object Battle {
-  def apply(pos: Coordinate, troops: NESeq[Troop]): Battle =
+  def apply(pos: Coordinate, troops: NESeq[MapObject]): Battle =
     Battle(pos, Combatants(troops, Vector.empty), Round(1, NESeq(troops)))
 
-  def rec_tick(progress: ProgressTime, battle: Option[Battle], leavers: Vector[Troop]): (Option[Battle], Vector[Troop], ProgressTime) = {
+  def rec_tick(progress: ProgressTime, battle: Option[Battle], leavers: Vector[MapObject]): (Option[Battle], Vector[MapObject], ProgressTime) = {
     battle match {
       case Some(b) =>
         val currentProgress = b.round.progress + progress

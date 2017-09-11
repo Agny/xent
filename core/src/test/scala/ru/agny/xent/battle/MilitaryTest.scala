@@ -29,7 +29,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val timeToBattleAndBack = (Distance.tileToDistance(2) * 2) / Speed.default
     val enoughTime = System.currentTimeMillis() + timeToBattleAndBack + Round.timeLimitMax
     val (result, out) = start.tick(enoughTime)
-    result.troops.size should be(1)
+    result.objects.size should be(1)
     out.size should be(1)
   }
 
@@ -50,7 +50,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val (result, out) = secondEncounter.tick(twoRoundFightEnds)
     firstEncounter.events.collect { case b: Battle => b.troops.size }.head should be(2)
     secondEncounter.events.collect { case b: Battle => b.troops.size }.head should be(2)
-    result.troops.size should be(1)
+    result.objects.size should be(1)
     out.size should be(2)
   }
 
@@ -68,7 +68,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val (moved, _) = withEncounter.tick(battleEnd)
     val (result, out) = moved.tick(battleEnd + Distance.tileToDistance(2) / Speed.default)
 
-    out.head.move(0) should be(Coordinate(1, 1))
+    out.head.pos(0) should be(Coordinate(1, 1))
   }
 
   it should "continue troops movement after battle" in {
@@ -84,7 +84,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val firstRoundEnd = battleStart + firstRound.events.head.asInstanceOf[Battle].round.duration
     val (result, _) = firstRound.tick(firstRoundEnd + Distance.tileToDistance(1) / quickSoulSample.speed)
 
-    result.troops.last.move(0) should be(pos3)
+    result.objects.last.pos(0) should be(pos3)
   }
 
   def getQuickSoul(id: ObjectId) = {

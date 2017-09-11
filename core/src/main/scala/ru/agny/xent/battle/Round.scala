@@ -1,10 +1,11 @@
 package ru.agny.xent.battle
 
 import ru.agny.xent.battle.unit.Troop
+import ru.agny.xent.core.MapObject
 import ru.agny.xent.core.Progress._
 import ru.agny.xent.core.utils.{NESeq, TimeUnit}
 
-case class Round(n: Int, troops: NESeq[Troop], progress: ProgressTime = 0) {
+case class Round(n: Int, troops: NESeq[MapObject], progress: ProgressTime = 0) {
 
   import Round._
 
@@ -15,7 +16,7 @@ case class Round(n: Int, troops: NESeq[Troop], progress: ProgressTime = 0) {
 
   def tick(t: ProgressTime): Round = copy(progress = progress + t)
 
-  def next(t: NESeq[Troop]): Round = Round(n + 1, t)
+  def next(t: NESeq[MapObject]): Round = Round(n + 1, t)
 
   private def time(armiesByUserWithWeight: Iterable[Int]): ProgressTime = {
     if (armiesByUserWithWeight.size < 2) 0
