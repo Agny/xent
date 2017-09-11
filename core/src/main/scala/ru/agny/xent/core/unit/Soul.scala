@@ -1,11 +1,11 @@
 package ru.agny.xent.core.unit
 
 import ru.agny.xent.UserType.ObjectId
-import ru.agny.xent.battle.Tactic
+import ru.agny.xent.battle.{Tactic, Targetable}
 import ru.agny.xent.core.MapObject
 import ru.agny.xent.core.unit.equip._
 
-case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Equipment) extends Levelable {
+case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Equipment) extends Targetable {
 
   private implicit val eq = equip
 
@@ -13,8 +13,8 @@ case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Eq
   lazy val endurance = stats.endurance
   lazy val initiative = stats.initiative
   lazy val speed = stats.speed
-  lazy val spirit = stats.spirit
-  lazy val state = spirit.points match {
+  lazy val spirit = stats.spirit.points
+  lazy val state = spirit match {
     case alive if alive > 0 => Soul.Active
     case _ => Soul.Fallen
   }

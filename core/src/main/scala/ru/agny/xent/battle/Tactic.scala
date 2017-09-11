@@ -22,7 +22,7 @@ trait Tactic {
 
   def damageOutcome(enemy: MapObject): OutcomeDamage
 
-  def chooseTarget(enemy: MapObject): Vector[Soul]
+  def chooseTarget(enemy: MapObject): Vector[Targetable]
 }
 
 case class BasicTactic(self: Soul) extends Tactic {
@@ -35,7 +35,7 @@ case class BasicTactic(self: Soul) extends Tactic {
     OutcomeDamage(attackBy, cast + bonus)
   }
 
-  def chooseTarget(enemy: MapObject): Vector[Soul] = Vector(enemy.activeUnits.head)
+  def chooseTarget(enemy: MapObject): Vector[Targetable] = Vector(enemy.body.head)
 }
 
 object Tactic {

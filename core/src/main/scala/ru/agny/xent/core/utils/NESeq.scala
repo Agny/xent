@@ -4,7 +4,7 @@ import scala.collection.IndexedSeq._
 import scala.collection.IndexedSeq
 import scala.collection.generic.GenericTraversableTemplate
 
-case class NESeq[A](override val head: A, override val tail: IndexedSeq[A]) extends IndexedSeq[A]
+case class NESeq[+A](override val head: A, override val tail: IndexedSeq[A]) extends IndexedSeq[A]
   with GenericTraversableTemplate[A, IndexedSeq] {
 
   private val underlying = head +: tail

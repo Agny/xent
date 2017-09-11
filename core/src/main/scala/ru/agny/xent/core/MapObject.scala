@@ -1,14 +1,17 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.UserType.{ObjectId, UserId}
+import ru.agny.xent.battle.Targetable
 import ru.agny.xent.core.Progress.ProgressTime
 import ru.agny.xent.core.unit.equip.OutcomeDamage
+import ru.agny.xent.core.utils.NESeq
 
 //TODO Think about more appropriate name, which describes object on the world map: troops/cargos/outposts/cities etc.
 abstract class MapObject {
   val id: ObjectId
   val user: UserId
   val weight: Int
+  val body: NESeq[Targetable]
 
   def pos(time: ProgressTime): Coordinate
 
