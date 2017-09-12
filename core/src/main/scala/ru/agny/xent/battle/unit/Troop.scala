@@ -81,7 +81,7 @@ case class Troop(id: ObjectId,
     (unitState +: oldSate, newTroopState)
   }
 
-  override def isDiscardable = !isActive
+  override def isDiscardable = !isActive && plan.now(moveSpeed, 0) == plan.home
 
   override def isAggressive = isAbleToFight //TODO introduce an Order system, which defines a behaviour of the troop
 }
