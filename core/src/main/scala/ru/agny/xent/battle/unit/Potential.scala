@@ -3,7 +3,7 @@ package ru.agny.xent.battle.unit
 import ru.agny.xent.core.unit.equip.{Attribute, AttrProperty}
 
 /**
-  * Describe effectiveness of equipment to resist/inflict damage with attribute
+  * Represents effectiveness of equipment to resist/inflict damage with attribute
   */
 
 case class Potential(stats: Vector[AttrProperty]) {
@@ -25,4 +25,8 @@ case class Potential(stats: Vector[AttrProperty]) {
       case None => if (f(max._2, attack.value)) (attack, attack.value) else max
     }
   )
+}
+
+object Potential {
+  val zero = Potential(Vector.empty)
 }
