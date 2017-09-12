@@ -19,7 +19,7 @@ abstract class MapObject {
   /** @return true if this object is able to participate in activities */
   def isActive: Boolean
 
-  /** @return true if this object is able to pa */
+  /** @return true if this object is able to attack */
   def isAbleToFight: Boolean
 
   /** @return true if this object can be discarded from global map and be assimilated by user */
