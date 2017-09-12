@@ -21,7 +21,7 @@ case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Eq
 
   def attackRates(implicit target: MapObject) = stats.attackModifiers
 
-  def attack(target: MapObject): (Soul, MapObject) = Tactic.get(this).execute(target)
+  def attack[Target <: MapObject](target: Target): (Soul, Target) = Tactic.get(this).execute(target)
 
   def receiveDamage(d: OutcomeDamage) = {
     val damage = IncomeDamage(d.attr, stats.defenseModifiers, stats.armor, d.calc())

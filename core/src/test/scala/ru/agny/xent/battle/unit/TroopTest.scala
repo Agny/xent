@@ -23,7 +23,7 @@ class TroopTest extends FlatSpec with Matchers with EitherValues {
     val (_, t2u) = t1.attack(t2)
     val s3u = t2u.activeUnits.head
     val s4u = t2u.activeUnits.tail.head
-    s3u.spirit.points should be < soul3.spirit.points
+    s3u.spirit should be < soul3.spirit
     s4u should be theSameInstanceAs soul4
   }
 

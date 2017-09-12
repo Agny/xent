@@ -7,27 +7,27 @@ import ru.agny.xent.core.unit.equip.OutcomeDamage
 trait Tactic {
   val self: Soul
 
-  def execute(enemy: MapObject): (Soul, MapObject) = {
+  def execute[Target <: MapObject](enemy: Target): (Soul, Target) = {
     if (enemy.isActive) {
       val damage = damageOutcome(enemy)
       val expEarned = damage.calc().toInt
       val target = chooseTarget(enemy)
       val res = enemy.receiveDamage(damage, target.map(_.id))
       //TODO fightback
-      (self.gainExp(expEarned), res)
+      (self.gainExp(expEarned), res.asInstanceOf[Target])
     } else {
       (self, enemy)
     }
   }
 
-  def damageOutcome(enemy: MapObject): OutcomeDamage
+  def damageOutcome[Target <: MapObject](enemy: Target): OutcomeDamage
 
-  def chooseTarget(enemy: MapObject): Vector[Targetable]
+  def chooseTarget[Target <: MapObject](enemy: Target): Vector[Targetable]
 }
 
 case class BasicTactic(self: Soul) extends Tactic {
 
-  def damageOutcome(enemy: MapObject) = {
+  def damageOutcome[Target <: MapObject](enemy: Target) = {
     implicit val target = enemy
     val (wpn, rates) = self.attackRates.head
     val (attackBy, bonus) = rates.maxBy(_._1.value)
@@ -35,7 +35,7 @@ case class BasicTactic(self: Soul) extends Tactic {
     OutcomeDamage(attackBy, cast + bonus)
   }
 
-  def chooseTarget(enemy: MapObject): Vector[Targetable] = Vector(enemy.body.head)
+  def chooseTarget[Target <: MapObject](enemy: Target): Vector[Targetable] = Vector(enemy.body.head)
 }
 
 object Tactic {

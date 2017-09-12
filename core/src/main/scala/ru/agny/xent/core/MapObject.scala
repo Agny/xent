@@ -8,6 +8,7 @@ import ru.agny.xent.core.utils.NESeq
 
 //TODO Think about more appropriate name, which describes object on the world map: troops/cargos/outposts/cities etc.
 abstract class MapObject {
+  type Self <: MapObject
   val id: ObjectId
   val user: UserId
   val weight: Int
@@ -28,7 +29,7 @@ abstract class MapObject {
   def isAggressive: Boolean
 
   /** return fallen state of this object along with loot list */
-  def concede(): (MapObject, Vector[Item])
+  def concede(): (Self, Vector[Item])
 
-  def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): MapObject
+  def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Self
 }

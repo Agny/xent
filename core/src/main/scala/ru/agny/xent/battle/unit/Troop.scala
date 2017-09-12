@@ -17,7 +17,9 @@ case class Troop(id: ObjectId,
 
   import Fatigue._
 
-  private val activeUnits = units.filter(_.state == Soul.Active)
+  type Self = Troop
+  override val body = units
+  val activeUnits = units.filter(_.state == Soul.Active)
   lazy val weight = activeUnits.foldLeft(0)((sum, x) => sum + x.weight)
   lazy val isActive = activeUnits.nonEmpty
   lazy val isAbleToFight = isActive && endurance > 0
@@ -43,17 +45,17 @@ case class Troop(id: ObjectId,
     * in other case UnsupportedOperationException("empty.head") will be thrown. BTW, latter can happen only due programmed logical error
     * and hence can be tested out
     */
-  def attack(other: MapObject): (Troop, MapObject) = {
+  def attack[Target <: MapObject](other: Target): (Troop, Target) = {
     val (u, t) = activeUnits.foldLeft((Vector.empty[Soul], other))(handleBattle)
     if (!t.isActive) {
       val (looser, loot) = t.concede()
-      (Troop(id, NESeq(u), backpack.add(loot)._1, user, plan, fatigue ++), looser)
+      (Troop(id, NESeq(u), backpack.add(loot)._1, user, plan, fatigue ++), looser.asInstanceOf[Target])
     } else {
       (Troop(id, NESeq(u), backpack, user, plan, fatigue ++), t)
     }
   }
 
-  def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Troop = {
+  override def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Self = {
     val souls = activeUnits.map {
       case u if targeted.contains(u.id) => u.receiveDamage(d)
       case unharmed => unharmed
@@ -66,14 +68,14 @@ case class Troop(id: ObjectId,
     else plan.goHome(moveSpeed, time)
   }
 
-  override def concede(): (Troop, Vector[Item]) = {
+  override def concede(): (Self, Vector[Item]) = {
     val (looserUnits, eq) = units.map(_.lose()).unzip
     val loot = backpack.toSpoil ++ eq.flatMap(_.toSpoil)
     val t = Troop(id, NESeq(looserUnits), Backpack.empty, user, plan, Fatigue.MAX)
     (t, loot)
   }
 
-  private def handleBattle(state: (Vector[Soul], MapObject), attacker: Soul): (Vector[Soul], MapObject) = {
+  private def handleBattle[Target <: MapObject](state: (Vector[Soul], Target), attacker: Soul): (Vector[Soul], Target) = {
     val (oldSate, troop) = state
     val (unitState, newTroopState) = attacker.attack(troop)
     (unitState +: oldSate, newTroopState)
