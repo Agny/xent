@@ -8,7 +8,7 @@ import ru.agny.xent.core.unit.equip.{IncomeDamage, OutcomeDamage}
 case class Guard(id: ObjectId, spirit: Int, armor: Int) extends Targetable {
   override type Self = Guard
 
-  override val weight = spirit / 10 + armor * 2
+  override val weight = if (spirit > 0) spirit / 10 + armor * 2 else 0
 
   override def receiveDamage(d: OutcomeDamage) = {
     val damage = IncomeDamage(d.attr, Potential.zero, armor, d.calc())

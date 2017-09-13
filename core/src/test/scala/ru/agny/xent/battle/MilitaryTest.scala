@@ -4,10 +4,9 @@ import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.UserType._
 import ru.agny.xent.battle.unit.{Backpack, StubStrongWeapon, Troop}
 import ru.agny.xent.core.{Coordinate, ItemStack}
-import ru.agny.xent.core.unit.characteristic.{Agility, PresencePower, Strength}
+import ru.agny.xent.core.unit.characteristic.{Agility, PresencePower}
 import ru.agny.xent.core.unit.equip.{Equipment, StatProperty}
 import ru.agny.xent.core.unit._
-import ru.agny.xent.core.unit.equip.DefaultValue.implicits.DefaultWeapon
 import ru.agny.xent.core.utils.{NESeq, TimeUnit}
 
 class MilitaryTest extends FlatSpec with Matchers with EitherValues {
@@ -110,22 +109,22 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
   }
 
   "Troop" should "take loot from cargo" in {
+    val expectedResources = ItemStack(1, 2)
     val start = {
       val pos4 = Coordinate(3, 3)
       val moveOne = MovementPlan(Vector(Movement(pos4, pos1)), pos1)
       val moveTwo = MovementPlan(Vector(Movement(pos1, pos4)), pos4)
       val troopOne = Troop(1, NESeq(Vector(getSoulWithStrongWeapon(1))), Backpack.empty, userOne, moveOne)
-      val cargoTwo = Cargo(2, userTwo, NESeq(Vector(Guard.tiered(0)(userTwo))), ItemStack(1, 2), moveTwo)
+      val cargoTwo = Cargo(2, userTwo, NESeq(Vector(Guard.tiered(0)(userTwo))), expectedResources, moveTwo)
       Military(Vector(troopOne, cargoTwo), Vector.empty, System.currentTimeMillis())
     }
-    val samePositions = System.currentTimeMillis() + Distance.tileToDistance(2) / Guard.speed
-    val meetingPos = Coordinate(2, 2)
-    val (result, _) = start.tick(samePositions)
-    val (c1 +: c2 +: _) = result.objects
+    val battleStart = System.currentTimeMillis() + Distance.tileToDistance(2) / Guard.speed
+    val (firstRound, _) = start.tick(battleStart)
+    val firstRoundEnd = battleStart + firstRound.events.head.asInstanceOf[Battle].round.duration
+    val (result, out) = firstRound.tick(firstRoundEnd)
 
-    c1.pos(0) should be(meetingPos)
-    c2.pos(0) should be(meetingPos)
-    result.events.size should be(1)
+    out.size should be(1)
+    result.objects.head.asInstanceOf[Troop].backpack.getItem(2).get should be(expectedResources)
   }
 
   def getQuickSoul(id: ObjectId) = {
