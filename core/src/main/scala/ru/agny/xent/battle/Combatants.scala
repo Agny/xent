@@ -22,7 +22,7 @@ object Combatants {
 
   def adjustPool(pool: Pool, value: MapObject): Pool = pool.updated(value.user, pool(value.user).updated(value.id, value))
 
-  def isBattleNeeded(troops: Seq[MapObject]): Boolean = troops.map(_.user).distinct.length > 1
+  def isBattleNeeded(troops: Seq[MapObject]): Boolean = troops.exists(_.isAbleToFight) && troops.map(_.user).distinct.length > 1
 
   def prepareToNextRound(self: Combatants, afterBattle: Vector[MapObject]): (Option[Combatants], Vector[MapObject]) = {
     val (alive, out) = getAbleToFight(afterBattle)
@@ -31,5 +31,5 @@ object Combatants {
     else (None, out ++ ready)
   }
 
-  private def getAbleToFight(troops: Vector[MapObject]) = troops.partition(_.isAbleToFight)
+  private def getAbleToFight(troops: Vector[MapObject]) = troops.partition(_.isActive)
 }

@@ -30,7 +30,7 @@ object Military {
 
   @tailrec private def quantify(m: Military, time: ProgressTime, by: ProgressTime): Military = {
     val quantum = if (time > by) by else time
-    val (battleActive, fallen) = m.objects.map(x => (x, x.pos(quantum))).partition(_._1.isAbleToFight)
+    val (battleActive, fallen) = m.objects.map(x => (x, x.pos(quantum))).partition(_._1.isActive)
     val grouped = groupByPos(battleActive)
     val (freeTroops, updatedEvents) = collide(m.events, grouped, quantum)
     val res = Military(freeTroops ++ fallen.unzip._1, updatedEvents, m.lastTick + quantum)

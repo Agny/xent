@@ -13,6 +13,13 @@ package object unit {
     override val schema: ProductionSchema = ProductionSchema(0, Cost(Vector.empty), Set.empty)
     override val weight: Int = 0
   }
+  case class StubStrongWeapon(id: ItemId = -1) extends Weapon {
+    override val damage: Dice = Dice(100, 10)
+    override val attrs: Vector[AttrProperty] = Vector(AttrProperty(Slashing, 10, Offensive), AttrProperty(Slashing, 1, Defensive))
+    override val name: String = "slasher3000"
+    override val schema: ProductionSchema = ProductionSchema(0, Cost(Vector.empty), Set.empty)
+    override val weight: Int = 0
+  }
   case class StubArmor() extends Armor {
     override val attrs: Vector[AttrProperty] = Vector(AttrProperty(Slashing, 4, Defensive), AttrProperty(Piercing, 6, Defensive))
     override val name: String = "leather jacket"

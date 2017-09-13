@@ -1,13 +1,14 @@
 package ru.agny.xent.battle
 
-import org.scalatest.{EitherValues, Matchers, FlatSpec}
+import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.UserType._
-import ru.agny.xent.battle.unit.{Backpack, Troop}
-import ru.agny.xent.core.Coordinate
-import ru.agny.xent.core.unit.characteristic.{PresencePower, Agility}
-import ru.agny.xent.core.unit.equip.{StatProperty, Equipment}
+import ru.agny.xent.battle.unit.{Backpack, StubStrongWeapon, Troop}
+import ru.agny.xent.core.{Coordinate, ItemStack}
+import ru.agny.xent.core.unit.characteristic.{Agility, PresencePower, Strength}
+import ru.agny.xent.core.unit.equip.{Equipment, StatProperty}
 import ru.agny.xent.core.unit._
-import ru.agny.xent.core.utils.{TimeUnit, NESeq}
+import ru.agny.xent.core.unit.equip.DefaultValue.implicits.DefaultWeapon
+import ru.agny.xent.core.utils.{NESeq, TimeUnit}
 
 class MilitaryTest extends FlatSpec with Matchers with EitherValues {
 
@@ -82,14 +83,58 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val battleStart = System.currentTimeMillis() + Distance.tileToDistance(2) / quickSoulSample.speed
     val (firstRound, _) = start.tick(battleStart)
     val firstRoundEnd = battleStart + firstRound.events.head.asInstanceOf[Battle].round.duration
-    val (result, _) = firstRound.tick(firstRoundEnd + Distance.tileToDistance(1) / quickSoulSample.speed)
+    val (secondRound, _) = firstRound.tick(firstRoundEnd)
+    val secondRoundEnd = firstRoundEnd + secondRound.events.head.asInstanceOf[Battle].round.duration
+    val (result, _) = secondRound.tick(secondRoundEnd + Distance.tileToDistance(1) / quickSoulSample.speed)
 
-    result.objects.last.pos(0) should be(pos3)
+    result.objects.head.pos(0) should be(pos3)
+  }
+
+  it should "not start battle for two cargos" in {
+    val start = {
+      val pos4 = Coordinate(3, 3)
+      val moveOne = MovementPlan(Vector(Movement(pos4, pos1)), pos1)
+      val moveTwo = MovementPlan(Vector(Movement(pos1, pos4)), pos4)
+      val cargoOne = Cargo(1, userOne, NESeq(Vector(Guard.tiered(0)(userOne))), ItemStack(1, 2), moveOne)
+      val cargoTwo = Cargo(2, userTwo, NESeq(Vector(Guard.tiered(0)(userTwo))), ItemStack(1, 2), moveTwo)
+      Military(Vector(cargoOne, cargoTwo), Vector.empty, System.currentTimeMillis())
+    }
+    val samePositions = System.currentTimeMillis() + Distance.tileToDistance(2) / Guard.speed
+    val meetingPos = Coordinate(2, 2)
+    val (result, _) = start.tick(samePositions)
+    val (c1 +: c2 +: _) = result.objects
+
+    c1.pos(0) should be(meetingPos)
+    c2.pos(0) should be(meetingPos)
+    result.events should be(Vector.empty)
+  }
+
+  "Troop" should "take loot from cargo" in {
+    val start = {
+      val pos4 = Coordinate(3, 3)
+      val moveOne = MovementPlan(Vector(Movement(pos4, pos1)), pos1)
+      val moveTwo = MovementPlan(Vector(Movement(pos1, pos4)), pos4)
+      val troopOne = Troop(1, NESeq(Vector(getSoulWithStrongWeapon(1))), Backpack.empty, userOne, moveOne)
+      val cargoTwo = Cargo(2, userTwo, NESeq(Vector(Guard.tiered(0)(userTwo))), ItemStack(1, 2), moveTwo)
+      Military(Vector(troopOne, cargoTwo), Vector.empty, System.currentTimeMillis())
+    }
+    val samePositions = System.currentTimeMillis() + Distance.tileToDistance(2) / Guard.speed
+    val meetingPos = Coordinate(2, 2)
+    val (result, _) = start.tick(samePositions)
+    val (c1 +: c2 +: _) = result.objects
+
+    c1.pos(0) should be(meetingPos)
+    c2.pos(0) should be(meetingPos)
+    result.events.size should be(1)
   }
 
   def getQuickSoul(id: ObjectId) = {
     val quickStats = Stats(Vector(StatProperty(Agility, Level(10, 0))))
     Soul(id, SoulData(Level(1, 0), 1, quickStats, Vector.empty), Equipment.empty)
+  }
+
+  def getSoulWithStrongWeapon(id: ObjectId) = {
+    Soul(id, SoulData(Level(1, 0), 1, Stats(Vector.empty), Vector.empty), Equipment.empty.add(StubStrongWeapon())._1)
   }
 
 }

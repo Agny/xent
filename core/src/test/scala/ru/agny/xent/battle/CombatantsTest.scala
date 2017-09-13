@@ -110,8 +110,8 @@ class CombatantsTest extends FlatSpec with Matchers with EitherValues {
       val fallenTwo = Soul(5, SoulData(Level(1, 1), 0, Stats.default, Vector.empty), Equipment.empty)
 
       val userThree = 3
-      val troopOne = Troop(1, NESeq(Vector(soulOne, fallen)), Backpack.empty, userOne, pos)
-      val troopTwo = Troop(2, NESeq(Vector(soulTwo, fallenTwo)), Backpack.empty, userTwo, pos, Fatigue.MAX)
+      val troopOne = Troop(1, NESeq(Vector(soulOne)), Backpack.empty, userOne, pos)
+      val troopTwo = Troop(2, NESeq(Vector(fallen, fallenTwo)), Backpack.empty, userTwo, pos, Fatigue.MAX)
       val troopQueue = Troop(3, NESeq(soulThree +: Vector.empty), Backpack.empty, userThree, pos)
       val troops = Vector(troopOne, troopTwo)
 
