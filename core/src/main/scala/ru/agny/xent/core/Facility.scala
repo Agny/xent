@@ -1,6 +1,8 @@
 package ru.agny.xent.core
 
-import Progress.ProgressTime
+import ru.agny.xent.core.city.{Building, Outpost, Storage}
+import ru.agny.xent.core.inventory.Progress.ProgressTime
+import ru.agny.xent.core.inventory.{DelayableItem, Obtainable, ResourceQueue}
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.utils.SubTyper
 

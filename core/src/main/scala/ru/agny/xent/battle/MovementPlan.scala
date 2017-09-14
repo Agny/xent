@@ -1,7 +1,7 @@
 package ru.agny.xent.battle
 
 import ru.agny.xent.core.Coordinate
-import ru.agny.xent.core.Progress.ProgressTime
+import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.unit.Speed.Distance
 import ru.agny.xent.core.unit.{Distance, Speed}
 

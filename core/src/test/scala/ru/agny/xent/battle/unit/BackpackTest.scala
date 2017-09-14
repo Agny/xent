@@ -1,8 +1,7 @@
 package ru.agny.xent.battle.unit
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
-import ru.agny.xent.core.ItemStack
-import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot}
+import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot, ItemStack}
 
 class BackpackTest extends FlatSpec with Matchers with EitherValues {
 

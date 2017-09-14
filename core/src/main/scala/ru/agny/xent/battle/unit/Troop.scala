@@ -1,12 +1,13 @@
 package ru.agny.xent.battle.unit
 
-import ru.agny.xent.UserType.{ObjectId, UserId}
-import ru.agny.xent.battle.{Fatigue, MovementPlan}
-import ru.agny.xent.core.Progress.ProgressTime
+import ru.agny.xent.core.UserType.{ObjectId, UserId}
+import ru.agny.xent.battle.{Fatigue, MapObject, MovementPlan}
+import ru.agny.xent.core.inventory.Item
+import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.unit.equip.OutcomeDamage
 import ru.agny.xent.core.utils.NESeq
-import ru.agny.xent.core.{Coordinate, Item, MapObject}
+import ru.agny.xent.core.Coordinate
 
 case class Troop(id: ObjectId,
                  private val units: NESeq[Soul],

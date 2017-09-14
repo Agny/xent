@@ -1,7 +1,6 @@
 package ru.agny.xent.messages
 
-import ru.agny.xent.Response
-import ru.agny.xent.UserType.UserId
+import ru.agny.xent.core.UserType.UserId
 import ru.agny.xent.persistence.{RedisAdapter, RedisEntity, RedisMessage}
 
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -1,9 +1,10 @@
 package ru.agny.xent.battle
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
-import ru.agny.xent.UserType._
-import ru.agny.xent.battle.unit.{Backpack, StubStrongWeapon, Troop}
-import ru.agny.xent.core.{Coordinate, ItemStack}
+import ru.agny.xent.core.UserType._
+import ru.agny.xent.battle.unit._
+import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.unit.characteristic.{Agility, PresencePower}
 import ru.agny.xent.core.unit.equip.{Equipment, StatProperty}
 import ru.agny.xent.core.unit._

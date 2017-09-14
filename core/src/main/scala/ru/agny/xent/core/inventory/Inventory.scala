@@ -1,8 +1,7 @@
 package ru.agny.xent.core.inventory
 
-import ru.agny.xent.core.Item.ItemId
+import Item.ItemId
 import ru.agny.xent.core.utils.SubTyper
-import ru.agny.xent.core.{ItemStack, Item}
 
 trait Inventory[S <: Inventory[_, T], T <: Item] {
   val holder: SlotHolder[T]

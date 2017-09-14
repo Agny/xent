@@ -1,6 +1,6 @@
 package ru.agny.xent
 
-import ru.agny.xent.UserType._
+import ru.agny.xent.core.UserType._
 import ru.agny.xent.core.unit._
 import ru.agny.xent.core.unit.equip.Equipment
 

@@ -1,7 +1,6 @@
 package ru.agny.xent.battle.unit
 
-import ru.agny.xent.core.inventory.{InventoryLike, ItemMerger, Slot}
-import ru.agny.xent.core.{Item, ItemHolder}
+import ru.agny.xent.core.inventory._
 
 case class Backpack(holder: ItemHolder) extends InventoryLike[Backpack, Item] {
 

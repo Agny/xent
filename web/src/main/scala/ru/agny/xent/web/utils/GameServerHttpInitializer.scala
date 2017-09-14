@@ -2,9 +2,10 @@ package ru.agny.xent.web.utils
 
 import io.netty.channel.{Channel, ChannelInitializer}
 import io.netty.handler.codec.http.{HttpObjectAggregator, HttpServerCodec}
-import io.netty.handler.ssl.{SslHandler, SslContext}
+import io.netty.handler.ssl.{SslContext, SslHandler}
 import io.netty.handler.stream.ChunkedWriteHandler
-import ru.agny.xent.{LayerRuntime, MessageHandler}
+import ru.agny.xent.core.LayerRuntime
+import ru.agny.xent.web.MessageHandler
 
 case class GameServerHttpInitializer(context: SslContext, handler:MessageHandler, runtime:LayerRuntime) extends ChannelInitializer[Channel] {
   override def initChannel(ch: Channel): Unit = {

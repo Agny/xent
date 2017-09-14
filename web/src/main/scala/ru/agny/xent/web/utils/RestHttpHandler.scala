@@ -3,8 +3,8 @@ package ru.agny.xent.web.utils
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
-import ru.agny.xent.core.Cell
-import ru.agny.xent.{LayerRuntime, MessageHandler}
+import ru.agny.xent.core.{Cell, LayerRuntime}
+import ru.agny.xent.web.MessageHandler
 
 /*
 * Temporary handler for test purposes

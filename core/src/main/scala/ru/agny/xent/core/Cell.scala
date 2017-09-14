@@ -1,7 +1,8 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.City
-import ru.agny.xent.UserType._
+import UserType._
+import ru.agny.xent.core.city.{Building, City, Outpost}
+import ru.agny.xent.core.inventory.Extractable
 
 trait Cell {
   val x, y: Int

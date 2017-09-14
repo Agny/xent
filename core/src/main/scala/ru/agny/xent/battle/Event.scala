@@ -1,7 +1,7 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.core.{Coordinate, MapObject}
-import ru.agny.xent.core.Progress.ProgressTime
+import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.inventory.Progress.ProgressTime
 
 trait Event {
   val pos: Coordinate

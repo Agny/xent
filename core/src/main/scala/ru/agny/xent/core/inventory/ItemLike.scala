@@ -1,7 +1,5 @@
 package ru.agny.xent.core.inventory
 
-import ru.agny.xent.core.Item
-
 trait ItemLike[To <: Item, From <: Item] {
   def cast(v: From): (Option[From], Option[To])
 }

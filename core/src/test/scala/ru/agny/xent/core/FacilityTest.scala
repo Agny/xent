@@ -1,15 +1,15 @@
 package ru.agny.xent.core
 
-import org.scalatest.{EitherValues, Matchers, FlatSpec}
+import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.TestHelper
-import ru.agny.xent.core.unit.equip.Equipment
-import ru.agny.xent.core.unit.{Level, Spirit, Soul}
+import ru.agny.xent.core.city.{Building, Outpost, Storage}
+import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.utils.TimeUnit
 
 class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
   import TestHelper._
-  import Item.implicits._
+  import ru.agny.xent.core.inventory.Item.implicits._
 
   val worker = defaultSoul(1)
   val woodId = 1

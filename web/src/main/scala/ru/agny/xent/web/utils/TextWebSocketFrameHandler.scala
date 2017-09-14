@@ -3,7 +3,7 @@ package ru.agny.xent.web.utils
 import io.netty.channel.group.ChannelGroup
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http.websocketx.{TextWebSocketFrame, WebSocketServerProtocolHandler}
-import ru.agny.xent.MessageHandler
+import ru.agny.xent.web.MessageHandler
 
 case class TextWebSocketFrameHandler(group: ChannelGroup, handler:MessageHandler) extends SimpleChannelInboundHandler[TextWebSocketFrame] {
 

@@ -1,9 +1,9 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.core.Item._
+import ru.agny.xent.core.inventory.Item._
 import ru.agny.xent.core.unit.equip._
 import ru.agny.xent.core.unit.equip.attributes.{Piercing, Slashing}
-import ru.agny.xent.core.{Cost, ProductionSchema}
+import ru.agny.xent.core.inventory.{Cost, ProductionSchema}
 
 package object unit {
   case class StubWeapon(id: ItemId = -1) extends Weapon {

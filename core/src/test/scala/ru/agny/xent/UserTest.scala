@@ -1,17 +1,18 @@
 package ru.agny.xent
 
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, FlatSpec}
-import ru.agny.xent.battle.{Waiting, Military, Movement}
-import ru.agny.xent.core.Shape.FourShape
-import ru.agny.xent.core.unit.equip.Equipment
-import ru.agny.xent.core.unit._
-import ru.agny.xent.core.utils.{OutpostTemplate, BuildingTemplate}
+import org.scalatest.{BeforeAndAfterAll, EitherValues, FlatSpec, Matchers}
+import ru.agny.xent.action.{DoNothing, Layer, PlaceBuilding, ResourceClaim}
+import ru.agny.xent.battle.{Military, Movement, Waiting}
+import ru.agny.xent.core.city.Shape.FourShape
+import ru.agny.xent.core.utils.{BuildingTemplate, OutpostTemplate}
 import ru.agny.xent.core._
+import ru.agny.xent.core.city._
+import ru.agny.xent.core.inventory._
 
 class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
   import TestHelper._
-  import Item.implicits._
+  import ru.agny.xent.core.inventory.Item.implicits._
 
   val shape = FourShape.name
   val waitingCoordinate = new Waiting(Coordinate(0, 0), 0)

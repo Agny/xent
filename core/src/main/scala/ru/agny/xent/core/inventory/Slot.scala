@@ -1,6 +1,5 @@
 package ru.agny.xent.core.inventory
 
-import ru.agny.xent.core.Item
 import ru.agny.xent.core.unit.equip.DefaultValue
 
 sealed trait Slot[+T <: Item] {

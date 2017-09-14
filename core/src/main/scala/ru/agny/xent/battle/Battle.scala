@@ -1,9 +1,9 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.UserType.UserId
+import ru.agny.xent.core.UserType.UserId
 import ru.agny.xent.battle.unit.Troop
-import ru.agny.xent.core.{Coordinate, MapObject}
-import ru.agny.xent.core.Progress.ProgressTime
+import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.utils.NESeq
 
 import scala.annotation.tailrec

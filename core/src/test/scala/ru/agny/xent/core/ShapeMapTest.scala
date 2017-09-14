@@ -1,8 +1,10 @@
 package ru.agny.xent.core
 
-import org.scalatest.{BeforeAndAfterAll, Matchers, FlatSpec}
-import ru.agny.xent.core.Shape.FourShape
-import ru.agny.xent.core.utils.{BuildingTemplate, TimeUnit, CityGenerator}
+import org.scalatest.{FlatSpec, Matchers}
+import ru.agny.xent.core.city.{Building, Shape, ShapeMap}
+import ru.agny.xent.core.city.Shape.FourShape
+import ru.agny.xent.core.inventory.{Cost, Producible, ProductionSchema}
+import ru.agny.xent.core.utils.{CityGenerator, TimeUnit}
 
 class ShapeMapTest extends FlatSpec with Matchers {
 

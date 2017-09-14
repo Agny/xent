@@ -1,7 +1,7 @@
 package ru.agny.xent.battle.unit
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
-import ru.agny.xent.core.Storage
+import ru.agny.xent.core.city.Storage
 import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot}
 import ru.agny.xent.core.unit.equip.DefaultValue.implicits.{DefaultArmor, DefaultWeapon}
 import ru.agny.xent.core.unit.equip._

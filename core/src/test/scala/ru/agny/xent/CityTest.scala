@@ -1,8 +1,10 @@
 package ru.agny.xent
 
-import org.scalatest.{EitherValues, Matchers, FlatSpec}
-import ru.agny.xent.core.Shape.FourShape
-import ru.agny.xent.core._
+import org.scalatest.{EitherValues, FlatSpec, Matchers}
+import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.city.Shape.FourShape
+import ru.agny.xent.core.city._
+import ru.agny.xent.core.inventory._
 
 class CityTest extends FlatSpec with Matchers with EitherValues {
 

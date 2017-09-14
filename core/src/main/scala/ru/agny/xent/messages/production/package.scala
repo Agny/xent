@@ -1,8 +1,9 @@
 package ru.agny.xent.messages
 
-import ru.agny.xent.UserType.UserId
-import ru.agny.xent.core.Item.ItemId
-import ru.agny.xent.core.{Coordinate, ItemStack}
+import ru.agny.xent.core.UserType.UserId
+import ru.agny.xent.core.inventory.Item.ItemId
+import ru.agny.xent.core.Coordinate
+import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.persistence.RedisEntity
 
 package object production {

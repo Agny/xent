@@ -1,8 +1,7 @@
 package ru.agny.xent.core.unit
 
-import ru.agny.xent.UserType.ObjectId
-import ru.agny.xent.battle.{Tactic, Targetable}
-import ru.agny.xent.core.MapObject
+import ru.agny.xent.core.UserType.ObjectId
+import ru.agny.xent.battle.{MapObject, Tactic, Targetable}
 import ru.agny.xent.core.unit.equip._
 
 case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Equipment) extends Targetable {

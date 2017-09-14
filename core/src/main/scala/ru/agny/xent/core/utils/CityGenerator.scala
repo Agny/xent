@@ -1,7 +1,7 @@
 package ru.agny.xent.core.utils
 
-import ru.agny.xent.City
 import ru.agny.xent.core._
+import ru.agny.xent.core.city._
 
 object CityGenerator {
 

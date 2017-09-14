@@ -8,7 +8,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler
 import io.netty.handler.codec.http.{HttpObjectAggregator, HttpServerCodec}
 import io.netty.handler.ssl.{SslContext, SslHandler}
 import io.netty.handler.stream.ChunkedWriteHandler
-import ru.agny.xent.MessageHandler
+import ru.agny.xent.web.MessageHandler
 
 case class GameServerInitializer(group: ChannelGroup, context: SslContext, handler:MessageHandler) extends ChannelInitializer[Channel] {
   override def initChannel(ch: Channel): Unit = {

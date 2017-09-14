@@ -1,8 +1,7 @@
 package ru.agny.xent.battle
 
 import ru.agny.xent.battle.unit.Troop
-import ru.agny.xent.core.MapObject
-import ru.agny.xent.core.Progress._
+import ru.agny.xent.core.inventory.Progress._
 import ru.agny.xent.core.utils.{NESeq, TimeUnit}
 
 case class Round(n: Int, troops: NESeq[MapObject], progress: ProgressTime = 0) {

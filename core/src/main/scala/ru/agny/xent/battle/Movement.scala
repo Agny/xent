@@ -3,7 +3,7 @@ package ru.agny.xent.battle
 import ru.agny.xent.core.unit.{Distance, Speed}
 import Speed._
 import ru.agny.xent.core.Coordinate
-import ru.agny.xent.core.Progress._
+import ru.agny.xent.core.inventory.Progress._
 
 case class Movement(from: Coordinate, to: Coordinate, traveled: Distance = 0) extends Step {
   override val isBusy = true

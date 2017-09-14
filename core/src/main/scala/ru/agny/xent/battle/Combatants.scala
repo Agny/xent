@@ -1,8 +1,7 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.UserType._
+import ru.agny.xent.core.UserType._
 import ru.agny.xent.battle.unit.Troop
-import ru.agny.xent.core.MapObject
 import ru.agny.xent.core.utils.NESeq
 
 case class Combatants(troops: NESeq[MapObject], queue: Vector[Troop]) {

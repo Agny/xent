@@ -1,6 +1,7 @@
 package ru.agny.xent.core
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
+import ru.agny.xent.core.inventory.{Extractable, ExtractionQueue}
 
 class ExtractionQueueTest extends FlatSpec with Matchers {
 

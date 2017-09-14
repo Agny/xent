@@ -1,11 +1,11 @@
 package ru.agny.xent.core.utils
 
 import java.io.File
-import io.Source._
-import ru.agny.xent.core._
-import Item.ItemId
 
-import ru.agny.xent.core._
+import io.Source._
+import ru.agny.xent.core.city.ShapeProvider
+import ru.agny.xent.core.inventory.Item.ItemId
+import ru.agny.xent.core.inventory._
 
 object TemplateLoader {
 

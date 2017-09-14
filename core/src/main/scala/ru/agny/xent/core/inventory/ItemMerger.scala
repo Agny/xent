@@ -1,7 +1,6 @@
 package ru.agny.xent.core.inventory
 
 import ru.agny.xent.core.unit.equip.{Weapon, Equippable, Armor, Accessory}
-import ru.agny.xent.core.{ItemStack, Item}
 
 trait ItemMerger[-From <: Item, To <: Item] {
   def asCompatible(a: From, b: To): Option[To]
