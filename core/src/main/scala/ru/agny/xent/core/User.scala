@@ -30,11 +30,11 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
       storageWithB <- building.addToQueue(res)(city.storage)
     } yield copy(city = city.update(storageWithB._2, storageWithB._1))
 
-  def build(cell: ContainerCell, cost: Cost): Either[Response, User] =
+  def build(cell: Cell, cost: Cost): Either[Response, User] =
     for {
       userFacility <- cell match {
-        case LocalCell(x, y, mb) => buildInCity(mb.get, Coordinate(x, y), cost)
-        case WorldCell(x, y, mo, _, _, _) => buildOutpost(mo.get, cost)
+        case b: Building => buildInCity(b, cost)
+        case o: Outpost => buildOutpost(o, cost)
       }
     } yield {
       userFacility._1.copy(queue = userFacility._1.queue.in(userFacility._2, 1))
@@ -49,9 +49,9 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
   private def findProducer(facility: ItemId) = city.producers.find(f => f.id == facility).
     map(Right(_)) getOrElse Left(Response(s"Unable to find working building $facility"))
 
-  private def buildInCity(b: Building, where: Coordinate, cost: Cost) =
+  private def buildInCity(b: Building, cost: Cost) =
     for {
-      c <- city.place(b, ShapeProvider.get(b.name).form(where))
+      c <- city.place(b, ShapeProvider.get(b.name).form(b.c))
       user <- copy(city = c).spend(cost)
     } yield (user, b)
 

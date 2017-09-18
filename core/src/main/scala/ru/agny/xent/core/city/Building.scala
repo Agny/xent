@@ -10,9 +10,10 @@ import ru.agny.xent.core.utils.ItemIdGenerator
 import ru.agny.xent.messages.Response
 
 case class Building(id: ItemId,
+                    c: Coordinate,
                     name: String,
-                    producibles: Vector[Producible],
-                    obtainables: Vector[Obtainable],
+                    producible: Vector[Producible],
+                    obtainable: Vector[Obtainable],
                     queue: ProductionQueue,
                     buildTime: ProgressTime,
                     state: Facility.State,
@@ -42,7 +43,7 @@ case class Building(id: ItemId,
   def isFunctioning: Boolean = state == Working || state == Idle
 
   def addToQueue(item: ItemStack): Storage => Either[Response, (Storage, Building)] = storage => {
-    producibles.find(_.id == item.id) match {
+    producible.find(_.id == item.id) match {
       case Some(v: Producible) =>
         storage.spend(v.cost.price(item.stackValue)) match {
           case Left(s) => Left(s)
@@ -54,6 +55,6 @@ case class Building(id: ItemId,
 }
 
 object Building {
-  def apply(name: String, producibles: Vector[Producible], buildTime: ProgressTime): Building =
-    Building(ItemIdGenerator.next, name, producibles, Vector.empty, ProductionQueue.empty, buildTime, Facility.Init)
+  def apply(c: Coordinate, name: String, producible: Vector[Producible], buildTime: ProgressTime): Building =
+    Building(ItemIdGenerator.next, c, name, producible, Vector.empty, ProductionQueue.empty, buildTime, Facility.Init)
 }

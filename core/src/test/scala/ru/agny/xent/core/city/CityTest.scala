@@ -1,9 +1,9 @@
-package ru.agny.xent
+package ru.agny.xent.core.city
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
+import ru.agny.xent.TestHelper
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.city.Shape.FourShape
-import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory._
 
 class CityTest extends FlatSpec with Matchers with EitherValues {
@@ -16,22 +16,25 @@ class CityTest extends FlatSpec with Matchers with EitherValues {
 
   "City" should "place building in the map" in {
     val prod = Producible(1, "Test prod", ProductionSchema(500, Cost(Vector.empty), Set.empty))
-    val b = Building(bName, Vector(prod), 500)
+    val place = Coordinate(2, 1)
+    val b = Building(place, bName, Vector(prod), 500)
     val city = City.empty(0, 0)
-    val res = city.place(b, Shape.values(shape).form(Coordinate(2, 1))).right.value
+    val res = city.place(b, Shape.values(shape).form(place)).right.value
     city should not be res
   }
 
   it should "update facilities state upon producing" in {
+    val place = Coordinate(2, 1)
+    val user = defaultUser()
     val prodId = 2
     val extrTime = 1100
     val prodTime = 1000
     val progress = 1200
     val extr = Extractable(1, "Test res", 100, extrTime, Set.empty)
     val prod = Producible(prodId, "Test prod", ProductionSchema(prodTime, Cost(Vector.empty), Set.empty))
-    val (o, _) = Outpost("outpost", extr, Vector.empty, 500).finish.run(worker)
+    val (o, _) = Outpost(place, user, "outpost", extr, Vector.empty, 500).finish.run(worker)
     val building = {
-      val (b, _) = Building(bName, Vector(prod), 500).finish.run(worker)
+      val (b, _) = Building(place, bName, Vector(prod), 500).finish.run(worker)
       b.addToQueue(ItemStack(2, prodId))(Storage.empty).right.value._2
     }
     val res = City.empty(0, 0).place(building, Shape.values(shape).form(Coordinate(2, 1)))

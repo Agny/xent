@@ -23,8 +23,8 @@ case class PlaceBuilding(facility: String, layer: Layer, cell: Coordinate) exten
   override def run(user: User) = {
     val bt = layer.facilities.collectFirst { case bt: BuildingTemplate if bt.name == facility => bt }
     bt.map(x => {
-      val b = Building(x.name, x.producibles, x.buildTime)
-      user.build(LocalCell(cell.x, cell.y, Some(b)), x.cost)
+      val b = Building(cell, x.name, x.producibles, x.buildTime)
+      user.build(b, x.cost)
     }) getOrElse Left(Response(s"Unable to build $facility"))
   }
 }

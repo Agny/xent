@@ -10,13 +10,14 @@ class ShapeMapTest extends FlatSpec with Matchers {
 
   val bName = "Test"
   val shape = FourShape.name
+  val place = Coordinate(2, 1)
 
   "ShapeMap" should "add building and shape" in {
     val p = Producible(1, "Test res", ProductionSchema(TimeUnit.minute + 1000, Cost(Vector.empty), Set.empty))
-    val building = Building(bName, Vector(p), 0)
+    val building = Building(place, bName, Vector(p), 0)
     val cm = CityGenerator.generateCityMap(4)
     val m = ShapeMap(cm, Vector.empty)
-    val shapeToAdd = Shape.values(shape).form(Coordinate(2, 1))
+    val shapeToAdd = Shape.values(shape).form(place)
 
     m.isAvailable(shapeToAdd) should be(true)
     val res = m.add(building, shapeToAdd)
@@ -26,10 +27,10 @@ class ShapeMapTest extends FlatSpec with Matchers {
 
   it should "update existing building" in {
     val p = Producible(1, "Test res", ProductionSchema(TimeUnit.minute + 1000, Cost(Vector.empty), Set.empty))
-    val building = Building(bName, Vector(p), 0).build
+    val building = Building(place, bName, Vector(p), 0).build
     val cm = CityGenerator.generateCityMap(4)
     val m = ShapeMap(cm, Vector.empty)
-    val shapeMap = m.add(building, Shape.values(shape).form(Coordinate(2, 1)))
+    val shapeMap = m.add(building, Shape.values(shape).form(place))
     val updated = building.finish
     val res = shapeMap.update(updated)
 

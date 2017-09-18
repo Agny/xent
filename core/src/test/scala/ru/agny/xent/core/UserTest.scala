@@ -1,13 +1,13 @@
-package ru.agny.xent
+package ru.agny.xent.core
 
 import org.scalatest.{BeforeAndAfterAll, EitherValues, FlatSpec, Matchers}
+import ru.agny.xent.TestHelper
 import ru.agny.xent.action.{DoNothing, Layer, PlaceBuilding, ResourceClaim}
 import ru.agny.xent.battle.{Military, Movement, Waiting}
 import ru.agny.xent.core.city.Shape.FourShape
-import ru.agny.xent.core.utils.{BuildingTemplate, OutpostTemplate}
-import ru.agny.xent.core._
 import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory._
+import ru.agny.xent.core.utils.{BuildingTemplate, OutpostTemplate}
 
 class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
@@ -19,6 +19,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
   val woodId = 1
   val soulOne = defaultSoul(1)
   val soulTwo = defaultSoul(2)
+  val user = defaultUser()
 
   override protected def beforeAll(): Unit = {
     ShapeProvider.add(BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, ""))
@@ -32,8 +33,8 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
     val soul1 = (soulOne, waitingCoordinate)
     val soul2 = (soulTwo, waitingCoordinate)
     val souls = Workers(Vector(soul1, soul2))
-    val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, ProductionQueue.empty, souls, LifePower.default, 0)
-    val (soulless, troop) = user.createTroop(3, Vector(1, 2)).right.value
+    val userWithSouls = user.copy(souls = souls)
+    val (soulless, troop) = userWithSouls.createTroop(3, Vector(1, 2)).right.value
     soulless.souls should be(Workers.empty)
     troop.activeUnits should be(Vector(soul1._1, soul2._1))
   }
@@ -42,17 +43,17 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
     val soul1 = (soulOne, waitingCoordinate)
     val soul2 = (soulTwo, Movement(Coordinate(0, 0), Coordinate(1, 2)))
     val souls = Workers(Vector(soul1, soul2))
-    val user = User(1, "Vasya", City.empty(0, 0), Lands.empty, ProductionQueue.empty, souls, LifePower.default, 0)
-    val (userWithSoul, troop) = user.createTroop(3, Vector(1, 2)).right.value
+    val userWithSouls = user.copy(souls = souls)
+    val (userWithSoul, troop) = userWithSouls.createTroop(3, Vector(1, 2)).right.value
     userWithSoul.souls should be(Workers(Vector(soul2)))
     troop.activeUnits should be(Vector(soul1._1))
   }
 
   it should "add production to facility queue" in {
     val toProduce = Producible(1, "meh", ProductionSchema(1000, Cost(Vector.empty), Set.empty))
-    val building = Building("Test", Vector(toProduce), 1000).finish
+    val building = Building(Coordinate(2, 2), "Test", Vector(toProduce), 1000).finish
     val facilityId = building.id
-    val city = City.empty(0, 0).place(building, Shape.values(shape).form(Coordinate(2, 2)))
+    val city = City.empty(0, 0).place(building, Shape.values(shape).form(building.c))
     val user = User(1, "Vasya", city.right.value)
     val res = user.addProduction(facilityId, ItemStack(4, 1))
     val queue = res.right.value.city.producers.find(_.id == facilityId).get.queue
@@ -62,7 +63,6 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
   "PlaceBuildingAction" should "spend resources" in {
     val bt = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, "")
     val layer = Layer("", 1, Vector.empty, Military.empty, CellsMap(Vector.empty), Vector(bt))
-    val user = User(1, "test", City.empty(0, 0))
     val action = PlaceBuilding("Test", layer, Coordinate(2, 1))
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
     val updated = userAndStorage.work(action)
@@ -74,9 +74,7 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
     val buildingConstructionTime = 10
     val bt = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), buildingConstructionTime, shape, "")
     val layer = Layer("", 1, Vector.empty, Military.empty, CellsMap(Vector.empty), Vector(bt))
-    val user = User(1, "test", City.empty(0, 0))
-    val bCell = Coordinate(2, 1)
-    val action = PlaceBuilding(bt.name, layer, bCell)
+    val action = PlaceBuilding(bt.name, layer, Coordinate(2, 1))
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
     val updated = userAndStorage.work(action).right.value
 
@@ -88,11 +86,11 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
 
   "ResourceClaimAction" should "spend resources" in {
     val bt = OutpostTemplate("Test", "Test res", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, "")
-    val user = User(1, "test", City.empty(0, 0))
-    val resourceToClaim = WorldCell(1, 2, Some(Extractable(1, "Test res", 10, 111, Set.empty)))
+    val place = Coordinate(1, 2)
+    val resourceToClaim = ResourceCell(place, Extractable(1, "Test res", 10, 111, Set.empty))
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
-    val layer = Layer("", 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(bt))
-    val action = ResourceClaim("Test", 1, WorldCell(1, 2))
+    val layer = Layer("", 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(Cell(1, 0), Cell(1, 1), resourceToClaim), Vector())), Vector(bt))
+    val action = ResourceClaim("Test", user.id, resourceToClaim.c)
     val updated = layer.tick(action)
     val expected = Vector(ItemStack(3, woodId))
     updated.right.value.users.head.city.storage.resources should be(expected)
@@ -101,11 +99,11 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
   "Sequential actions" should "spend resources" in {
     val ot = OutpostTemplate("Out Test", "Test res", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, "")
     val bt = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, "")
-    val user = User(1, "test", City.empty(0, 0))
-    val resourceToClaim = WorldCell(1, 2, Some(Extractable(1, "Test res", 10, 111, Set.empty)))
+    val place = Coordinate(1, 2)
+    val resourceToClaim = ResourceCell(place, Extractable(1, "Test res", 10, 111, Set.empty))
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(15, woodId)))))
-    val layer = Layer("", 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(WorldCell(1, 0), WorldCell(1, 1), resourceToClaim), Vector())), Vector(ot, bt))
-    val resourceClaim = ResourceClaim("Out Test", 1, WorldCell(1, 2))
+    val layer = Layer("", 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(Cell(1, 0), Cell(1, 1), resourceToClaim), Vector())), Vector(ot, bt))
+    val resourceClaim = ResourceClaim("Out Test", user.id, resourceToClaim.c)
     val placeBuilding = PlaceBuilding("Test", layer, Coordinate(2, 1))
     val updated = layer.tick(resourceClaim)
     val lastUpdated = updated.right.value.tick(placeBuilding, userAndStorage.id)

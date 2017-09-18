@@ -16,14 +16,15 @@ object CityGenerator {
     City(Coordinate(x, y), map, s)
   }
 
-  def generateCityMap(size: Int): CellsMap[LocalCell] = {
-    CellsMap((0 to size).toVector.map(x => (0 to size).toVector.map(LocalCell(x, _))))
+  def generateCityMap(size: Int): CellsMap = {
+    CellsMap((0 to size).toVector.map(x => (0 to size).toVector.map(Cell(x, _))))
   }
 
   private def createDefaultBuilding(): (Building, ResultShape) = {
     val building = buildingGen(1)
+    val c = Coordinate(0, 1)
     building.find(b => b.name == initBuilding).map(bt =>
-      (Building(bt.name, bt.producibles, bt.buildTime).finish, ShapeProvider.get(bt.name).form(Coordinate(0, 1)))).get
+      (Building(c, bt.name, bt.producibles, bt.buildTime).finish, ShapeProvider.get(bt.name).form(c))).get
   }
 
 }

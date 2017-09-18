@@ -9,9 +9,11 @@ import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.utils.ItemIdGenerator
 
 final case class Outpost(id: ItemId,
+                         c: Coordinate,
+                         owner: User,
                          name: String,
                          main: Extractable,
-                         obtainables: Vector[Obtainable],
+                         obtainable: Vector[Obtainable],
                          queue: ExtractionQueue,
                          buildTime: ProgressTime,
                          state: Facility.State,
@@ -44,6 +46,6 @@ final case class Outpost(id: ItemId,
 }
 
 object Outpost {
-  def apply(name: String, main: Extractable, obtainables: Vector[Obtainable], buildTime: ProgressTime): Outpost =
-    Outpost(ItemIdGenerator.next, name, main, obtainables, ExtractionQueue(main), buildTime, Facility.Init)
+  def apply(c: Coordinate, owner: User, name: String, main: Extractable, obtainable: Vector[Obtainable], buildTime: ProgressTime): Outpost =
+    Outpost(ItemIdGenerator.next, c, owner, name, main, obtainable, ExtractionQueue(main), buildTime, Facility.Init)
 }

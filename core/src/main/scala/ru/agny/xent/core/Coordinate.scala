@@ -3,7 +3,7 @@ package ru.agny.xent.core
 /**
   * All coordinates are axial
   */
-case class Coordinate(x: Int, y: Int) extends Cell {
+case class Coordinate(x: Int, y: Int) {
 
   import Coordinate._
 

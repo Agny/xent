@@ -1,22 +1,21 @@
 package ru.agny.xent.core
 
-import UserType._
-import ru.agny.xent.core.city.{Building, City, Outpost}
-import ru.agny.xent.core.inventory.Extractable
+import ru.agny.xent.core.city.Building
+import ru.agny.xent.core.utils.SubTyper
 
 trait Cell {
-  val x, y: Int
+  val c: Coordinate
 }
 
-sealed trait Container {
-  val building: Option[Facility]
-}
+object Cell {
+  def apply(x: Int, y: Int): Cell = CellInner(Coordinate(x, y))
 
-sealed trait ContainerCell extends Cell with Container
+  private case class CellInner(c: Coordinate) extends Cell
 
-case class WorldCell(x: Int, y: Int, building: Option[Outpost] = None, resource: Option[Extractable] = None, city: Option[City] = None, owner: Option[UserId] = None) extends ContainerCell
-case class LocalCell(x: Int, y: Int, building: Option[Building] = None) extends ContainerCell
-
-object WorldCell {
-  def apply(x: Int, y: Int, mbRes: Option[Extractable]): WorldCell = WorldCell(x, y, None, mbRes)
+  implicit object BuildingSubTyper extends SubTyper[Cell, Building] {
+    override def asSub(a: Cell) = a match {
+      case b: Building => Some(b)
+      case _ => None
+    }
+  }
 }

@@ -4,7 +4,7 @@ import ru.agny.xent.core.UserType._
 import ru.agny.xent.core.city.{City, Outpost}
 import ru.agny.xent.core.inventory.Extractable
 import ru.agny.xent.core.utils.{FacilityTemplate, ItemIdGenerator}
-import ru.agny.xent.core.{Cell, User}
+import ru.agny.xent.core.{Coordinate, ResourceCell, User}
 import ru.agny.xent.messages.Response
 
 trait LayerAction extends Action {
@@ -13,24 +13,24 @@ trait LayerAction extends Action {
   override def run(layer: T): Either[Response, T]
 }
 
-case class ResourceClaim(facilityName: String, userId: UserId, cell: Cell) extends LayerAction {
+case class ResourceClaim(facilityName: String, userId: UserId, c: Coordinate) extends LayerAction {
   override def run(layer: Layer): Either[Response, Layer] = {
     val facilityT = layer.facilities.find(x => x.name == facilityName)
-    val resource = layer.map.find(cell)
+    val resource = layer.map.find(c)
     resource match {
-      case Some(x) if x.resource.nonEmpty && x.owner.isEmpty =>
+      case Some(x: ResourceCell) =>
         for {
           user <- findUser(userId, layer.users)
-          outpost <- createFromTemplate(facilityName, x.resource.get, layer.facilities)
-          updatedCell <- Right(x.copy(owner = Some(user.id), building = Some(outpost)))
+          outpost <- createFromTemplate(x.c, user, facilityName, x.resource, layer.facilities)
+          updatedCell <- Right(outpost)
           updatedUser <- user.build(updatedCell, facilityT.get.cost)
         } yield {
           val updatedLayer = layer.copy(users = updatedUser +: layer.users.filterNot(_.id == user.id))
           updatedLayer.updateMap(updatedCell)
         }
-      case Some(x) if x.owner.nonEmpty => Left(Response(s"$cell is already claimed"))
-      case Some(x) => Left(Response(s"$cell doesn't have a resource"))
-      case None => Left(Response(s"Unable to find $cell"))
+      case Some(_: Outpost) => Left(Response(s"$c is already claimed"))
+      case Some(_) => Left(Response(s"$c doesn't have a resource"))
+      case None => Left(Response(s"Unable to find $c"))
     }
   }
 
@@ -38,10 +38,10 @@ case class ResourceClaim(facilityName: String, userId: UserId, cell: Cell) exten
     users.find(x => x.id == id).map(Right(_)) getOrElse Left(Response(s"User with id=$id isn't found in this layer"))
   }
 
-  private def createFromTemplate(name: String, res: Extractable, templates: Vector[FacilityTemplate]): Either[Response, Outpost] = {
+  private def createFromTemplate(c: Coordinate, owner: User, name: String, res: Extractable, templates: Vector[FacilityTemplate]): Either[Response, Outpost] = {
     templates.find(_.name == name).map(x =>
-      Right(Outpost(x.name, res, x.obtainables, x.buildTime))
-    ) getOrElse Left(Response(s"Unable to claim resource in $cell by $name"))
+      Right(Outpost(c, owner, x.name, res, x.obtainables, x.buildTime))
+    ) getOrElse Left(Response(s"Unable to claim resource in $c by $name"))
   }
 }
 

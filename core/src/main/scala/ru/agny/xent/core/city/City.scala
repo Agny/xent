@@ -10,7 +10,7 @@ import ru.agny.xent.messages.Response
   * contains visual representation of buildings/storage
   */
 
-case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) {
+case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) extends Cell {
 
   import FacilitySubTyper.implicits._
 

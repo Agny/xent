@@ -4,10 +4,10 @@ import ru.agny.xent.battle.Military
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.UserType.UserId
 import ru.agny.xent.core.utils.FacilityTemplate
-import ru.agny.xent.core.{CellsMap, User, WorldCell}
+import ru.agny.xent.core.{Cell, CellsMap, User}
 import ru.agny.xent.messages.Response
 
-case class Layer(id: String, level: Int, users: Vector[User], armies: Military, map: CellsMap[WorldCell], facilities: Vector[FacilityTemplate]) {
+case class Layer(id: String, level: Int, users: Vector[User], armies: Military, map: CellsMap, facilities: Vector[FacilityTemplate]) {
 
   def tick(action: LayerAction): Either[Response, Layer] = {
     action.run(this)
@@ -23,7 +23,7 @@ case class Layer(id: String, level: Int, users: Vector[User], armies: Military, 
     }
   }
 
-  def updateMap(cell: WorldCell): Layer = {
+  def updateMap(cell: Cell): Layer = {
     Layer(id, level, users, armies, map.update(cell), facilities)
   }
 

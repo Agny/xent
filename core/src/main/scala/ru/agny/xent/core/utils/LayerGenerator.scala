@@ -17,14 +17,20 @@ object LayerGenerator {
 
   private def facilityGen(layerLvl: Int): Vector[FacilityTemplate] = TemplateLoader.loadBuildings(layerLvl.toString) ++ TemplateLoader.loadOutposts(layerLvl.toString)
 
-  private def generateWorldMap(size: Int, resources: Vector[Extractable]): CellsMap[WorldCell] = {
-    def genByY(y: Int)(x: Int, acc: Vector[WorldCell]): Vector[WorldCell] = {
-//      val mbRes = mbResource(resources)
+  private def generateWorldMap(size: Int, resources: Vector[Extractable]): CellsMap = {
+    def genByY(y: Int)(x: Int, acc: Vector[Cell]): Vector[Cell] = {
+      //      val mbRes = mbResource(resources)
       val mbRes =
-        if (x == 1 && y == 2) Some(Extractable(1, "Copper", 51, 3000, Set.empty))            //test purposes
+        if (x == 1 && y == 2) Some(Extractable(1, "Copper", 51, 3000, Set.empty)) //test purposes
         else mbResource(resources)
-      if (y < size) genByY(y + 1)(x, WorldCell(x, y, mbRes) +: acc)
-      else WorldCell(x, y, mbRes) +: acc
+
+      val cell = mbRes match {
+        case Some(v) => ResourceCell(Coordinate(x, y), v)
+        case None => Cell(x, y)
+      }
+
+      if (y < size) genByY(y + 1)(x, cell +: acc)
+      else cell +: acc
     }
 
     CellsMap((0 to size).toVector.map(x => genByY(0)(x, Vector.empty).reverse))

@@ -1,49 +1,35 @@
 package ru.agny.xent.core
 
-import scala.annotation.tailrec
+import ru.agny.xent.core.utils.SubTyper
 
-case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
+case class CellsMap(private val cells: Vector[Vector[Cell]]) {
   val length = cells.length
 
-  def find[A <: Cell](c: A): Option[T] = {
+  def find(c: Coordinate): Option[Cell] = {
     (c.x, c.y) match {
       case (x, y) if (x >= 0 && x < length) && (y >= 0 && y < length) => Some(cells(x)(y))
       case _ => None
     }
   }
 
-  def flatMap[A](c: T => Option[A]): Vector[A] = {
-    cells.flatMap(x => rec_flatmap(c)(x, Vector.empty))
-  }
+  def collect[That <: Cell]()(implicit ev: SubTyper[Cell, That]): Vector[That] = cells.flatten.flatMap(c => ev.asSub(c))
 
-  def filter(c: T => Boolean): Vector[T] = {
+  def filter(c: Cell => Boolean): Vector[Cell] = {
     cells.flatMap(x => rec_filter(c)(x, Vector.empty))
   }
 
-  @tailrec
-  private def rec_flatmap[A](c: T => Option[A])(elems: Vector[T], acc: Vector[A]): Vector[A] = {
-    elems match {
-      case h +: t => c(h) match {
-        case Some(v) => rec_flatmap(c)(t, v +: acc)
-        case None => rec_flatmap(c)(t, acc)
-      }
-      case Vector() => acc
-    }
-  }
-
-
-  private def rec_filter(c: T => Boolean)(elems: Vector[T], acc: Vector[T]): Vector[T] = {
+  private def rec_filter(c: Cell => Boolean)(elems: Vector[Cell], acc: Vector[Cell]): Vector[Cell] = {
     elems match {
       case h +: t => if (c(h)) rec_filter(c)(t, h +: acc) else rec_filter(c)(t, acc)
       case Vector() => acc
     }
   }
 
-  def update(c: T): CellsMap[T] = {
-    find(c) match {
+  def update(c: Cell): CellsMap = {
+    find(c.c) match {
       case Some(v) =>
-        val yLayer = cells(v.x).updated(v.y, c)
-        CellsMap(cells.updated(v.x, yLayer))
+        val yLayer = cells(v.c.x).updated(v.c.y, c)
+        CellsMap(cells.updated(v.c.x, yLayer))
       case None => this
     }
   }
@@ -57,7 +43,7 @@ case class CellsMap[T <: Cell](private val cells: Vector[Vector[T]]) {
     val (fy, ty) = getRange(y, yScreen)
     val xInRange = isInRange(fx, tx) _
     val yInRange = isInRange(fy, ty) _
-    filter(c => xInRange(c.x) && yInRange(c.y))
+    filter(c => xInRange(c.c.x) && yInRange(c.c.y))
   }
 
   private def isInRange(from: Int, to: Int)(i: Int) =

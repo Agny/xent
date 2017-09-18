@@ -6,8 +6,8 @@ import ru.agny.xent.core.inventory.{DelayableItem, Obtainable, ResourceQueue}
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.utils.SubTyper
 
-trait Facility extends DelayableItem {
-  val obtainables: Vector[Obtainable]
+trait Facility extends Cell with DelayableItem {
+  val obtainable: Vector[Obtainable]
   val queue: ResourceQueue
   val buildTime: ProgressTime
   override val yieldTime = buildTime
