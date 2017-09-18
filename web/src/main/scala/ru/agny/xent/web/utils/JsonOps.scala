@@ -9,11 +9,10 @@ import ru.agny.xent.messages.production._
 import ru.agny.xent.messages.unit.{CreateSoulMessage, CreateTroopMessage, StatPropertySimple}
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
-import ru.agny.xent.core.WorldCell
 
 object JsonOps {
 
-  private implicit val formats = DefaultFormats + WorldCellSerializer + VectorSerializer + StatPropertySimpleSerializer
+  private implicit val formats = DefaultFormats + VectorSerializer //+ StatPropertySimpleSerializer
   private val idGen = new AtomicLong(0)
 
   def toMessage(txt: String): Message = {
@@ -48,22 +47,22 @@ object JsonOps {
   * @see <a href="https://github.com/json4s/json4s/issues/76">json4s/issues/76</a>
   *
   */
-object WorldCellSerializer extends Serializer[WorldCell] {
-  val WorldCellClass = classOf[WorldCell]
-
-  override def deserialize(implicit format: Formats) = ??? //don't care
-
-  override def serialize(implicit format: Formats) = {
-    case cell: WorldCell =>
-      val jj = (("x" -> JInt(cell.x))
-        :: ("y" -> JInt(cell.y))
-        :: ("resource" -> Extraction.decompose(cell.resource))
-        :: ("city" -> Extraction.decompose(cell.city))
-        :: ("owner" -> Extraction.decompose(cell.owner.map(_.toLong))) :: Nil)
-      JObject(jj)
-
-  }
-}
+//object WorldCellSerializer extends Serializer[WorldCell] {
+//  val WorldCellClass = classOf[WorldCell]
+//
+//  override def deserialize(implicit format: Formats) = ??? //don't care
+//
+//  override def serialize(implicit format: Formats) = {
+//    case cell: WorldCell =>
+//      val jj = (("x" -> JInt(cell.x))
+//        :: ("y" -> JInt(cell.y))
+//        :: ("resource" -> Extraction.decompose(cell.resource))
+//        :: ("city" -> Extraction.decompose(cell.city))
+//        :: ("owner" -> Extraction.decompose(cell.owner.map(_.toLong))) :: Nil)
+//      JObject(jj)
+//
+//  }
+//}
 
 object VectorSerializer extends Serializer[Vector[_]] {
   val VectorClass = classOf[Vector[_]]

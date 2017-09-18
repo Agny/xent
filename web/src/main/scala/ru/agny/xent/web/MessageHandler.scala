@@ -4,7 +4,6 @@ import java.util.concurrent.atomic.AtomicLong
 
 import io.netty.channel.Channel
 import ru.agny.xent.messages.{Message, MessageQueue, ResponseOk}
-import ru.agny.xent.ResponseOk
 
 case class MessageHandler(queue: MessageQueue[Message]) {
 

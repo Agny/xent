@@ -3,7 +3,8 @@ package ru.agny.xent.web.utils
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
-import ru.agny.xent.core.{Cell, LayerRuntime}
+import ru.agny.xent.core.city.{City, Outpost}
+import ru.agny.xent.core.{Cell, LayerRuntime, ResourceCell}
 import ru.agny.xent.web.MessageHandler
 
 /*
@@ -52,7 +53,7 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
     val userId = decoder.parameters().get("user").get(0)
     val layerId = decoder.parameters().get("layer").get(0)
     runtime.get.find(_.id == layerId) match {
-      case Some(v) => v.map.view(x.toInt, y.toInt).filter(x => x.city.nonEmpty || x.resource.nonEmpty)
+      case Some(v) => v.map.view(x.toInt, y.toInt).collect { case c@(_: ResourceCell | _: City | _: Outpost) => c }
       case None => Vector.empty
     }
   }
