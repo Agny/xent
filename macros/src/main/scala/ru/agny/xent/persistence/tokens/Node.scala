@@ -1,22 +1,24 @@
 package ru.agny.xent.persistence.tokens
 
-trait Node[T]
+trait Node[T] {
+  def from(v: String): T
+}
 
 object Nodes {
-  implicit object StringValue extends Node[String]
-  implicit object IntValue extends Node[Int]
-  implicit object LongValue extends Node[Long]
-  implicit object DoubleValue extends Node[Double]
+  implicit object StringValue extends Node[String] {
+    override def from(v: String) = v
+  }
+  implicit object IntValue extends Node[Int] {
+    override def from(v: String) = v.toInt
+  }
+  implicit object LongValue extends Node[Long] {
+    override def from(v: String) = v.toLong
+  }
+  implicit object DoubleValue extends Node[Double] {
+    override def from(v: String) = v.toDouble
+  }
 }
 
 case class Token(v: String) {
-
-  import Nodes._
-
-  def materialize[T](implicit to: Node[T]): T = to match {
-    case StringValue => v.asInstanceOf[T]
-    case LongValue => v.toLong.asInstanceOf[T]
-    case DoubleValue => v.toDouble.asInstanceOf[T]
-    case IntValue => v.toInt.asInstanceOf[T]
-  }
+  def materialize[T](implicit node: Node[T]): T = node.from(v)
 }
