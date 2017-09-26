@@ -16,7 +16,7 @@ val core = project.in(file("core"))
   .dependsOn(macros)
 
 val bench = project.in(file("bench"))
-  .settings(commonSettings, libraryDependencies += "org.openjdk.jmh" % "jmh-generator-annprocess" % "1.19")
+  .settings(commonSettings, libraryDependencies ++= benchDeps)
   .dependsOn(core)
 
 val web = project.in(file("web"))
