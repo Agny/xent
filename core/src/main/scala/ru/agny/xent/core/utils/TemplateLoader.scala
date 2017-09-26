@@ -9,16 +9,14 @@ import ru.agny.xent.core.inventory._
 
 object TemplateLoader {
 
-  import org.json4s._
-  import org.json4s.jackson.JsonMethods._
-
-  private implicit val formats = DefaultFormats
+  import io.circe.generic.auto._
+  import io.circe.parser._
 
   def loadProducibles(layer: String): Vector[Producible] = {
     val resourcesDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/item/producible").getPath)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
-      val t = parse(fromFile(f).mkString).extract[ProducibleTemplate]
+      val t = decode[ProducibleTemplate](fromFile(f).mkString).right.get
       Producible(t.id, t.name, ProductionSchema(t.yieldTime, Cost(t.cost), Set.empty))
     })
   }
@@ -27,7 +25,7 @@ object TemplateLoader {
     val resourcesDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/item/obtainable").getPath)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
-      val t = parse(fromFile(f).mkString).extract[ObtainableTemplate]
+      val t = decode[ObtainableTemplate](fromFile(f).mkString).right.get
       Obtainable(t.id, t.name, t.yieldTime, Set.empty)
     })
   }
@@ -36,17 +34,16 @@ object TemplateLoader {
     val resourcesDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/item/extractable").getPath)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
-      val t = parse(fromFile(f).mkString).extract[ExtractableTemplate]
+      val t = decode[ExtractableTemplate](fromFile(f).mkString).right.get
       Extractable(t.id, t.name, t.baseVolume, t.yieldTime, Set.empty)
     })
   }
 
   def loadOutposts(layer: String): Vector[OutpostTemplate] = {
-    val producibles = loadProducibles(layer)
     val obtainables = loadObtainables(layer)
     val outpostsDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/facility/outpost").getPath)
     outpostsDir.listFiles().toVector.map(f => {
-      val t = parse(fromFile(f).mkString).extract[OutpostTemplateJson]
+      val t = decode[OutpostTemplateJson](fromFile(f).mkString).right.get
       val ores = t.obtainable.flatMap(res => obtainables.find(x => x.name == res).map(x => x))
       OutpostTemplate(t.name, t.extractable, ores, Vector.empty, Cost(t.cost), t.buildTime, t.since)
     })
@@ -57,7 +54,7 @@ object TemplateLoader {
     val obtainables = loadObtainables(layer)
     val buildingsDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/facility/building").getPath)
     buildingsDir.listFiles().toVector.map(f => {
-      val t = parse(fromFile(f).mkString).extract[BuildingTemplateJson]
+      val t = decode[BuildingTemplateJson](fromFile(f).mkString).right.get
       val pres = t.producible.flatMap(res => producibles.find(x => x.name == res).map(x => x))
       val ores = t.obtainable.flatMap(res => obtainables.find(x => x.name == res).map(x => x))
       val bt = BuildingTemplate(t.name, pres, ores, Cost(t.cost), t.buildTime, t.shape, t.since)
