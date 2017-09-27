@@ -31,6 +31,7 @@ object Facility {
   private[core] case object InConstruction extends State
   private[core] case object Working extends State
   private[core] case object Idle extends State
+  private[core] case object Demolished extends State
 
   val states = Vector(InConstruction, Working, Idle, Init)
 }
