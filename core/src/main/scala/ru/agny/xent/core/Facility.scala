@@ -1,8 +1,8 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.core.city.{Building, Outpost, Storage}
+import ru.agny.xent.core.city.{Building, Outpost}
 import ru.agny.xent.core.inventory.Progress.ProgressTime
-import ru.agny.xent.core.inventory.{DelayableItem, Obtainable, ResourceQueue}
+import ru.agny.xent.core.inventory.{DelayableItem, ItemStack, Obtainable, ResourceQueue}
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.utils.SubTyper
 
@@ -22,7 +22,7 @@ trait Facility extends Cell with DelayableItem {
 
   def run(worker: Soul): (Facility, Option[Soul])
 
-  def tick(period: ProgressTime): Storage => (Storage, Facility)
+  def tick(period: ProgressTime): (Facility, Vector[ItemStack])
 }
 
 object Facility {

@@ -32,13 +32,13 @@ final case class Outpost(id: ItemId,
     if (isFunctioning) (copy(state = Working, worker = Some(worker)), this.worker)
     else (this, Some(worker))
 
-  def tick(period: ProgressTime): Storage => (Storage, Outpost) = storage => {
+  def tick(period: ProgressTime) = {
     if (state == Working) {
       val (q, prod) = queue.out(period)
-      val (s, excess) = storage.add(prod.map(x => ItemStack(x._2, x._1.id)))
-      (s, copy(queue = q))
+      val items = prod.map(x => ItemStack(x._2, x._1.id))
+      (copy(queue = q), items)
     } else {
-      (storage, this)
+      (this, Vector.empty)
     }
   }
 

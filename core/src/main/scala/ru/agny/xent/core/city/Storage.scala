@@ -15,8 +15,9 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
   def tick(period: ProgressTime, producers: Vector[Facility]): (Storage, Vector[Facility]) =
     producers.foldLeft(this, Vector.empty[Facility])((s, f) => {
-      val (storage, updatedQueue) = f.tick(period)(s._1)
-      (storage, updatedQueue +: s._2)
+      val (facility, items) = f.tick(period)
+      val (storage, notAdded) = s._1.add(items)
+      (storage, facility +: s._2)
     })
 
   def add(r: Vector[Item]): (Storage, Vector[Slot[Item]]) = r match {
@@ -54,5 +55,5 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 object Storage {
   val empty: Storage = Storage(Vector.empty)
 
-  def apply(slots: Vector[Slot[Item]]):Storage = Storage(ItemHolder(slots))
+  def apply(slots: Vector[Slot[Item]]): Storage = Storage(ItemHolder(slots))
 }
