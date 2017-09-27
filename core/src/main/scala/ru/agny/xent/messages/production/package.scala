@@ -1,6 +1,6 @@
 package ru.agny.xent.messages
 
-import ru.agny.xent.core.UserType.UserId
+import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.inventory.ItemStack

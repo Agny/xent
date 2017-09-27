@@ -1,6 +1,6 @@
 package ru.agny.xent.core.unit
 
-import ru.agny.xent.core.UserType.ObjectId
+import ru.agny.xent.core.utils.UserType.ObjectId
 import ru.agny.xent.battle.{MapObject, Tactic, Targetable}
 import ru.agny.xent.core.unit.equip._
 

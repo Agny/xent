@@ -4,7 +4,7 @@ import ru.agny.xent.action.{DoNothing, UserAction}
 import ru.agny.xent.battle.MovementPlan
 import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.inventory.Item.ItemId
-import ru.agny.xent.core.UserType.{ObjectId, UserId}
+import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory.{Cost, ItemStack, ProductionQueue}
 import ru.agny.xent.core.utils.NESeq
@@ -84,7 +84,4 @@ object User {
   }
 }
 
-object UserType {
-  type UserId = Long
-  type ObjectId = Long
-}
+

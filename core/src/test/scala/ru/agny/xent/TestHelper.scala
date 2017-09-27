@@ -1,7 +1,7 @@
 package ru.agny.xent
 
 import ru.agny.xent.core.User
-import ru.agny.xent.core.UserType._
+import ru.agny.xent.core.utils.UserType._
 import ru.agny.xent.core.city.City
 import ru.agny.xent.core.unit._
 import ru.agny.xent.core.unit.equip.Equipment

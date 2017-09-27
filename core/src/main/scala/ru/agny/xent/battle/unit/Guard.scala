@@ -1,7 +1,7 @@
 package ru.agny.xent.battle.unit
 
 import ru.agny.xent.battle.Targetable
-import ru.agny.xent.core.UserType.{ObjectId, UserId}
+import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.core.unit.equip.{IncomeDamage, OutcomeDamage}
 
 //TODO balance

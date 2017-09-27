@@ -1,6 +1,6 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.core.UserType._
+import ru.agny.xent.core.utils.UserType._
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.utils.NESeq
 

@@ -1,7 +1,7 @@
 package ru.agny.xent.battle
 
 import ru.agny.xent.core.Coordinate
-import ru.agny.xent.core.UserType.{ObjectId, UserId}
+import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.unit.equip.OutcomeDamage

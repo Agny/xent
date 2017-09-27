@@ -1,6 +1,6 @@
 package ru.agny.xent.action
 
-import ru.agny.xent.core.UserType._
+import ru.agny.xent.core.utils.UserType._
 import ru.agny.xent.core.city.{City, Outpost}
 import ru.agny.xent.core.inventory.Extractable
 import ru.agny.xent.core.utils.{FacilityTemplate, ItemIdGenerator}

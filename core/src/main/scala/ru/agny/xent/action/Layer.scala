@@ -2,7 +2,7 @@ package ru.agny.xent.action
 
 import ru.agny.xent.battle.Military
 import ru.agny.xent.battle.unit.Troop
-import ru.agny.xent.core.UserType.UserId
+import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.core.utils.FacilityTemplate
 import ru.agny.xent.core.{Cell, CellsMap, User}
 import ru.agny.xent.messages.Response

@@ -1,6 +1,6 @@
 package ru.agny.xent.core.city
 
-import ru.agny.xent.core.UserType.ObjectId
+import ru.agny.xent.core.utils.UserType.ObjectId
 import ru.agny.xent.battle.Waiting
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.unit.{Occupation, Soul}

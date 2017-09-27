@@ -1,6 +1,6 @@
 package ru.agny.xent.battle.unit
 
-import ru.agny.xent.core.UserType.{ObjectId, UserId}
+import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.battle.{Fatigue, MapObject, MovementPlan}
 import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.inventory.Progress.ProgressTime

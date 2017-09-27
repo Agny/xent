@@ -1,6 +1,6 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.core.UserType.UserId
+import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.inventory.Progress.ProgressTime

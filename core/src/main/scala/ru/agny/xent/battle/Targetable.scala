@@ -1,6 +1,6 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.core.UserType.ObjectId
+import ru.agny.xent.core.utils.UserType.ObjectId
 import ru.agny.xent.core.unit.equip.OutcomeDamage
 
 trait Targetable {

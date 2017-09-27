@@ -1,7 +1,7 @@
 package ru.agny.xent.battle
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
-import ru.agny.xent.core.UserType._
+import ru.agny.xent.core.utils.UserType._
 import ru.agny.xent.battle.unit._
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.inventory.ItemStack
