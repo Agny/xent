@@ -4,7 +4,8 @@ import io.circe.generic.auto._
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
-import ru.agny.xent.core.city.{City, Outpost}
+import ru.agny.xent.battle.Outpost
+import ru.agny.xent.core.city.City
 import ru.agny.xent.core.{LayerRuntime, ResourceCell}
 import ru.agny.xent.web.{MapView, MessageHandler, ObjectView, ViewCenter}
 

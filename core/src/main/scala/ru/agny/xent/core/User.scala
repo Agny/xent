@@ -1,7 +1,7 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.action.{DoNothing, UserAction}
-import ru.agny.xent.battle.MovementPlan
+import ru.agny.xent.battle.{MovementPlan, Outpost}
 import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}

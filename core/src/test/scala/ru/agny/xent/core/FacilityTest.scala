@@ -2,7 +2,7 @@ package ru.agny.xent.core
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.TestHelper
-import ru.agny.xent.core.city.{Building, Outpost, Storage}
+import ru.agny.xent.core.city.{Building, Storage}
 import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.utils.TimeUnit
 

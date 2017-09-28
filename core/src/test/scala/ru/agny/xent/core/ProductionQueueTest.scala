@@ -1,7 +1,7 @@
 package ru.agny.xent.core
 
 import org.scalatest.{FlatSpec, Matchers}
-import ru.agny.xent.core.city.Outpost
+import ru.agny.xent.battle.Outpost
 import ru.agny.xent.core.inventory.{Extractable, ProductionQueue}
 
 class ProductionQueueTest extends FlatSpec with Matchers {

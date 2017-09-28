@@ -1,16 +1,15 @@
-package ru.agny.xent.core.city
+package ru.agny.xent.battle
 
-import ru.agny.xent.battle.MapObject
 import ru.agny.xent.battle.unit.Guard
 import ru.agny.xent.core.Facility.{Demolished, Idle, InConstruction, Working}
 import ru.agny.xent.core._
 import ru.agny.xent.core.inventory.Item._
-import ru.agny.xent.core.inventory.{Extractable, ExtractionQueue, ItemStack, Obtainable}
 import ru.agny.xent.core.inventory.Progress._
+import ru.agny.xent.core.inventory.{Extractable, ExtractionQueue, ItemStack, Obtainable}
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.unit.equip.OutcomeDamage
-import ru.agny.xent.core.utils.{ItemIdGenerator, NESeq}
 import ru.agny.xent.core.utils.UserType.ObjectId
+import ru.agny.xent.core.utils.{ItemIdGenerator, NESeq}
 
 final case class Outpost(id: ItemId,
                          c: Coordinate,
