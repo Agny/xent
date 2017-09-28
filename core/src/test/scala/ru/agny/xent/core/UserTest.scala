@@ -96,19 +96,4 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
     updated.right.value.users.head.city.storage.resources should be(expected)
   }
 
-  "Sequential actions" should "spend resources" in {
-    val ot = OutpostTemplate("Out Test", "Test res", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, "")
-    val bt = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, "")
-    val place = Coordinate(1, 2)
-    val resourceToClaim = ResourceCell(place, Extractable(1, "Test res", 10, 111, Set.empty))
-    val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(15, woodId)))))
-    val layer = Layer("", 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(Cell(1, 0), Cell(1, 1), resourceToClaim), Vector())), Vector(ot, bt))
-    val resourceClaim = ResourceClaim("Out Test", user.id, resourceToClaim.c)
-    val placeBuilding = PlaceBuilding("Test", layer, Coordinate(2, 1))
-    val updated = layer.tick(resourceClaim)
-    val lastUpdated = updated.right.value.tick(placeBuilding, userAndStorage.id)
-    val expected = ItemStack(1, woodId)
-    lastUpdated.right.value.users.head.city.storage.get(woodId) should be(Some(expected))
-  }
-
 }

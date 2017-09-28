@@ -25,21 +25,16 @@ class CityTest extends FlatSpec with Matchers with EitherValues {
 
   it should "update facilities state upon producing" in {
     val place = Coordinate(2, 1)
-    val user = defaultUser()
     val prodId = 2
-    val extrTime = 1100
     val prodTime = 1000
     val progress = 1200
-    val extr = Extractable(1, "Test res", 100, extrTime, Set.empty)
     val prod = Producible(prodId, "Test prod", ProductionSchema(prodTime, Cost(Vector.empty), Set.empty))
-    val (o, _) = Outpost(place, user, "outpost", extr, Vector.empty, 500).finish.run(worker)
     val building = {
       val (b, _) = Building(place, bName, Vector(prod), 500).finish.run(worker)
       b.addToQueue(ItemStack(2, prodId))(Storage.empty).right.value._2
     }
     val res = City.empty(0, 0).place(building, Shape.values(shape).form(Coordinate(2, 1)))
-    val (city, Vector(outpost)) = res.right.value.produce(progress, Vector(o))
-    outpost.queue.progress should be(progress - extrTime)
+    val city = res.right.value.produce(progress)
     city.producers.find(_.name == bName).get.queue.progress should be(progress - prodTime)
   }
 }

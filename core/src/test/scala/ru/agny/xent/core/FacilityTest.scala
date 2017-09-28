@@ -60,8 +60,11 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
     exworker should be(Some(worker))
   }
 
+  "Outpost" should "fail temporarily" in {
+    "outposts production" should be("delivered by cargos")
+  }
 
-  "Outpost" should "produce resource in time" in {
+  /*"Outpost" should "produce resource in time" in {
     val res = Extractable(copperId, " Copper", 30, 1000, Set.empty)
     val (facility, _) = Outpost(place, user, "Copper mine", res, Vector.empty, 10000).finish.run(worker)
     val storage = Storage.empty
@@ -85,6 +88,6 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
     result.resources should be(Vector(ItemStack(20, copperId)))
     res.volume should be (10)
     facility.queue.isEmpty should be(false)
-  }
+  }*/
 
 }

@@ -12,14 +12,11 @@ import ru.agny.xent.messages.Response
 
 case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) extends Cell {
 
-  import FacilitySubTyper.implicits._
-
   lazy val producers = map.buildings.filter(_.isFunctioning)
 
-  def produce(period: ProgressTime, outposts: Vector[Outpost]): (City, Vector[Outpost]) = {
-    val (s, p) = storage.tick(period, producers ++ outposts)
-    val (buildings, outs) = SubTyper.partition[Building, Outpost, Facility](p)
-    (City(c, updateMap(buildings), s), outs)
+  def produce(period: ProgressTime): City = {
+    val (s, buildings) = storage.tick(period, producers)
+    City(c, updateMap(buildings), s)
   }
 
   def place(b: Building, s: ResultShape): Either[Response, City] = {
@@ -27,11 +24,9 @@ case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) exte
     else Left(Response(s"Not enough space to place $s"))
   }
 
-  def update(b: Building, s: Storage = storage): City = copy(map = updateMap(b), storage = s)
+  def update(b: Building, s: Storage = storage): City = copy(map = map.update(b), storage = s)
 
-  private def updateMap(bs: Vector[Building]): ShapeMap = bs.foldLeft(map)((m, b) => updateMap(b))
-
-  private def updateMap(b: Building): ShapeMap = map.update(b)
+  private def updateMap(bs: Vector[Building]): ShapeMap = bs.foldLeft(map)((m, b) => m.update(b))
 }
 
 object City {

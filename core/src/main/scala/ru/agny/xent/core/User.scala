@@ -10,7 +10,7 @@ import ru.agny.xent.core.inventory.{Cost, ItemStack, ProductionQueue}
 import ru.agny.xent.core.utils.NESeq
 import ru.agny.xent.messages.Response
 
-case class User(id: UserId, name: String, city: City, lands: Lands, queue: ProductionQueue, souls: Workers, power: LifePower, lastAction: Long) {
+case class User(id: UserId, name: String, city: City, queue: ProductionQueue, souls: Workers, power: LifePower, lastAction: Long) {
 
   import User._
 
@@ -18,9 +18,9 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
     val time = System.currentTimeMillis()
     val period = time - lastAction
     val (q, prod) = queue.out(period)
-    val (updatedCity, updatedOutposts) = city.produce(period, lands.outposts)
-    val actualUser = copy(city = updatedCity, lands = Lands(updatedOutposts), queue = q, lastAction = time)
-    val updated = handleQueue(prod.map { case (item, amount) => item.asInstanceOf[Facility] }, actualUser)
+    val updatedCity = city.produce(period)
+    val actualUser = copy(city = updatedCity, queue = q, lastAction = time)
+    val updated = handleQueue(prod.map { case (item, amount) => item.asInstanceOf[Building] }, actualUser)
     a.run(updated)
   }
 
@@ -70,15 +70,12 @@ case class User(id: UserId, name: String, city: City, lands: Lands, queue: Produ
 
 object User {
   def apply(id: UserId, name: String, city: City): User = {
-    User(id, name, city, Lands.empty, ProductionQueue.empty, Workers.empty, LifePower.default, System.currentTimeMillis())
+    User(id, name, city, ProductionQueue.empty, Workers.empty, LifePower.default, System.currentTimeMillis())
   }
 
-  private def handleQueue(items: Vector[Facility], state: User): User = items match {
+  private def handleQueue(items: Vector[Building], state: User): User = items match {
     case h +: t =>
-      val update = h.finish match {
-        case x: Building => state.copy(city = state.city.update(x))
-        case x: Outpost => state.copy(lands = state.lands.add(x))
-      }
+      val update = state.copy(city = state.city.update(h.finish))
       handleQueue(t, update)
     case _ => state
   }

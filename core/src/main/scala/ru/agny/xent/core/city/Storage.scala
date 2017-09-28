@@ -13,11 +13,11 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
   val asInventory = this
 
-  def tick(period: ProgressTime, producers: Vector[Facility]): (Storage, Vector[Facility]) =
-    producers.foldLeft(this, Vector.empty[Facility])((s, f) => {
-      val (facility, items) = f.tick(period)
+  def tick(period: ProgressTime, producers: Vector[Building]): (Storage, Vector[Building]) =
+    producers.foldLeft(this, Vector.empty[Building])((s, f) => {
+      val (building, items) = f.tick(period)
       val (storage, notAdded) = s._1.add(items)
-      (storage, facility +: s._2)
+      (storage, building +: s._2)
     })
 
   def add(r: Vector[Item]): (Storage, Vector[Slot[Item]]) = r match {
