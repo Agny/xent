@@ -24,6 +24,7 @@ final case class Outpost(id: ItemId,
                          body: NESeq[Guard],
                          stored: Vector[ItemStack]) extends MapObject with Facility {
 
+  override type Self = Outpost
   // ** Facility methods block starts **
 
   def build = copy(state = InConstruction)
@@ -56,7 +57,6 @@ final case class Outpost(id: ItemId,
 
   // ** Facility methods block ends **
 
-  override type Self = Outpost
   override val user = owner.id
   override val weight = Outpost.battleWeight + body.map(_.weight).sum
 

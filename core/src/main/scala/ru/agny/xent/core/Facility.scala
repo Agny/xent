@@ -1,20 +1,13 @@
 package ru.agny.xent.core
 
 import ru.agny.xent.core.inventory.Progress.ProgressTime
-import ru.agny.xent.core.inventory.{DelayableItem, ItemStack, Obtainable, ResourceQueue}
+import ru.agny.xent.core.inventory.{ItemStack, Obtainable, ResourceQueue}
 import ru.agny.xent.core.unit.Soul
 
-trait Facility extends Cell with DelayableItem {
+trait Facility extends Cell with Buildable {
   val obtainable: Vector[Obtainable]
   val queue: ResourceQueue
-  val buildTime: ProgressTime
-  override val yieldTime = buildTime
-  val state: Facility.State
   val worker: Option[Soul]
-
-  def build: Facility
-
-  def finish: Facility
 
   def stop: (Facility, Option[Soul])
 

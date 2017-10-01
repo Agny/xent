@@ -5,11 +5,10 @@ import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.unit.equip.OutcomeDamage
-import ru.agny.xent.core.utils.NESeq
+import ru.agny.xent.core.utils.{NESeq, SelfAware}
 
 //TODO Think about more appropriate name, which describes object on the world map: troops/cargos/outposts/cities etc.
-abstract class MapObject {
-  type Self <: MapObject
+abstract class MapObject extends SelfAware {
   val id: ObjectId
   val user: UserId
   val weight: Int

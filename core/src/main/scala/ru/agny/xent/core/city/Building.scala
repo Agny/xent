@@ -18,6 +18,8 @@ case class Building(id: ItemId,
                     buildTime: ProgressTime,
                     state: Facility.State,
                     worker: Option[Soul] = None) extends Facility {
+  override type Self = Building
+
   def build = copy(state = InConstruction)
 
   def finish = copy(state = Idle)
