@@ -32,7 +32,8 @@ object Military {
     val quantum = if (time > by) by else time
     val (battleActive, fallen) = m.objects.map(x => (x, x.pos(quantum))).partition(_._1.isActive)
     val grouped = groupByPos(battleActive)
-    val (freeTroops, updatedEvents) = collide(m.events, grouped, quantum)
+    val withSpawned = addSpawns(grouped)
+    val (freeTroops, updatedEvents) = collide(m.events, withSpawned, quantum)
     val res = Military(freeTroops ++ fallen.unzip._1, updatedEvents, m.lastTick + quantum)
 
     if (time > by) {
@@ -40,6 +41,15 @@ object Military {
     } else {
       res
     }
+  }
+
+  private def addSpawns(grouped: Map[Coordinate, Vector[MapObject]]) = {
+    grouped.map(x => x._1 -> x._2.flatMap {
+      case s: UnitSpawner =>
+        val (updated, spawned) = s.spawn
+        spawned.map(x => Vector(updated, x)) getOrElse Vector(updated)
+      case regular => Vector(regular)
+    })
   }
 
   private def groupByPos(objects: Vector[(MapObject, Coordinate)]) = {

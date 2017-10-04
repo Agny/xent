@@ -95,8 +95,8 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
       val pos4 = Coordinate(3, 3)
       val moveOne = MovementPlan(Vector(Movement(pos4, pos1)), pos1)
       val moveTwo = MovementPlan(Vector(Movement(pos1, pos4)), pos4)
-      val cargoOne = Cargo(1, userOne, NESeq(Vector(Guard.tiered(0)(userOne))), ItemStack(1, 2), moveOne)
-      val cargoTwo = Cargo(2, userTwo, NESeq(Vector(Guard.tiered(0)(userTwo))), ItemStack(1, 2), moveTwo)
+      val cargoOne = Cargo(1, userOne, NESeq(Vector(Guard.tiered(0)(userOne))), Vector(ItemStack(1, 2)), moveOne)
+      val cargoTwo = Cargo(2, userTwo, NESeq(Vector(Guard.tiered(0)(userTwo))), Vector(ItemStack(1, 2)), moveTwo)
       Military(Vector(cargoOne, cargoTwo), Vector.empty, System.currentTimeMillis())
     }
     val samePositions = System.currentTimeMillis() + Distance.tileToDistance(2) / Guard.speed
@@ -110,7 +110,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
   }
 
   "Troop" should "take loot from cargo" in {
-    val expectedResources = ItemStack(1, 2)
+    val expectedResources = Vector(ItemStack(1, 2))
     val start = {
       val pos4 = Coordinate(3, 3)
       val moveOne = MovementPlan(Vector(Movement(pos4, pos1)), pos1)
