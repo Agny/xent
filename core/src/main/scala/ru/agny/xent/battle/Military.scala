@@ -49,7 +49,7 @@ object Military {
         val (updated, spawned) = s.spawn
         spawned.map(x => Vector(updated, x)) getOrElse Vector(updated)
       case regular => Vector(regular)
-    })
+    }).withDefaultValue(Vector.empty)
   }
 
   private def groupByPos(objects: Vector[(MapObject, Coordinate)]) = {
