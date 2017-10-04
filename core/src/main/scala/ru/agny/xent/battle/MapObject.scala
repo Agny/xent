@@ -8,7 +8,8 @@ import ru.agny.xent.core.unit.equip.OutcomeDamage
 import ru.agny.xent.core.utils.{NESeq, SelfAware}
 
 //TODO Think about more appropriate name, which describes object on the world map: troops/cargos/outposts/cities etc.
-abstract class MapObject extends SelfAware {
+abstract class MapObject {
+  this: SelfAware =>
   val id: ObjectId
   val user: UserId
   val weight: Int

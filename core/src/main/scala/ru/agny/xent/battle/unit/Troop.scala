@@ -6,7 +6,7 @@ import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.unit.equip.OutcomeDamage
-import ru.agny.xent.core.utils.NESeq
+import ru.agny.xent.core.utils.{NESeq, SelfAware}
 import ru.agny.xent.core.Coordinate
 
 case class Troop(id: ObjectId,
@@ -14,7 +14,7 @@ case class Troop(id: ObjectId,
                  backpack: Backpack,
                  user: UserId,
                  private val plan: MovementPlan,
-                 private val fatigue: Fatigue) extends MapObject {
+                 private val fatigue: Fatigue) extends MapObject with SelfAware {
 
   import Fatigue._
 

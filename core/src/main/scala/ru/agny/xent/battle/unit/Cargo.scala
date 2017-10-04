@@ -5,13 +5,13 @@ import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.unit.equip.OutcomeDamage
-import ru.agny.xent.core.utils.NESeq
+import ru.agny.xent.core.utils.{NESeq, SelfAware}
 
 case class Cargo(id: ObjectId,
                  user: UserId,
                  body: NESeq[Guard],
-                 resources: ItemStack,
-                 private val plan: MovementPlan) extends MapObject {
+                 resources: Vector[ItemStack],
+                 private val plan: MovementPlan) extends MapObject with SelfAware {
   override type Self = Cargo
 
   override val weight = body.map(_.weight).sum
@@ -22,11 +22,11 @@ case class Cargo(id: ObjectId,
 
   override val isAbleToFight = false
 
-  override def isDiscardable = resources.stackValue == 0 || plan.now(Guard.speed, 0) == plan.home
+  override def isDiscardable = resources.isEmpty || plan.now(Guard.speed, 0) == plan.home
 
   override val isAggressive = false
 
-  override def concede() = (copy(resources = ItemStack(0, resources.id)), Vector(resources))
+  override def concede() = (copy(resources = Vector.empty), resources)
 
   override def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]) = {
     val souls = body.filter(_.spirit > 0).map {
