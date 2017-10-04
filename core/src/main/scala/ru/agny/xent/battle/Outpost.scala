@@ -1,7 +1,7 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.battle.unit.Guard
-import ru.agny.xent.core.Facility.{Demolished, Idle, InConstruction, Working}
+import ru.agny.xent.battle.unit.{Cargo, Guard}
+import ru.agny.xent.core.Facility.{Demolished, Working}
 import ru.agny.xent.core._
 import ru.agny.xent.core.inventory.Item._
 import ru.agny.xent.core.inventory.Progress._
@@ -9,7 +9,7 @@ import ru.agny.xent.core.inventory.{Extractable, ExtractionQueue, ItemStack, Obt
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.unit.equip.OutcomeDamage
 import ru.agny.xent.core.utils.UserType.ObjectId
-import ru.agny.xent.core.utils.{ItemIdGenerator, NESeq}
+import ru.agny.xent.core.utils.{ItemIdGenerator, NESeq, SelfAware}
 
 final case class Outpost(id: ItemId,
                          c: Coordinate,
@@ -22,22 +22,12 @@ final case class Outpost(id: ItemId,
                          state: Facility.State,
                          worker: Option[Soul] = None,
                          body: NESeq[Guard],
-                         stored: Vector[ItemStack]) extends MapObject with Facility {
+                         stored: Vector[ItemStack]) extends MapObject with Facility with UnitSpawner with SelfAware {
 
   override type Self = Outpost
-  // ** Facility methods block starts **
-
-  def build = copy(state = InConstruction)
-
-  def finish = copy(state = Idle)
-
-  def stop: (Outpost, Option[Soul]) =
-    if (isFunctioning) (copy(state = Idle, worker = None), worker)
-    else (this, worker)
-
-  def run(worker: Soul): (Outpost, Option[Soul]) =
-    if (isFunctioning) (copy(state = Working, worker = Some(worker)), this.worker)
-    else (this, Some(worker))
+  override val self = this
+  override val user = owner.id
+  override val weight = Outpost.battleWeight + body.map(_.weight).sum
 
   def tick(period: ProgressTime) = {
     if (state == Working) {
@@ -51,14 +41,6 @@ final case class Outpost(id: ItemId,
 
   private def store(mined: Vector[ItemStack]): Vector[ItemStack] =
     stored.map(x => mined.find(_.id == x.id).map(y => ItemStack(x.stackValue + y.stackValue, x.id)).getOrElse(x))
-
-
-  def isFunctioning: Boolean = state == Working || state == Idle
-
-  // ** Facility methods block ends **
-
-  override val user = owner.id
-  override val weight = Outpost.battleWeight + body.map(_.weight).sum
 
   override def pos(time: ProgressTime) = c
 
@@ -79,6 +61,20 @@ final case class Outpost(id: ItemId,
     }
     copy(body = NESeq(souls.head, souls.tail))
   }
+
+  override def spawn: (Self, Option[Cargo]) = {
+    if (stored.nonEmpty) {
+      val guards = NESeq(Guard.tiered(0)(owner.id) +: Vector.empty)
+      val movePlan = MovementPlan(Vector(Movement(c, owner.city.c)), owner.city.c)
+      val cargo = Cargo(ItemIdGenerator.next, user, guards, stored, movePlan)
+      (copy(stored = Vector.empty), Some(cargo))
+    }
+    else (this, None)
+  }
+
+  override def apply(state: Facility.State) = copy(state = state)
+
+  override def apply(state: Facility.State, worker: Option[Soul]) = copy(state = state, worker = worker)
 }
 
 object Outpost {

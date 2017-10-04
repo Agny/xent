@@ -1,12 +1,12 @@
 package ru.agny.xent.core.city
 
-import ru.agny.xent.core.Facility.{Idle, InConstruction, Working}
+import ru.agny.xent.core.Facility.Working
 import ru.agny.xent.core.inventory.Item._
 import ru.agny.xent.core.inventory.Progress._
 import ru.agny.xent.core._
 import ru.agny.xent.core.inventory.{ItemStack, Obtainable, Producible, ProductionQueue}
 import ru.agny.xent.core.unit.Soul
-import ru.agny.xent.core.utils.ItemIdGenerator
+import ru.agny.xent.core.utils.{ItemIdGenerator, SelfAware}
 import ru.agny.xent.messages.Response
 
 case class Building(id: ItemId,
@@ -17,20 +17,9 @@ case class Building(id: ItemId,
                     queue: ProductionQueue,
                     buildTime: ProgressTime,
                     state: Facility.State,
-                    worker: Option[Soul] = None) extends Facility {
+                    worker: Option[Soul] = None) extends Facility with SelfAware {
   override type Self = Building
-
-  def build = copy(state = InConstruction)
-
-  def finish = copy(state = Idle)
-
-  def stop: (Building, Option[Soul]) =
-    if (isFunctioning) (copy(state = Idle, worker = None), worker)
-    else (this, worker)
-
-  def run(worker: Soul): (Building, Option[Soul]) =
-    if (isFunctioning) (copy(state = Working, worker = Some(worker)), this.worker)
-    else (this, Some(worker))
+  override val self = this
 
   def tick(period: ProgressTime): (Building, Vector[ItemStack]) = {
     if (state == Working) {
@@ -42,8 +31,6 @@ case class Building(id: ItemId,
     }
   }
 
-  def isFunctioning: Boolean = state == Working || state == Idle
-
   def addToQueue(item: ItemStack): Storage => Either[Response, (Storage, Building)] = storage => {
     producible.find(_.id == item.id) match {
       case Some(v: Producible) =>
@@ -54,6 +41,10 @@ case class Building(id: ItemId,
       case _ => Left(Response(s"Facility $name cannot produce ${item.id}"))
     }
   }
+
+  override def apply(state: Facility.State) = copy(state = state)
+
+  override def apply(state: Facility.State, worker: Option[Soul]) = copy(state = state, worker = worker)
 }
 
 object Building {

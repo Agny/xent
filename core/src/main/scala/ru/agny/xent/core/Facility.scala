@@ -1,19 +1,31 @@
 package ru.agny.xent.core
 
+import ru.agny.xent.core.Facility.{Idle, Working}
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.inventory.{ItemStack, Obtainable, ResourceQueue}
 import ru.agny.xent.core.unit.Soul
+import ru.agny.xent.core.utils.SelfAware
 
 trait Facility extends Cell with Buildable {
+  this: SelfAware =>
+  val self: Self
   val obtainable: Vector[Obtainable]
   val queue: ResourceQueue
   val worker: Option[Soul]
 
-  def stop: (Facility, Option[Soul])
+  def isFunctioning: Boolean = state == Working || state == Idle
 
-  def run(worker: Soul): (Facility, Option[Soul])
+  def stop: (Self, Option[Soul]) =
+    if (isFunctioning) (apply(Idle, None), worker)
+    else (self, worker)
+
+  def run(worker: Soul): (Self, Option[Soul]) =
+    if (isFunctioning) (apply(Working, Some(worker)), this.worker)
+    else (self, Some(worker))
 
   def tick(period: ProgressTime): (Facility, Vector[ItemStack])
+
+  def apply(state: Facility.State, worker: Option[Soul]): Self
 }
 
 object Facility {
@@ -23,6 +35,4 @@ object Facility {
   case object Working extends State
   case object Idle extends State
   case object Demolished extends State
-
-  val states = Vector(InConstruction, Working, Idle, Init)
 }
