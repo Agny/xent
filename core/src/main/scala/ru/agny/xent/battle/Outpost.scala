@@ -39,6 +39,8 @@ final case class Outpost(id: ItemId,
     }
   }
 
+  def isCargoReady = stored.nonEmpty
+
   private def store(mined: Vector[ItemStack]): Vector[ItemStack] =
     stored.map(x => mined.find(_.id == x.id).map(y => ItemStack(x.stackValue + y.stackValue, x.id)).getOrElse(x))
 
@@ -62,14 +64,11 @@ final case class Outpost(id: ItemId,
     copy(body = NESeq(souls.head, souls.tail))
   }
 
-  override def spawn: (Self, Option[Cargo]) = {
-    if (stored.nonEmpty) {
-      val guards = NESeq(Guard.tiered(0)(owner.id) +: Vector.empty)
-      val movePlan = MovementPlan(Vector(Movement(c, owner.city.c)), owner.city.c)
-      val cargo = Cargo(ItemIdGenerator.next, user, guards, stored, movePlan)
-      (copy(stored = Vector.empty), Some(cargo))
-    }
-    else (this, None)
+  override def spawn: (Self, Cargo) = {
+    val guards = NESeq(Guard.tiered(0)(owner.id) +: Vector.empty)
+    val movePlan = MovementPlan(Vector(Movement(c, owner.city.c)), owner.city.c)
+    val cargo = Cargo(ItemIdGenerator.next, user, guards, stored, movePlan)
+    (copy(stored = Vector.empty), cargo)
   }
 
   override def apply(state: Facility.State) = copy(state = state)

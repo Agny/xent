@@ -30,10 +30,10 @@ object Military {
 
   @tailrec private def quantify(m: Military, time: ProgressTime, by: ProgressTime): Military = {
     val quantum = if (time > by) by else time
-    val (battleActive, fallen) = m.objects.map(x => (x, x.pos(quantum))).partition(_._1.isActive)
+    val ticks = tickProducers(m.objects, quantum)
+    val (battleActive, fallen) = ticks.map(x => (x, x.pos(quantum))).partition(_._1.isActive)
     val grouped = groupByPos(battleActive)
-    val withSpawned = addSpawns(grouped)
-    val (freeTroops, updatedEvents) = collide(m.events, withSpawned, quantum)
+    val (freeTroops, updatedEvents) = collide(m.events, grouped, quantum)
     val res = Military(freeTroops ++ fallen.unzip._1, updatedEvents, m.lastTick + quantum)
 
     if (time > by) {
@@ -43,13 +43,19 @@ object Military {
     }
   }
 
-  private def addSpawns(grouped: Map[Coordinate, Vector[MapObject]]) = {
-    grouped.map(x => x._1 -> x._2.flatMap {
-      case s: UnitSpawner =>
-        val (updated, spawned) = s.spawn
-        spawned.map(x => Vector(updated, x)) getOrElse Vector(updated)
-      case regular => Vector(regular)
-    }).withDefaultValue(Vector.empty)
+  private def tickProducers(objects: Vector[MapObject], progress: ProgressTime) = {
+    def tick(o: Outpost, acc: Vector[MapObject]) = {
+      val (updated, _) = o.tick(progress)
+      if (updated.isCargoReady) {
+        val (spawner, spawned) = updated.spawn
+        spawned +: spawner +: acc
+      } else updated +: acc
+    }
+
+    objects.foldLeft(Vector.empty[MapObject])((acc, v) => v match {
+      case o: Outpost => tick(o, acc)
+      case x => x +: acc
+    })
   }
 
   private def groupByPos(objects: Vector[(MapObject, Coordinate)]) = {

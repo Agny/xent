@@ -5,5 +5,5 @@ import ru.agny.xent.core.utils.SelfAware
 trait UnitSpawner extends MapObject {
   this: SelfAware =>
 
-  def spawn: (UnitSpawner, Option[MapObject])
+  def spawn: (UnitSpawner, MapObject)
 }

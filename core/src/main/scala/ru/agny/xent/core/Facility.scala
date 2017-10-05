@@ -23,7 +23,7 @@ trait Facility extends Cell with Buildable {
     if (isFunctioning) (apply(Working, Some(worker)), this.worker)
     else (self, Some(worker))
 
-  def tick(period: ProgressTime): (Facility, Vector[ItemStack])
+  def tick(period: ProgressTime): (Self, Vector[ItemStack])
 
   def apply(state: Facility.State, worker: Option[Soul]): Self
 }

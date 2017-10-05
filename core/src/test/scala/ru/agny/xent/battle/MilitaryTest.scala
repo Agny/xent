@@ -74,12 +74,11 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
 
   it should "continue troops movement after battle" in {
     val quickSoulSample = getQuickSoul(0)
-    val start = {
-      val move = MovementPlan(Vector(Movement(pos1, pos3)), pos1)
-      val troopOne = Troop(1, NESeq(Vector(getQuickSoul(3), getQuickSoul(4), getQuickSoul(5))), Backpack.empty, userOne, move)
-      val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, MovementPlan.idle(pos2))
-      Military(Vector(troopOne, troopTwo), Vector.empty, System.currentTimeMillis())
-    }
+    val move = MovementPlan(Vector(Movement(pos1, pos3)), pos1)
+    val troopOne = Troop(1, NESeq(Vector(getQuickSoul(3), getQuickSoul(4), getQuickSoul(5))), Backpack.empty, userOne, move)
+    val troopTwo = Troop(2, NESeq(toughSoul +: Vector.empty), Backpack.empty, userTwo, MovementPlan.idle(pos2))
+    val start = Military(Vector(troopOne, troopTwo), Vector.empty, System.currentTimeMillis())
+
     val battleStart = System.currentTimeMillis() + Distance.tileToDistance(2) / quickSoulSample.speed
     val (firstRound, _) = start.tick(battleStart)
     val firstRoundEnd = battleStart + firstRound.events.head.asInstanceOf[Battle].round.duration
@@ -87,7 +86,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val secondRoundEnd = firstRoundEnd + secondRound.events.head.asInstanceOf[Battle].round.duration
     val (result, _) = secondRound.tick(secondRoundEnd + Distance.tileToDistance(1) / quickSoulSample.speed)
 
-    result.objects.head.pos(0) should be(pos3)
+    result.objects.find(_.id == troopOne.id).get.pos(0) should be(pos3)
   }
 
   it should "not start battle for two cargos" in {
