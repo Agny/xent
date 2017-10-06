@@ -42,7 +42,7 @@ final case class Outpost(id: ItemId,
   def isCargoReady = stored.nonEmpty
 
   private def store(mined: Vector[ItemStack]): Vector[ItemStack] =
-    stored.map(x => mined.find(_.id == x.id).map(y => ItemStack(x.stackValue + y.stackValue, x.id)).getOrElse(x))
+    mined.map(x => stored.find(_.id == x.id).map(y => ItemStack(x.stackValue + y.stackValue, x.id)).getOrElse(x))
 
   override def pos(time: ProgressTime) = c
 

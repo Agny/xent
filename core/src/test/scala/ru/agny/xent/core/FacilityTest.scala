@@ -4,7 +4,6 @@ import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.TestHelper
 import ru.agny.xent.core.city.{Building, Storage}
 import ru.agny.xent.core.inventory._
-import ru.agny.xent.core.utils.TimeUnit
 
 class FacilityTest extends FlatSpec with Matchers with EitherValues {
 
@@ -59,35 +58,4 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
     stopped.queue.progress should be(stoppedUnchanged.head.queue.progress)
     exworker should be(Some(worker))
   }
-
-  "Outpost" should "fail temporarily" in {
-    "outposts production" should be("delivered by cargos")
-  }
-
-  /*"Outpost" should "produce resource in time" in {
-    val res = Extractable(copperId, " Copper", 30, 1000, Set.empty)
-    val (facility, _) = Outpost(place, user, "Copper mine", res, Vector.empty, 10000).finish.run(worker)
-    val storage = Storage.empty
-    val (s, _) = storage.tick(TimeUnit.minute, Vector(facility))
-
-    s.resources should be(Vector(ItemStack(30, copperId)))
-    res.volume should be(0)
-    facility.queue.isEmpty should be(true)
-  }
-
-  it should "handle gaps in time" in {
-    val res = Extractable(copperId, " Copper", 30, 1000, Set.empty)
-    val (facility, _) = Outpost(place, user, "Copper mine", res, Vector.empty, 10000).finish.run(worker)
-    val (s, f) = Storage.empty.tick(TimeUnit.minute / 6, Vector(facility))
-    val (stopped, _) = f.head.stop
-    val (sameS, sameStopped) = s.tick(TimeUnit.minute, Vector(stopped))
-    val (run, _) = sameStopped.head.run(worker)
-    val (result, _) = sameS.tick(TimeUnit.minute / 6, Vector(run))
-
-    s.resources should be(Vector(ItemStack(10, copperId)))
-    result.resources should be(Vector(ItemStack(20, copperId)))
-    res.volume should be (10)
-    facility.queue.isEmpty should be(false)
-  }*/
-
 }
