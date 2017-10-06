@@ -1,13 +1,14 @@
 package ru.agny.xent.core.unit.equip
 
-import ru.agny.xent.core.unit.{Levelable, Level, Characteristic}
+import ru.agny.xent.core.LifePowered
+import ru.agny.xent.core.unit.{Characteristic, Level, Levelable}
 
 sealed trait SoulProperty[T] {
   val prop: T
 }
 
 case class AttrProperty(prop: Attribute, value: Int, mode: Mode) extends SoulProperty[Attribute]
-case class StatProperty(prop: Characteristic, level: Level) extends SoulProperty[Characteristic] with Levelable {
+case class StatProperty(prop: Characteristic, level: Level) extends SoulProperty[Characteristic] with Levelable with LifePowered {
   def toLifePower: Int = {
     val expBonus = level.exp * prop.weightModifier / level.capacity
     scaledWeight + expBonus

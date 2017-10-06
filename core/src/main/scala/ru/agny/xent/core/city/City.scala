@@ -2,7 +2,8 @@ package ru.agny.xent.core.city
 
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core._
-import ru.agny.xent.core.utils.{CityGenerator, SubTyper}
+import ru.agny.xent.core.inventory.Item
+import ru.agny.xent.core.utils.CityGenerator
 import ru.agny.xent.messages.Response
 
 /**
@@ -25,6 +26,8 @@ case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) exte
   }
 
   def update(b: Building, s: Storage = storage): City = copy(map = map.update(b), storage = s)
+
+  def addResources(v: Vector[Item]): City = copy(storage = storage.add(v)._1)
 
   private def updateMap(bs: Vector[Building]): ShapeMap = bs.foldLeft(map)((m, b) => m.update(b))
 }

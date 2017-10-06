@@ -31,6 +31,8 @@ case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Eq
   def gainExp(amount: Int): Soul = copy(stats = stats.gainExp(amount))
 
   def lose(): (Soul, Equipment) = (copy(equip = Equipment.empty), equip)
+
+  def beAssimilated(): (Int, Vector[Equippable]) = (stats.toLifePower, equip.toSpoil)
 }
 
 object Soul {

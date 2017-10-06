@@ -46,6 +46,11 @@ case class User(id: UserId, name: String, city: City, queue: ProductionQueue, so
     else Left(Response(s"Cannot create troop with souls $soulsId"))
   }
 
+  def assimilateTroop(v: Troop): User = {
+    val (lifePower, items) = v.disband()
+    copy(power = power.regain(lifePower, lifePower / 10), city = city.addResources(items))
+  }
+
   private def findProducer(facility: ItemId) = city.producers.find(f => f.id == facility).
     map(Right(_)) getOrElse Left(Response(s"Unable to find working building $facility"))
 

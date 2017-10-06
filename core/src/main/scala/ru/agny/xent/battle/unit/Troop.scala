@@ -56,6 +56,15 @@ case class Troop(id: ObjectId,
     }
   }
 
+  def disband(): (Int, Vector[Item]) = {
+    val (power, equip) = units.foldLeft(0, Vector.empty[Item]) {
+      case ((lifePower, items), soul) =>
+        val (assimilatedPower, equip) = soul.beAssimilated()
+        (lifePower + assimilatedPower, equip ++ items)
+    }
+    (power, equip ++ backpack.toSpoil)
+  }
+
   override def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Self = {
     val souls = activeUnits.map {
       case u if targeted.contains(u.id) => u.receiveDamage(d)
