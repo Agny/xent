@@ -1,8 +1,7 @@
 package ru.agny.xent.core.utils
 
-import ru.agny.xent.action.Layer
 import ru.agny.xent.battle.Military
-import ru.agny.xent.core._
+import ru.agny.xent.core.{Layer, _}
 import ru.agny.xent.core.inventory.Extractable
 
 import scala.util.Random

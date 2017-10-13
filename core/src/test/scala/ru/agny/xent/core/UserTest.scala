@@ -2,7 +2,7 @@ package ru.agny.xent.core
 
 import org.scalatest.{BeforeAndAfterAll, EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.TestHelper
-import ru.agny.xent.action.{DoNothing, Layer, PlaceBuilding, ResourceClaim}
+import ru.agny.xent.action.{DoNothing, PlaceBuilding, ResourceClaim}
 import ru.agny.xent.battle.{Military, Movement, Waiting}
 import ru.agny.xent.core.city.Shape.FourShape
 import ru.agny.xent.core.city._

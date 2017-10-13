@@ -1,10 +1,10 @@
-package ru.agny.xent.action
+package ru.agny.xent.core
 
-import ru.agny.xent.battle.{MapObject, Military}
+import ru.agny.xent.action.{LayerAction, UserAction}
 import ru.agny.xent.battle.unit.{Cargo, Troop}
-import ru.agny.xent.core.utils.UserType.UserId
+import ru.agny.xent.battle.{MapObject, Military}
 import ru.agny.xent.core.utils.FacilityTemplate
-import ru.agny.xent.core.{Cell, CellsMap, User}
+import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.messages.Response
 
 case class Layer(id: String, level: Int, users: Vector[User], armies: Military, map: CellsMap, facilities: Vector[FacilityTemplate]) {

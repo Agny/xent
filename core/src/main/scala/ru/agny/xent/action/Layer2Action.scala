@@ -1,5 +1,6 @@
 package ru.agny.xent.action
 
+import ru.agny.xent.core.Layer
 import ru.agny.xent.core.utils.UserType._
 import ru.agny.xent.messages.Response
 

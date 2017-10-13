@@ -5,7 +5,7 @@ import ru.agny.xent.core.utils.UserType._
 import ru.agny.xent.core.city.City
 import ru.agny.xent.core.inventory.Extractable
 import ru.agny.xent.core.utils.{FacilityTemplate, ItemIdGenerator}
-import ru.agny.xent.core.{Coordinate, ResourceCell, User}
+import ru.agny.xent.core.{Coordinate, Layer, ResourceCell, User}
 import ru.agny.xent.messages.Response
 
 trait LayerAction extends Action {
