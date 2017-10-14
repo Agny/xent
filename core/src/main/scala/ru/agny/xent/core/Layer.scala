@@ -10,14 +10,14 @@ import ru.agny.xent.messages.Response
 case class Layer(id: String, level: Int, users: Vector[User], armies: Military, map: CellsMap, facilities: Vector[FacilityTemplate]) {
 
   def tick(action: LayerAction): Either[Response, Layer] = {
-    action.run(this)
+    action.run(militaryTick())
   }
 
   def tick(action: UserAction, user: UserId): Either[Response, Layer] = {
     users.find(_.id == user) match {
       case Some(v) => v.work(action) match {
         case Left(x) => Left(x)
-        case Right(x) => Right(this.copy(users = x +: users.diff(Vector(v))))
+        case Right(x) => Right(militaryTick().copy(users = x +: users.diff(Vector(v))))
       }
       case None => Left(Response(s"User with id=$user isn't found in this layer"))
     }
@@ -25,17 +25,22 @@ case class Layer(id: String, level: Int, users: Vector[User], armies: Military, 
 
   def updateMap(cell: Cell): Layer = {
     val armiesUpdated = cell match {
-      case o: MapObject => armies.copy(o +: armies.objects)
+      case o: MapObject => armies.add(o)
       case _ => armies
     }
     Layer(id, level, users, armiesUpdated, map.update(cell), facilities)
   }
 
   def addTroop(t: Troop): Layer = {
+    val updated = militaryTick()
+    updated.copy(armies = updated.armies.add(t))
+  }
+
+  private def militaryTick(): Layer = {
     val (updated, quitters) = armies.tick()
     val updatedUsers = handleQuitters(quitters)
     val notUpdatedUsers = users.diff(updatedUsers)
-    copy(users = notUpdatedUsers ++ updatedUsers, armies = updated.copy(objects = t +: updated.objects))
+    copy(users = notUpdatedUsers ++ updatedUsers, armies = updated)
   }
 
   private def handleQuitters(quitters: Vector[MapObject]) = {

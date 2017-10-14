@@ -17,6 +17,10 @@ case class Military(objects: Vector[MapObject], events: Vector[Event], lastTick:
     updated.discardFallen()
   }
 
+  def add(o: MapObject): Military = {
+    copy(objects = o +: objects)
+  }
+
   private def discardFallen(): (Military, Vector[MapObject]) = {
     val (fallen, actual) = objects.partition(x => x.isDiscardable)
     (copy(objects = actual), fallen)
