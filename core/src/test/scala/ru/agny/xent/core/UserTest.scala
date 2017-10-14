@@ -3,11 +3,13 @@ package ru.agny.xent.core
 import org.scalatest.{BeforeAndAfterAll, EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.TestHelper
 import ru.agny.xent.action.{DoNothing, PlaceBuilding, ResourceClaim}
-import ru.agny.xent.battle.{Military, Movement, Waiting}
+import ru.agny.xent.battle.unit.{Backpack, StubArmor, Troop}
+import ru.agny.xent.battle.{Military, Movement, MovementPlan, Waiting}
 import ru.agny.xent.core.city.Shape.FourShape
 import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory._
-import ru.agny.xent.core.utils.{BuildingTemplate, OutpostTemplate}
+import ru.agny.xent.core.unit.equip.Equipment
+import ru.agny.xent.core.utils.{BuildingTemplate, NESeq, OutpostTemplate}
 
 class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
@@ -58,6 +60,21 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
     val res = user.addProduction(facilityId, ItemStack(4, 1))
     val queue = res.right.value.city.producers.find(_.id == facilityId).get.queue
     queue.content should be(Vector((toProduce, 4)))
+  }
+
+  it should "consume troop's lifepower and get loot" in {
+    val armor = StubArmor()
+    val loot = ItemStack(10, woodId)
+    val armoredSoul = soulOne.copy(equip = Equipment.empty.add(armor)._1)
+    val souls = Vector(armoredSoul, soulTwo)
+    val soulsLifePower = souls.foldLeft(0)((acc, x) => acc + x.beAssimilated()._1)
+    val idleAtCity = MovementPlan(Vector(new Waiting(user.city.c)), user.city.c)
+    val troop = Troop(1, NESeq(souls), Backpack.empty.add(Vector(loot))._1, user.id, idleAtCity)
+    val userWithTroop = user.assimilateTroop(troop)
+
+    userWithTroop.power should be(user.power.regain(soulsLifePower, soulsLifePower / 10))
+    userWithTroop.city.storage.getItem(armor.id) should be(Some(armor))
+    userWithTroop.city.storage.getItem(woodId) should be(Some(loot))
   }
 
   "PlaceBuildingAction" should "spend resources" in {
