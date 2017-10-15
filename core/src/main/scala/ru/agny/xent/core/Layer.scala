@@ -14,12 +14,12 @@ case class Layer(id: String, level: Int, users: Vector[User], armies: Military, 
   }
 
   def tick(action: UserAction, user: UserId): Either[Response, Layer] = {
-    users.find(_.id == user) match {
-      case Some(v) => v.work(action) match {
+    getUser(user) match {
+      case Right(v) => v.work(action) match {
         case Left(x) => Left(x)
         case Right(x) => Right(militaryTick().copy(users = x +: users.diff(Vector(v))))
       }
-      case None => Left(Response(s"User with id=$user isn't found in this layer"))
+      case Left(v) => Left(v)
     }
   }
 
@@ -34,6 +34,10 @@ case class Layer(id: String, level: Int, users: Vector[User], armies: Military, 
   def addTroop(t: Troop): Layer = {
     val updated = militaryTick()
     updated.copy(armies = updated.armies.add(t))
+  }
+
+  def getUser(id: UserId): Either[Response, User] = {
+    users.find(x => x.id == id).map(Right(_)) getOrElse Left(Response(s"User with id=$id isn't found in the layer ${this.id}"))
   }
 
   private def militaryTick(): Layer = {

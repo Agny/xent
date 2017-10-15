@@ -68,11 +68,10 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
     val userId = decoder.parameters().get("user").get(0).toLong
     val layerId = decoder.parameters().get("layer").get(0)
     runtime.get.find(_.id == layerId) match {
-      case Some(v) =>
-        v.users.find(u => u.id == userId) match {
-          case Some(user) => ViewCenter(user.city.c.x, user.city.c.y, v.map.length)
-          case None => ViewCenter(2, 4, v.map.length)
-        }
+      case Some(v) => v.getUser(userId) match {
+        case Right(user) => ViewCenter(user.city.c.x, user.city.c.y, v.map.length)
+        case Left(_) => ViewCenter(2, 4, v.map.length) //TODO redirect to user creation?
+      }
       case None => ViewCenter(0, 0, -1)
     }
   }

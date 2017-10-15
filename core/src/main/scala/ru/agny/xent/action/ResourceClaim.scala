@@ -14,7 +14,7 @@ case class ResourceClaim(facilityName: String, userId: UserId, c: Coordinate) ex
     resource match {
       case Some(x: ResourceCell) =>
         for {
-          user <- findUser(userId, layer.users)
+          user <- layer.getUser(userId)
           outpost <- createFromTemplate(x.c, user, facilityName, x.resource, layer.facilities)
           updatedCell <- Right(outpost)
           updatedUser <- user.build(updatedCell, facilityT.get.cost)
@@ -26,10 +26,6 @@ case class ResourceClaim(facilityName: String, userId: UserId, c: Coordinate) ex
       case Some(_) => Left(Response(s"$c doesn't have a resource"))
       case None => Left(Response(s"Unable to find $c"))
     }
-  }
-
-  private def findUser(id: UserId, users: Vector[User]): Either[Response, User] = {
-    users.find(x => x.id == id).map(Right(_)) getOrElse Left(Response(s"User with id=$id isn't found in this layer"))
   }
 
   private def createFromTemplate(c: Coordinate, owner: User, name: String, res: Extractable, templates: Vector[FacilityTemplate]): Either[Response, Outpost] = {
