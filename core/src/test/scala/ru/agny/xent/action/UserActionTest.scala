@@ -5,8 +5,8 @@ import ru.agny.xent.TestHelper.defaultUser
 import ru.agny.xent.battle.Military
 import ru.agny.xent.core.city.Shape.FourShape
 import ru.agny.xent.core.{CellsMap, Coordinate, Layer}
-import ru.agny.xent.core.city.{ShapeProvider, Storage}
-import ru.agny.xent.core.inventory.{Cost, ItemStack}
+import ru.agny.xent.core.city._
+import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.utils.BuildingTemplate
 
 class UserActionTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
@@ -36,17 +36,29 @@ class UserActionTest extends FlatSpec with Matchers with EitherValues with Befor
   }
 
   it should "add building to the city" in {
-    val buildingConstructionTime = 10
-    val bt = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), buildingConstructionTime, shape, "")
+    val constructionTime = 10
+    val bt = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), constructionTime, shape, "")
     val layer = Layer("", 1, Vector.empty, Military.empty, CellsMap(Vector.empty), Vector(bt))
     val action = PlaceBuilding(bt.name, layer, Coordinate(2, 1))
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
     val updated = userAndStorage.work(action).right.value
 
-    Thread.sleep(buildingConstructionTime)
+    Thread.sleep(constructionTime)
     val userWithBuilding = updated.work(DoNothing).right.value
     val mbBuilding = userWithBuilding.city.producers.find(c => c.name == bt.name)
     mbBuilding.isEmpty shouldBe false
+  }
+
+  "AddProduction" should "update user production queue" in {
+    val prodId = 2
+    val prodCount = 5
+    val prod = Producible(prodId, "Coal", ProductionSchema(100, Cost(ItemStack(2, woodId)), Set.empty))
+    val building = Building(Coordinate(3, 3), "Furnace", Vector(prod), 100).finish
+    val withBuilding = City(Coordinate(12, 12), ShapeMap(CellsMap(Vector(Vector(building))), Vector.empty), Storage(Vector(ItemStack(10, woodId))))
+    val userToAct = user.copy(city = withBuilding)
+
+    val afterAction = userToAct.work(AddProduction(building.id, ItemStack(prodCount, prodId))).right.value
+    afterAction.city.producers.head.queue.content should be(Vector((prod, prodCount)))
   }
 
 }
