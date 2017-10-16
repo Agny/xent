@@ -7,7 +7,7 @@ import ru.agny.xent.core.city.Shape.FourShape
 import ru.agny.xent.core.{CellsMap, Coordinate, Layer}
 import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory._
-import ru.agny.xent.core.utils.BuildingTemplate
+import ru.agny.xent.core.utils.{BuildingTemplate, CityGenerator}
 
 class UserActionTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
@@ -54,7 +54,9 @@ class UserActionTest extends FlatSpec with Matchers with EitherValues with Befor
     val prodCount = 5
     val prod = Producible(prodId, "Coal", ProductionSchema(100, Cost(ItemStack(2, woodId)), Set.empty))
     val building = Building(Coordinate(3, 3), "Furnace", Vector(prod), 100).finish
-    val withBuilding = City(Coordinate(12, 12), ShapeMap(CellsMap(Vector(Vector(building))), Vector.empty), Storage(Vector(ItemStack(10, woodId))))
+    val cityMap = CityGenerator.generateCityMap(3).update(building)
+
+    val withBuilding = City(Coordinate(12, 12), ShapeMap(cityMap, Vector.empty), Storage(Vector(ItemStack(10, woodId))))
     val userToAct = user.copy(city = withBuilding)
 
     val afterAction = userToAct.work(AddProduction(building.id, ItemStack(prodCount, prodId))).right.value
