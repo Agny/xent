@@ -4,10 +4,14 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.TestHelper.defaultUser
 import ru.agny.xent.battle.Military
 import ru.agny.xent.core.city.Shape.FourShape
-import ru.agny.xent.core.{CellsMap, Coordinate, Layer}
+import ru.agny.xent.core.{CellsMap, Coordinate, Layer, LifePower}
 import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory._
+import ru.agny.xent.core.unit.characteristic.{Agility, Strength}
+import ru.agny.xent.core.unit.equip.StatProperty
+import ru.agny.xent.core.unit.{Characteristic, Level, Spirit, SpiritBase}
 import ru.agny.xent.core.utils.{BuildingTemplate, CityGenerator}
+import ru.agny.xent.messages.unit.StatPropertySimple
 
 class UserActionTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
@@ -61,6 +65,20 @@ class UserActionTest extends FlatSpec with Matchers with EitherValues with Befor
 
     val afterAction = userToAct.work(AddProduction(building.id, ItemStack(prodCount, prodId))).right.value
     afterAction.city.producers.head.queue.content should be(Vector((prod, prodCount)))
+  }
+
+  "CreateSoul" should "create soul with specified parameters" in {
+    val spiritPoints = 41
+    val spirit = Spirit(spiritPoints, SpiritBase(2, 100))
+    val props = Vector(StatProperty(Agility, Level(3, 11)), StatProperty(Strength, Level(5, 0)))
+    val userWithPower = user.copy(power = LifePower(300, 300))
+
+    val afterAction = userWithPower.work(CreateSoul(spirit, props)).right.value
+    val createdSoul = afterAction.souls.souls.head._1
+    val soulLifepower = createdSoul.beAssimilated()._1
+
+    createdSoul.spirit should be(spiritPoints)
+    soulLifepower should be(props.map(_.toLifePower).sum)
   }
 
 }
