@@ -35,10 +35,21 @@ object LayerGenerator {
     CellsMap((0 to size).toVector.map(x => genByY(0)(x, Vector.empty).reverse))
   }
 
+  //TODO actual implementation
+  def newCityCoordinate(layer: Layer): Option[Coordinate] = {
+    layer.map.filter {
+      case _: EmptyCell => true
+      case _ => false
+    } match {
+      case h +: t => Some(h.c)
+      case _ => None
+    }
+  }
+
   private def mbResource(seed: Vector[Extractable]): Option[Extractable] = {
     val threshold = 94
     Random.nextInt(100) match {
-      case c if c > threshold => Some(chooseResource(seed))
+      case c if c > threshold && seed.nonEmpty => Some(chooseResource(seed))
       case _ => None
     }
   }

@@ -36,4 +36,12 @@ class LayerActionTest extends FlatSpec with Matchers with EitherValues with Befo
 
     layerWithTroop.armies.objects should not be Vector.empty
   }
+
+  "NewUser" should "add new user and city" in {
+    val layer = Layer("", 1, Vector.empty, Military.empty, LayerGenerator.generateWorldMap(3, Vector.empty), Vector())
+    val withNewUser = layer.tick(NewUser(100, "Test")).right.value
+
+    withNewUser.users should not be Vector.empty
+    //    withNewUser.armies.objects should not be Vector.empty //TODO make City MapObject
+  }
 }

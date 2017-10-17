@@ -8,9 +8,7 @@ trait Cell {
 }
 
 object Cell {
-  def apply(x: Int, y: Int): Cell = CellInner(Coordinate(x, y))
-
-  private case class CellInner(c: Coordinate) extends Cell
+  def apply(x: Int, y: Int): Cell = EmptyCell(Coordinate(x, y))
 
   implicit object BuildingSubTyper extends SubTyper[Cell, Building] {
     override def asSub(a: Cell) = a match {
