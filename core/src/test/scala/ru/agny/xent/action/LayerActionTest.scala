@@ -1,12 +1,12 @@
 package ru.agny.xent.action
 
 import org.scalatest.{BeforeAndAfterAll, EitherValues, FlatSpec, Matchers}
-import ru.agny.xent.TestHelper.defaultUser
-import ru.agny.xent.battle.Military
+import ru.agny.xent.TestHelper._
+import ru.agny.xent.battle.{Military, Waiting}
 import ru.agny.xent.core._
-import ru.agny.xent.core.city.Storage
+import ru.agny.xent.core.city.{Storage, Workers}
 import ru.agny.xent.core.inventory.{Cost, Extractable, ItemStack}
-import ru.agny.xent.core.utils.OutpostTemplate
+import ru.agny.xent.core.utils.{LayerGenerator, OutpostTemplate}
 
 class LayerActionTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
@@ -25,5 +25,15 @@ class LayerActionTest extends FlatSpec with Matchers with EitherValues with Befo
     val updated = layer.tick(action)
     val expected = Vector(ItemStack(3, woodId))
     updated.right.value.users.head.city.storage.resources should be(expected)
+  }
+
+  "CreateTroop" should "add troop to layer" in {
+    val (soulOne, soulTwo) = (defaultSoul(1), defaultSoul(2))
+    val souls = Vector(soulOne, soulTwo).map(_ -> new Waiting(user.city.c))
+    val userWithSouls = user.copy(souls = Workers(souls))
+    val layer = Layer("", 1, Vector(userWithSouls), Military.empty, LayerGenerator.generateWorldMap(3, Vector.empty), Vector())
+    val layerWithTroop = layer.tick(CreateTroop(user.id, Vector(soulOne.id, soulTwo.id))).right.value
+
+    layerWithTroop.armies.objects should not be Vector.empty
   }
 }

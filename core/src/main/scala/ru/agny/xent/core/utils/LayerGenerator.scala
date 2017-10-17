@@ -16,7 +16,7 @@ object LayerGenerator {
 
   private def facilityGen(layerLvl: Int): Vector[FacilityTemplate] = TemplateLoader.loadBuildings(layerLvl.toString) ++ TemplateLoader.loadOutposts(layerLvl.toString)
 
-  private def generateWorldMap(size: Int, resources: Vector[Extractable]): CellsMap = {
+  def generateWorldMap(size: Int, resources: Vector[Extractable]): CellsMap = {
     def genByY(y: Int)(x: Int, acc: Vector[Cell]): Vector[Cell] = {
       //      val mbRes = mbResource(resources)
       val mbRes =
