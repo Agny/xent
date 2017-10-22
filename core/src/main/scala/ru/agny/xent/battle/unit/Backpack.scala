@@ -16,7 +16,7 @@ case class Backpack(holder: ItemHolder) extends InventoryLike[Backpack, Item] {
     case _ => (this, Vector.empty)
   }
 
-  def toSpoil: Vector[Item] = holder.slots.flatMap(_.flatten)
+  def toLoot: Vector[Item] = holder.slots.flatMap(_.flatten)
 
   override def apply(slots: Vector[Slot[Item]]): Backpack = Backpack(slots)
 }

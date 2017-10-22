@@ -62,7 +62,7 @@ case class Troop(id: ObjectId,
         val (assimilatedPower, equip) = soul.beAssimilated()
         (lifePower + assimilatedPower, equip ++ items)
     }
-    (power, equip ++ backpack.toSpoil)
+    (power, equip ++ backpack.toLoot)
   }
 
   override def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Self = {
@@ -80,7 +80,7 @@ case class Troop(id: ObjectId,
 
   override def concede(): (Self, Vector[Item]) = {
     val (looserUnits, eq) = units.map(_.lose()).unzip
-    val loot = backpack.toSpoil ++ eq.flatMap(_.toSpoil)
+    val loot = backpack.toLoot ++ eq.flatMap(_.toLoot)
     val t = Troop(id, NESeq(looserUnits), Backpack.empty, user, plan, Fatigue.MAX)
     (t, loot)
   }

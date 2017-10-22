@@ -16,7 +16,7 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
 
   def accessory = holder.set.accessory
 
-  def toSpoil = holder.set.items.flatMap(_.flatten)
+  def toLoot = holder.set.items.flatMap(_.flatten)
 
   def weight = holder.items.foldLeft(0)((w, eq) => w + eq.weight)
 

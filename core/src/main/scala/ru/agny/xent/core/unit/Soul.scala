@@ -33,7 +33,7 @@ case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Eq
   def lose(): (Soul, Equipment) = (copy(equip = Equipment.empty), equip)
 
   //TODO soul spirit points are ignored when life power is being calculated
-  def beAssimilated(): (Int, Vector[Equippable]) = (stats.toLifePower, equip.toSpoil)
+  def beAssimilated(): (Int, Vector[Equippable]) = (stats.toLifePower, equip.toLoot)
 }
 
 object Soul {
