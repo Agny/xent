@@ -4,7 +4,7 @@ import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core._
 import ru.agny.xent.core.inventory._
-import ru.agny.xent.messages.Response
+import ru.agny.xent.messages.PlainResponse
 
 case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
@@ -28,9 +28,9 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
     case _ => (this, Vector.empty)
   }
 
-  def spend(recipe: Cost): Either[Response, Storage] = {
+  def spend(recipe: Cost): Either[PlainResponse, Storage] = {
     recipe.v.find(x => !resources.exists(y => x.id == y.id && y.stackValue >= x.stackValue)) match {
-      case Some(v) => Left(Response(s"There isn't enough of ${v.id}"))
+      case Some(v) => Left(PlainResponse(s"There isn't enough of ${v.id}"))
       case None =>
         Right(Storage(recipe.v.foldRight(resources)((a, b) => b.map(bb => bb.id match {
           case a.id => ItemStack(bb.stackValue - a.stackValue, a.id)

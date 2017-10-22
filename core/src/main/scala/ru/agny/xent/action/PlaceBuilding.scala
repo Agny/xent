@@ -3,7 +3,7 @@ package ru.agny.xent.action
 import ru.agny.xent.core.city.Building
 import ru.agny.xent.core.utils.BuildingTemplate
 import ru.agny.xent.core.{Coordinate, Layer, User}
-import ru.agny.xent.messages.Response
+import ru.agny.xent.messages.PlainResponse
 
 case class PlaceBuilding(facility: String, layer: Layer, cell: Coordinate) extends UserAction {
   override def run(user: User) = {
@@ -11,6 +11,6 @@ case class PlaceBuilding(facility: String, layer: Layer, cell: Coordinate) exten
     bt.map(x => {
       val b = Building(cell, x.name, x.producibles, x.buildTime)
       user.build(b, x.cost)
-    }) getOrElse Left(Response(s"Unable to build $facility"))
+    }) getOrElse Left(PlainResponse(s"Unable to build $facility"))
   }
 }

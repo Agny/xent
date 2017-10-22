@@ -5,10 +5,10 @@ import ru.agny.xent.core.inventory.Extractable
 import ru.agny.xent.core.utils.FacilityTemplate
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.core.{Coordinate, Layer, ResourceCell, User}
-import ru.agny.xent.messages.Response
+import ru.agny.xent.messages.PlainResponse
 
 case class ResourceClaim(facilityName: String, userId: UserId, c: Coordinate) extends LayerAction {
-  override def run(layer: Layer): Either[Response, Layer] = {
+  override def run(layer: Layer): Either[PlainResponse, Layer] = {
     val facilityT = layer.facilities.find(x => x.name == facilityName)
     val resource = layer.map.find(c)
     resource match {
@@ -22,15 +22,15 @@ case class ResourceClaim(facilityName: String, userId: UserId, c: Coordinate) ex
           val updatedLayer = layer.copy(users = updatedUser +: layer.users.filterNot(_.id == user.id))
           updatedLayer.updateMap(updatedCell)
         }
-      case Some(_: Outpost) => Left(Response(s"$c is already claimed"))
-      case Some(_) => Left(Response(s"$c doesn't have a resource"))
-      case None => Left(Response(s"Unable to find $c"))
+      case Some(_: Outpost) => Left(PlainResponse(s"$c is already claimed"))
+      case Some(_) => Left(PlainResponse(s"$c doesn't have a resource"))
+      case None => Left(PlainResponse(s"Unable to find $c"))
     }
   }
 
-  private def createFromTemplate(c: Coordinate, owner: User, name: String, res: Extractable, templates: Vector[FacilityTemplate]): Either[Response, Outpost] = {
+  private def createFromTemplate(c: Coordinate, owner: User, name: String, res: Extractable, templates: Vector[FacilityTemplate]): Either[PlainResponse, Outpost] = {
     templates.find(_.name == name).map(x =>
       Right(Outpost(c, owner, x.name, res, x.obtainables, x.buildTime))
-    ) getOrElse Left(Response(s"Unable to claim resource in $c by $name"))
+    ) getOrElse Left(PlainResponse(s"Unable to claim resource in $c by $name"))
   }
 }

@@ -7,7 +7,7 @@ import ru.agny.xent.core._
 import ru.agny.xent.core.inventory.{ItemStack, Obtainable, Producible, ProductionQueue}
 import ru.agny.xent.core.unit.Soul
 import ru.agny.xent.core.utils.{ItemIdGenerator, SelfAware}
-import ru.agny.xent.messages.Response
+import ru.agny.xent.messages.PlainResponse
 
 case class Building(id: ItemId,
                     c: Coordinate,
@@ -31,14 +31,14 @@ case class Building(id: ItemId,
     }
   }
 
-  def addToQueue(item: ItemStack): Storage => Either[Response, (Storage, Building)] = storage => {
+  def addToQueue(item: ItemStack): Storage => Either[PlainResponse, (Storage, Building)] = storage => {
     producible.find(_.id == item.id) match {
       case Some(v: Producible) =>
         storage.spend(v.cost.price(item.stackValue)) match {
           case Left(s) => Left(s)
           case Right(s) => Right((s, copy(queue = queue.in(v, item.stackValue))))
         }
-      case _ => Left(Response(s"Facility $name cannot produce ${item.id}"))
+      case _ => Left(PlainResponse(s"Facility $name cannot produce ${item.id}"))
     }
   }
 

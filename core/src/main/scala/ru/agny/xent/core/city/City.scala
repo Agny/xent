@@ -4,7 +4,7 @@ import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core._
 import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.utils.CityGenerator
-import ru.agny.xent.messages.Response
+import ru.agny.xent.messages.PlainResponse
 
 /**
   * City takes only one cell of a world map
@@ -20,9 +20,9 @@ case class City(c: Coordinate, private val map: ShapeMap, storage: Storage) exte
     City(c, updateMap(buildings), s)
   }
 
-  def place(b: Building, s: ResultShape): Either[Response, City] = {
+  def place(b: Building, s: ResultShape): Either[PlainResponse, City] = {
     if (map.isAvailable(s)) Right(copy(map = map.add(b, s)))
-    else Left(Response(s"Not enough space to place $s"))
+    else Left(PlainResponse(s"Not enough space to place $s"))
   }
 
   def update(b: Building, s: Storage = storage): City = copy(map = map.update(b), storage = s)

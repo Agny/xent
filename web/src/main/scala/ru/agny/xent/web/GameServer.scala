@@ -11,7 +11,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate
 import io.netty.util.concurrent.ImmediateEventExecutor
 import ru.agny.xent.core.LayerRuntime
 import ru.agny.xent.core.utils.LayerGenerator
-import ru.agny.xent.messages.{Message, MessageQueue}
+import ru.agny.xent.messages.{ReactiveLog, MessageQueue}
 import ru.agny.xent.web.utils.{GameServerHttpInitializer, GameServerInitializer}
 
 case class GameServer(address: InetSocketAddress, context:SslContext) {
@@ -27,7 +27,7 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
   }
 
   def createInitializer(group: ChannelGroup) = {
-    val queue = MessageQueue[Message]()
+    val queue = MessageQueue[ReactiveLog]()
     val messageHandler = MessageHandler(queue)
     val runtime = LayerRuntime.run(LayerGenerator.setupLayers(), queue)
     GameServerHttpInitializer(context, messageHandler, runtime)

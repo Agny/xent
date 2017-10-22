@@ -5,7 +5,7 @@ package ru.agny.xent.persistence
   * Can be implemented manually or through annotating target class with [[RedisEntity]]
   */
 
-trait RedisMessage {
+trait Loggable {
   def collectionId: String
   def key: String
 

@@ -12,12 +12,12 @@ object RedisAdapter {
   implicit val system = ActorSystem()
   val redis = new RedisClient("localhost", 9999)
 
-  def set(e: RedisMessage): Future[Boolean] = Future(redis.hset(e.collectionId, e.key, e.toPersist))
+  def set(e: Loggable): Future[Boolean] = Future(redis.hset(e.collectionId, e.key, e.toPersist))
 
-  def get(collectionId: String): Future[Vector[RedisMessage]] = Future(
+  def get(collectionId: String): Future[Vector[Loggable]] = Future(
     redis.hgetall1(collectionId) match {
       case Some(v) => v.flatMap(kv => MessageHandler.convert(kv._2))(collection.breakOut)
-      case None => Vector.empty[RedisMessage]
+      case None => Vector.empty[Loggable]
     })
 
   def keys() = redis.keys("user*")

@@ -3,7 +3,7 @@ package ru.agny.xent.action
 import ru.agny.xent.core.utils.ItemIdGenerator
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.core.{Layer, User}
-import ru.agny.xent.messages.Response
+import ru.agny.xent.messages.PlainResponse
 
 case class CreateTroop(id: UserId, souls: Vector[Long]) extends LayerAction {
   override def run(layer: Layer) = {

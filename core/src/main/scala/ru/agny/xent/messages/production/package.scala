@@ -9,12 +9,12 @@ import ru.agny.xent.persistence.RedisEntity
 package object production {
 
   @RedisEntity("user", "user", System.nanoTime().toString)
-  case class ResourceClaimMessage(user: UserId, layer: String, facility: String, cell: Coordinate) extends Message
+  case class ResourceClaimMessage(user: UserId, layer: String, facility: String, cell: Coordinate) extends ReactiveLog
 
   @RedisEntity("user", "user", System.nanoTime().toString)
-  case class BuildingConstructionMessage(user: UserId, layer: String, building: String, cell: Coordinate) extends Message
+  case class BuildingConstructionMessage(user: UserId, layer: String, building: String, cell: Coordinate) extends ReactiveLog
 
   @RedisEntity("user", "user", System.nanoTime().toString)
-  case class AddProductionMessage(user: UserId, layer: String, facility: ItemId, res: ItemStack) extends Message
+  case class AddProductionMessage(user: UserId, layer: String, facility: ItemId, res: ItemStack) extends ReactiveLog
 
 }

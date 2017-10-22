@@ -14,7 +14,7 @@ object JsonOps {
 
   import NewUserMessageCodec._
 
-  def toMessage(txt: String): Message = {
+  def toMessage(txt: String): ReactiveLog = {
     val res = for {
       ws <- decode[IncomeMessage](txt)
       msg <- getActualMessage(ws)
