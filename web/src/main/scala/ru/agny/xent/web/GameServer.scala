@@ -22,7 +22,7 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
     val bootstrap = new ServerBootstrap().group(eventGroup)
       .channel(classOf[NioServerSocketChannel]).childHandler(createInitializer(channelGroup))
     val future = bootstrap.bind(address)
-    print(s"Socket listener at $address")
+    println(s"Socket listener at $address")
     future.syncUninterruptibly()
   }
 
@@ -30,8 +30,8 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
     val queue = MessageQueue[ReactiveLog]()
     val messageHandler = MessageHandler(queue)
     val runtime = LayerRuntime.run(LayerGenerator.setupLayers(), queue)
-    GameServerHttpInitializer(context, messageHandler, runtime)
-//    GameServerInitializer(channelGroup, context, messageHandler)
+    //    GameServerHttpInitializer(context, messageHandler, runtime)
+    GameServerInitializer(channelGroup, context, messageHandler)
   }
 
   def destroy = {
