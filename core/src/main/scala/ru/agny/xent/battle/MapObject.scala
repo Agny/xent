@@ -2,10 +2,9 @@ package ru.agny.xent.battle
 
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
-import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.unit.equip.OutcomeDamage
-import ru.agny.xent.core.utils.{NESeq, SelfAware}
+import ru.agny.xent.core.utils.SelfAware
 
 //TODO Think about more appropriate name, which describes object on the world map: troops/cargos/outposts/cities etc.
 abstract class MapObject {
@@ -13,7 +12,7 @@ abstract class MapObject {
   val id: ObjectId
   val user: UserId
   val weight: Int
-  val body: NESeq[Targetable]
+  val body: Seq[Targetable]
 
   def pos(time: ProgressTime): Coordinate
 
@@ -30,7 +29,7 @@ abstract class MapObject {
   def isAggressive: Boolean
 
   /** return fallen state of this object along with loot list */
-  def concede(): (Self, Vector[Item])
+  def concede(): (Self, Loot)
 
   def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Self
 }

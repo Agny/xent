@@ -42,6 +42,6 @@ class LayerActionTest extends FlatSpec with Matchers with EitherValues with Befo
     val withNewUser = layer.tick(NewUser(100, "Test")).right.value
 
     withNewUser.users should not be Vector.empty
-    //    withNewUser.armies.objects should not be Vector.empty //TODO make City MapObject
+    withNewUser.armies.objects should not be Vector.empty
   }
 }

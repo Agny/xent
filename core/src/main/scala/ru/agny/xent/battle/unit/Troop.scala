@@ -1,7 +1,7 @@
 package ru.agny.xent.battle.unit
 
 import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
-import ru.agny.xent.battle.{Fatigue, MapObject, MovementPlan}
+import ru.agny.xent.battle.{Fatigue, Loot, MapObject, MovementPlan}
 import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.unit.Soul
@@ -50,7 +50,7 @@ case class Troop(id: ObjectId,
     val (u, t) = activeUnits.foldLeft((Vector.empty[Soul], other))(handleBattle)
     if (!t.isActive) {
       val (looser, loot) = t.concede()
-      (Troop(id, NESeq(u), backpack.add(loot)._1, user, plan, fatigue ++), looser.asInstanceOf[Target])
+      (Troop(id, NESeq(u), backpack.add(loot.get)._1, user, plan, fatigue ++), looser.asInstanceOf[Target])
     } else {
       (Troop(id, NESeq(u), backpack, user, plan, fatigue ++), t)
     }
@@ -78,9 +78,9 @@ case class Troop(id: ObjectId,
     else plan.goHome(moveSpeed, time)
   }
 
-  override def concede(): (Self, Vector[Item]) = {
+  override def concede(): (Self, Loot) = {
     val (looserUnits, eq) = units.map(_.lose()).unzip
-    val loot = backpack.toLoot ++ eq.flatMap(_.toLoot)
+    val loot = Loot(backpack.toLoot ++ eq.flatMap(_.toLoot))
     val t = Troop(id, NESeq(looserUnits), Backpack.empty, user, plan, Fatigue.MAX)
     (t, loot)
   }

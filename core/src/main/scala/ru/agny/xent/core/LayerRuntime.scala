@@ -5,7 +5,7 @@ import ru.agny.xent.messages._
 import ru.agny.xent.messages.production._
 import ru.agny.xent.messages.unit.{CreateSoulMessage, CreateTroopMessage}
 
-class LayerRuntime(queue: MessageQueue[ReactiveLog]) {
+class LayerRuntime(queue: MessageQueue[Responder[_]]) {
   private var lastState: Vector[Layer] = Vector.empty
 
   private def run(initialState: Vector[Layer]): Vector[Layer] = {
@@ -23,7 +23,7 @@ class LayerRuntime(queue: MessageQueue[ReactiveLog]) {
     lastState
   }
 
-  private def rec(startState: Vector[Layer], messages: Vector[ReactiveLog]): Vector[Layer] = {
+  private def rec(startState: Vector[Layer], messages: Vector[Responder[_]]): Vector[Layer] = {
     messages.foldLeft(startState)((layers, m) => m match {
       //TODO need some kind of abstraction for this handling
       case x: NewUserMessage =>
@@ -99,7 +99,7 @@ class LayerRuntime(queue: MessageQueue[ReactiveLog]) {
 }
 
 object LayerRuntime {
-  def run(layers: Vector[Layer], queue: MessageQueue[ReactiveLog]) = {
+  def run(layers: Vector[Layer], queue: MessageQueue[Responder[_]]) = {
     val runtime = new LayerRuntime(queue)
     runtime.run(layers)
     runtime

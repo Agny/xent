@@ -54,7 +54,7 @@ final case class Outpost(id: ItemId,
 
   override def isAggressive = false
 
-  override def concede() = (copy(stored = Vector.empty, state = Demolished), stored)
+  override def concede() = (copy(stored = Vector.empty, state = Demolished), Loot(stored))
 
   override def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]) = {
     val souls = body.filter(_.spirit > 0).map {

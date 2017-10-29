@@ -1,6 +1,6 @@
 package ru.agny.xent.battle.unit
 
-import ru.agny.xent.battle.{MapObject, MovementPlan}
+import ru.agny.xent.battle.{Loot, MapObject, MovementPlan}
 import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.inventory.Progress.ProgressTime
@@ -26,7 +26,7 @@ case class Cargo(id: ObjectId,
 
   override val isAggressive = false
 
-  override def concede() = (copy(resources = Vector.empty), resources)
+  override def concede() = (copy(resources = Vector.empty), Loot(resources))
 
   override def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]) = {
     val souls = body.filter(_.spirit > 0).map {

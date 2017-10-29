@@ -7,19 +7,19 @@ import scala.concurrent.Future
 
 case class MessageQueue[T]() {
 
-  private var messages: Vector[(T, Long)] = Vector.empty
+  private var messages: Vector[T] = Vector.empty
   private val lock = new ReentrantLock()
 
-  def push(msg: T, number: Long): Future[Long] = {
-    pushUntilSuccess(msg, number)
+  def push[M <: T](msg: M): Future[M] = {
+    pushUntilSuccess(msg)
   }
 
-  private def pushUntilSuccess(msg: T, number: Long): Future[Long] = Future {
+  private def pushUntilSuccess[M <: T](msg: M): Future[M] = Future {
     println(s"MESSAGE: $msg")
     lock.lock()
-    messages = (msg, number) +: messages
+    messages = msg +: messages
     lock.unlock()
-    number
+    msg
   }
 
   def take(): Vector[T] = {
@@ -27,6 +27,10 @@ case class MessageQueue[T]() {
     val res = messages
     messages = Vector.empty
     lock.unlock()
-    res.map(_._1).reverse
+    res.reverse
   }
+}
+
+object MessageQueue {
+  val global = MessageQueue[Responder[_]]() //TODO queue for each type?
 }
