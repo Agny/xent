@@ -2,9 +2,8 @@ package ru.agny.xent.core.city
 
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory.Progress.ProgressTime
-import ru.agny.xent.core._
 import ru.agny.xent.core.inventory._
-import ru.agny.xent.messages.PlainResponse
+import ru.agny.xent.core.utils.ErrorCode
 
 case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
@@ -28,26 +27,36 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
     case _ => (this, Vector.empty)
   }
 
-  def spend(recipe: Cost): Either[PlainResponse, Storage] = {
-    recipe.v.find(x => !resources.exists(y => x.id == y.id && y.stackValue >= x.stackValue)) match {
-      case Some(v) => Left(PlainResponse(s"There isn't enough of ${v.id}"))
+  def spend(recipe: Cost): Either[ErrorCode.Value, Storage] = {
+    recipe.v.find {
+      case x: ItemStack => !resources.exists(y => x.id == y.id && y.stackValue >= x.stackValue)
+      case x => !items.exists(y => x.id == y.id)
+    } match {
+      case Some(v) => Left(ErrorCode.RESOURCE_CANT_BE_PRODUCED)
       case None =>
-        Right(Storage(recipe.v.foldRight(resources)((a, b) => b.map(bb => bb.id match {
-          case a.id => ItemStack(bb.stackValue - a.stackValue, a.id)
-          case _ => bb
-        }))))
+        val afterSpend = recipe.v.foldRight(items)((a, b) => b.flatMap {
+          case ItemStack(st, id) if a.id == id => Some(ItemStack(st - a.asInstanceOf[ItemStack].stackValue, a.id))
+          case item if a.id == item.id => None
+          case _ => throw new UnsupportedOperationException("") //TODO handler of multi same non-ItemStack recipes needed
+        })
+        Right(Storage(afterSpend))
     }
   }
 
   def get(resource: ItemId): Option[ItemStack] = resources.find(_.id == resource)
 
-  def resources: Vector[ItemStack] = holder.slots.flatMap(x => x match {
+  lazy val resources: Vector[ItemStack] = holder.slots.flatMap {
     case ItemSlot(v) => v match {
       case ru: ItemStack => Some(ru)
       case _ => None
     }
     case EmptySlot => None
-  })
+  }
+
+  lazy val items: Vector[Item] = holder.slots.flatMap {
+    case ItemSlot(v) => Some(v)
+    case EmptySlot => None
+  }
 
   override def apply(slots: Vector[Slot[Item]]): Storage = Storage(slots)
 }

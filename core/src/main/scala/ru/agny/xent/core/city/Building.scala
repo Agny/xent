@@ -6,8 +6,7 @@ import ru.agny.xent.core.inventory.Progress._
 import ru.agny.xent.core._
 import ru.agny.xent.core.inventory.{ItemStack, Obtainable, Producible, ProductionQueue}
 import ru.agny.xent.core.unit.Soul
-import ru.agny.xent.core.utils.{ItemIdGenerator, SelfAware}
-import ru.agny.xent.messages.PlainResponse
+import ru.agny.xent.core.utils.{ErrorCode, ItemIdGenerator, SelfAware}
 
 case class Building(id: ItemId,
                     c: Coordinate,
@@ -31,14 +30,14 @@ case class Building(id: ItemId,
     }
   }
 
-  def addToQueue(item: ItemStack): Storage => Either[PlainResponse, (Storage, Building)] = storage => {
+  def addToQueue(item: ItemStack): Storage => Either[ErrorCode.Value, (Storage, Building)] = storage => {
     producible.find(_.id == item.id) match {
       case Some(v: Producible) =>
         storage.spend(v.cost.price(item.stackValue)) match {
           case Left(s) => Left(s)
           case Right(s) => Right((s, copy(queue = queue.in(v, item.stackValue))))
         }
-      case _ => Left(PlainResponse(s"Facility $name cannot produce ${item.id}"))
+      case _ => Left(ErrorCode.TROOP_CANT_BE_CREATED)
     }
   }
 

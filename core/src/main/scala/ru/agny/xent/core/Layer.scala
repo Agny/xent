@@ -3,23 +3,22 @@ package ru.agny.xent.core
 import ru.agny.xent.action.{LayerAction, UserAction}
 import ru.agny.xent.battle.unit.{Cargo, Troop}
 import ru.agny.xent.battle.{MapObject, Military}
-import ru.agny.xent.core.utils.FacilityTemplate
+import ru.agny.xent.core.utils.{ErrorCode, FacilityTemplate}
 import ru.agny.xent.core.utils.UserType.UserId
-import ru.agny.xent.messages.PlainResponse
 
 case class Layer(id: String, level: Int, users: Vector[User], armies: Military, map: CellsMap, facilities: Vector[FacilityTemplate]) {
 
-  def tick(action: LayerAction): Either[PlainResponse, Layer] = {
+  def tick(action: LayerAction): Layer = {
     action.run(militaryTick())
   }
 
-  def tick(action: UserAction, user: UserId): Either[PlainResponse, Layer] = {
+  def tick(action: UserAction, user: UserId): Layer = {
     getUser(user) match {
-      case Right(v) => v.work(action) match {
-        case Left(x) => Left(x)
-        case Right(x) => Right(militaryTick().copy(users = x +: users.diff(Vector(v))))
-      }
-      case Left(v) => Left(v)
+      case Left(v) => action.src.failed(v); this
+      case Right(v) =>
+        val updated = v.work(action)
+        if (updated == v) this
+        else militaryTick().copy(users = updated +: users.diff(Vector(v)))
     }
   }
 
@@ -36,8 +35,8 @@ case class Layer(id: String, level: Int, users: Vector[User], armies: Military, 
     updated.copy(armies = updated.armies.add(t))
   }
 
-  def getUser(id: UserId): Either[PlainResponse, User] = {
-    users.find(x => x.id == id).map(Right(_)) getOrElse Left(PlainResponse(s"User with id=$id isn't found in the layer ${this.id}"))
+  def getUser(id: UserId): Either[ErrorCode.Value, User] = {
+    users.find(x => x.id == id).map(Right(_)) getOrElse Left(ErrorCode.USER_NOT_FOUND)
   }
 
   private def militaryTick(): Layer = {

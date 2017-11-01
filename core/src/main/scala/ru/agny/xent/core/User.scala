@@ -7,14 +7,13 @@ import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory.{Cost, ItemStack, ProductionQueue}
-import ru.agny.xent.core.utils.NESeq
-import ru.agny.xent.messages.PlainResponse
+import ru.agny.xent.core.utils.{ErrorCode, NESeq}
 
 case class User(id: UserId, name: String, city: City, queue: ProductionQueue, souls: Workers, power: LifePower, lastAction: Long) {
 
   import User._
 
-  def work(a: UserAction): Either[PlainResponse, User] = {
+  def work(a: UserAction): User = {
     val time = System.currentTimeMillis()
     val period = time - lastAction
     val (q, prod) = queue.out(period)
@@ -24,13 +23,13 @@ case class User(id: UserId, name: String, city: City, queue: ProductionQueue, so
     a.run(updated)
   }
 
-  def addProduction(facility: ItemId, res: ItemStack): Either[PlainResponse, User] =
+  def addProduction(facility: ItemId, res: ItemStack): Either[ErrorCode.Value, User] =
     for {
       building <- findProducer(facility)
       storageWithB <- building.addToQueue(res)(city.storage)
     } yield copy(city = city.update(storageWithB._2, storageWithB._1))
 
-  def build(cell: Cell, cost: Cost): Either[PlainResponse, User] =
+  def build(cell: Cell, cost: Cost): Either[ErrorCode.Value, User] =
     for {
       userFacility <- cell match {
         case b: Building => buildInCity(b, cost)
@@ -40,10 +39,10 @@ case class User(id: UserId, name: String, city: City, queue: ProductionQueue, so
       userFacility._1.copy(queue = userFacility._1.queue.in(userFacility._2, 1))
     }
 
-  def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): Either[PlainResponse, (User, Troop)] = {
+  def createTroop(troopId: ObjectId, soulsId: Vector[ObjectId]): Either[ErrorCode.Value, (User, Troop)] = {
     val (remains, units) = souls.callToArms(soulsId)
     if (units.nonEmpty) Right((copy(souls = remains), Troop(troopId, NESeq(units), Backpack.empty, id, MovementPlan.idle(city.c))))
-    else Left(PlainResponse(s"Cannot create troop with souls $soulsId"))
+    else Left(ErrorCode.TROOP_CANT_BE_CREATED)
   }
 
   def assimilateTroop(v: Troop): User = {
@@ -52,7 +51,7 @@ case class User(id: UserId, name: String, city: City, queue: ProductionQueue, so
   }
 
   private def findProducer(facility: ItemId) = city.producers.find(f => f.id == facility).
-    map(Right(_)) getOrElse Left(PlainResponse(s"Unable to find working building $facility"))
+    map(Right(_)) getOrElse Left(ErrorCode.NOT_ENOUGH_RESOURCES)
 
   private def buildInCity(b: Building, cost: Cost) =
     for {
@@ -64,11 +63,10 @@ case class User(id: UserId, name: String, city: City, queue: ProductionQueue, so
     for {user <- spend(cost)} yield (user, o)
   }
 
-  def spend(recipe: Cost): Either[PlainResponse, User] =
-    for {
-      u <- work(DoNothing)
-      s <- u.city.storage.spend(recipe)
-    } yield u.copy(city = u.city.copy(storage = s))
+  def spend(recipe: Cost): Either[ErrorCode.Value, User] = {
+    val u = work(DoNothing)
+    for {s <- u.city.storage.spend(recipe)} yield u.copy(city = u.city.copy(storage = s))
+  }
 
   override def toString = s"id=$id name=$name time=$lastAction"
 }

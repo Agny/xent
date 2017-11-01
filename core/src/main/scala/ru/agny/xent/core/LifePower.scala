@@ -1,10 +1,10 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.messages.PlainResponse
+import ru.agny.xent.core.utils.ErrorCode
 
 case class LifePower(points: Int, capacity: Int) {
-  def spend(cost: Int): Either[PlainResponse, LifePower] =
-    if (cost > points) Left(PlainResponse(s"Not enough life power: $cost>$points"))
+  def spend(cost: Int): Either[ErrorCode.Value, LifePower] =
+    if (cost > points) Left(ErrorCode.NOT_ENOUGH_LIFEPOWER)
     else Right(LifePower(points - cost, capacity))
 
   def regain(power: Int, growth: Int): LifePower = {
