@@ -18,6 +18,7 @@ trait ReactiveLog extends ActiveMessage with Loggable {
   }
 
   override def failed(code: ErrorCode.Value): Unit = Future {
+    println(s"FAILED: $this-$code")
     //TODO lookup codes and construct message
   }
 }

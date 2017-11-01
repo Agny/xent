@@ -1,7 +1,7 @@
 package ru.agny.xent.action
 
 import ru.agny.xent.core.User
-import ru.agny.xent.messages.ActiveMessage
+import ru.agny.xent.messages.{ActiveMessage, EmptyMessage}
 
 trait UserAction extends Action[ActiveMessage] {
   type T = User
@@ -10,7 +10,7 @@ trait UserAction extends Action[ActiveMessage] {
 }
 
 object DoNothing extends UserAction {
-  override val src = ???
+  override val src = EmptyMessage(-1, "")
 
   override def run(user: User) = user
 }

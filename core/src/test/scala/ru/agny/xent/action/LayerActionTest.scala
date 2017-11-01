@@ -7,6 +7,9 @@ import ru.agny.xent.core._
 import ru.agny.xent.core.city.{Storage, Workers}
 import ru.agny.xent.core.inventory.{Cost, Extractable, ItemStack}
 import ru.agny.xent.core.utils.{LayerGenerator, OutpostTemplate}
+import ru.agny.xent.messages.NewUserMessage
+import ru.agny.xent.messages.production.ResourceClaimMessage
+import ru.agny.xent.messages.unit.CreateTroopMessage
 
 class LayerActionTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
@@ -21,10 +24,10 @@ class LayerActionTest extends FlatSpec with Matchers with EitherValues with Befo
     val resourceToClaim = ResourceCell(place, Extractable(1, "Test res", 10, 111, Set.empty))
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
     val layer = Layer("", 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(Cell(1, 0), Cell(1, 1), resourceToClaim), Vector())), Vector(bt))
-    val action = ResourceClaim("Test", user.id, resourceToClaim.c)
-    val updated = layer.tick(action)
+    val msg = ResourceClaimMessage(user.id, layer.id, bt.name, place)
+    val updated = layer.tick(msg.action)
     val expected = Vector(ItemStack(3, woodId))
-    updated.right.value.users.head.city.storage.resources should be(expected)
+    updated.users.head.city.storage.resources should be(expected)
   }
 
   "CreateTroop" should "add troop to layer" in {
@@ -32,14 +35,16 @@ class LayerActionTest extends FlatSpec with Matchers with EitherValues with Befo
     val souls = Vector(soulOne, soulTwo).map(_ -> new Waiting(user.city.c))
     val userWithSouls = user.copy(souls = Workers(souls))
     val layer = Layer("", 1, Vector(userWithSouls), Military.empty, LayerGenerator.generateWorldMap(3, Vector.empty), Vector())
-    val layerWithTroop = layer.tick(CreateTroop(user.id, Vector(soulOne.id, soulTwo.id))).right.value
+    val msg = CreateTroopMessage(user.id, layer.id, Vector(soulOne.id, soulTwo.id))
+    val layerWithTroop = layer.tick(msg.action)
 
     layerWithTroop.armies.objects should not be Vector.empty
   }
 
   "NewUser" should "add new user and city" in {
     val layer = Layer("", 1, Vector.empty, Military.empty, LayerGenerator.generateWorldMap(3, Vector.empty), Vector())
-    val withNewUser = layer.tick(NewUser(100, "Test")).right.value
+    val msg = NewUserMessage(user.id, "Test", layer.id)
+    val withNewUser = layer.tick(msg.action)
 
     withNewUser.users should not be Vector.empty
     withNewUser.armies.objects should not be Vector.empty
