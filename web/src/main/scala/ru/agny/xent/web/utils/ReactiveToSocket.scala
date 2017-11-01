@@ -12,6 +12,7 @@ case class ReactiveToSocket(r: ReactiveLog, socket: Channel) extends ReactiveLog
 
   override val user = r.user
   override val layer = r.layer
+  override val action = r.action
 
   override def respond(value: PlainResponse) = {
     r.respond(value).andThen {

@@ -1,5 +1,6 @@
 package ru.agny.xent.messages
 
-trait Response[T] {
+trait Response {
+  type T
   val value: T
 }

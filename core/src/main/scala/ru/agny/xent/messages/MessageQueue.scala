@@ -32,5 +32,5 @@ case class MessageQueue[T]() {
 }
 
 object MessageQueue {
-  val global = MessageQueue[Responder[_]]() //TODO queue for each type?
+  val global = MessageQueue[Message]()
 }

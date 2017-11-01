@@ -2,16 +2,15 @@ package ru.agny.xent.action
 
 import ru.agny.xent.battle.Outpost
 import ru.agny.xent.core.inventory.Extractable
-import ru.agny.xent.core.utils.FacilityTemplate
+import ru.agny.xent.core.utils.{ErrorCode, FacilityTemplate}
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.core.{Coordinate, Layer, ResourceCell, User}
-import ru.agny.xent.messages.PlainResponse
+import ru.agny.xent.messages.{ReactiveLog, ResponseOk}
 
-case class ResourceClaim(facilityName: String, userId: UserId, c: Coordinate) extends LayerAction {
-  override def run(layer: Layer): Either[PlainResponse, Layer] = {
+case class ResourceClaim(facilityName: String, userId: UserId, c: Coordinate, src: ReactiveLog) extends LayerAction {
+  override def run(layer: Layer): Layer = {
     val facilityT = layer.facilities.find(x => x.name == facilityName)
-    val resource = layer.map.find(c)
-    resource match {
+    val res = layer.map.find(c) match {
       case Some(x: ResourceCell) =>
         for {
           user <- layer.getUser(userId)
@@ -22,15 +21,18 @@ case class ResourceClaim(facilityName: String, userId: UserId, c: Coordinate) ex
           val updatedLayer = layer.copy(users = updatedUser +: layer.users.filterNot(_.id == user.id))
           updatedLayer.updateMap(updatedCell)
         }
-      case Some(_: Outpost) => Left(PlainResponse(s"$c is already claimed"))
-      case Some(_) => Left(PlainResponse(s"$c doesn't have a resource"))
-      case None => Left(PlainResponse(s"Unable to find $c"))
+      case Some(_) => Left(ErrorCode.RESOURCE_CANT_BE_CLAIMED)
+      case None => Left(ErrorCode.PLACE_NOT_FOUND)
+    }
+    res match {
+      case Left(v) => src.failed(v); layer
+      case Right(v) => src.respond(ResponseOk); v
     }
   }
 
-  private def createFromTemplate(c: Coordinate, owner: User, name: String, res: Extractable, templates: Vector[FacilityTemplate]): Either[PlainResponse, Outpost] = {
+  private def createFromTemplate(c: Coordinate, owner: User, name: String, res: Extractable, templates: Vector[FacilityTemplate]): Either[ErrorCode.Value, Outpost] = {
     templates.find(_.name == name).map(x =>
       Right(Outpost(c, owner, x.name, res, x.obtainables, x.buildTime))
-    ) getOrElse Left(PlainResponse(s"Unable to claim resource in $c by $name"))
+    ) getOrElse Left(ErrorCode.RESOURCE_CANT_BE_CLAIMED)
   }
 }
