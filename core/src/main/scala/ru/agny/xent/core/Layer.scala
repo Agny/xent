@@ -3,10 +3,10 @@ package ru.agny.xent.core
 import ru.agny.xent.action.{LayerAction, UserAction}
 import ru.agny.xent.battle.unit.{Cargo, Troop}
 import ru.agny.xent.battle.{MapObject, Military}
-import ru.agny.xent.core.utils.{ErrorCode, FacilityTemplate}
+import ru.agny.xent.core.utils.ErrorCode
 import ru.agny.xent.core.utils.UserType.UserId
 
-case class Layer(id: String, level: Int, users: Vector[User], armies: Military, map: CellsMap, facilities: Vector[FacilityTemplate]) {
+case class Layer(id: String, level: Int, users: Vector[User], armies: Military, map: CellsMap) {
 
   def tick(action: LayerAction): Layer = {
     action.run(militaryTick())
@@ -27,7 +27,7 @@ case class Layer(id: String, level: Int, users: Vector[User], armies: Military, 
       case o: MapObject => armies.add(o)
       case _ => armies
     }
-    Layer(id, level, users, armiesUpdated, map.update(cell), facilities)
+    Layer(id, level, users, armiesUpdated, map.update(cell))
   }
 
   def addTroop(t: Troop): Layer = {

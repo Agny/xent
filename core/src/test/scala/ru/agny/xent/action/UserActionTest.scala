@@ -8,10 +8,10 @@ import ru.agny.xent.core.{CellsMap, Coordinate, Layer, LifePower}
 import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.unit.characteristic.{Agility, Strength}
-import ru.agny.xent.core.unit.equip.StatProperty
-import ru.agny.xent.core.unit.{Characteristic, Level, Spirit, SpiritBase}
-import ru.agny.xent.core.utils.{BuildingTemplate, CityGenerator}
-import ru.agny.xent.messages.unit.StatPropertySimple
+import ru.agny.xent.core.unit.{Spirit, SpiritBase}
+import ru.agny.xent.core.utils.{BuildingTemplate, CityGenerator, TemplateProvider}
+import ru.agny.xent.messages.production.{AddProductionMessage, BuildingConstructionMessage}
+import ru.agny.xent.messages.unit.{CreateSoulMessage, StatPropertySimple}
 
 class UserActionTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
@@ -20,36 +20,37 @@ class UserActionTest extends FlatSpec with Matchers with EitherValues with Befor
   val user = defaultUser()
   val shape = FourShape.name
   val woodId = 1
+  val constructionTime = 10
+  val bTemplate = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), constructionTime, shape, "")
+  val layerId = "UserActionTest"
+  val layer = Layer(layerId, 1, Vector.empty, Military.empty, CellsMap(Vector.empty))
 
   override protected def beforeAll(): Unit = {
+    TemplateProvider.add(layerId, bTemplate)
     ShapeProvider.add(BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, ""))
   }
 
   override protected def afterAll(): Unit = {
+    TemplateProvider.clear(layerId)
     ShapeProvider.delete("Test")
   }
 
   "PlaceBuildingAction" should "spend resources" in {
-    val bt = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, shape, "")
-    val layer = Layer("", 1, Vector.empty, Military.empty, CellsMap(Vector.empty), Vector(bt))
-    val action = PlaceBuilding("Test", layer, Coordinate(2, 1))
+    val msg = BuildingConstructionMessage(user.id, layer.id, bTemplate.name, Coordinate(2, 1))
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
-    val updated = userAndStorage.work(action)
+    val updated = userAndStorage.work(msg.action)
     val expected = Vector(ItemStack(3, woodId))
-    updated.right.value.city.storage.resources should be(expected)
+    updated.city.storage.resources should be(expected)
   }
 
   it should "add building to the city" in {
-    val constructionTime = 10
-    val bt = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), constructionTime, shape, "")
-    val layer = Layer("", 1, Vector.empty, Military.empty, CellsMap(Vector.empty), Vector(bt))
-    val action = PlaceBuilding(bt.name, layer, Coordinate(2, 1))
+    val msg = BuildingConstructionMessage(user.id, layer.id, bTemplate.name, Coordinate(2, 1))
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
-    val updated = userAndStorage.work(action).right.value
+    val updated = userAndStorage.work(msg.action)
 
     Thread.sleep(constructionTime)
-    val userWithBuilding = updated.work(DoNothing).right.value
-    val mbBuilding = userWithBuilding.city.producers.find(c => c.name == bt.name)
+    val userWithBuilding = updated.work(DoNothing)
+    val mbBuilding = userWithBuilding.city.producers.find(c => c.name == bTemplate.name)
     mbBuilding.isEmpty shouldBe false
   }
 
@@ -63,22 +64,23 @@ class UserActionTest extends FlatSpec with Matchers with EitherValues with Befor
     val withBuilding = City(Coordinate(12, 12), ShapeMap(cityMap, Vector.empty), Storage(Vector(ItemStack(10, woodId))))
     val userToAct = user.copy(city = withBuilding)
 
-    val afterAction = userToAct.work(AddProduction(building.id, ItemStack(prodCount, prodId))).right.value
+    val msg = AddProductionMessage(user.id, layer.id, building.id, ItemStack(prodCount, prodId))
+    val afterAction = userToAct.work(msg.action)
     afterAction.city.producers.head.queue.content should be(Vector((prod, prodCount)))
   }
 
   "CreateSoul" should "create soul with specified parameters" in {
     val spiritPoints = 41
     val spirit = Spirit(spiritPoints, SpiritBase(2, 100))
-    val props = Vector(StatProperty(Agility, Level(3, 11)), StatProperty(Strength, Level(5, 0)))
+    val props = Vector(StatPropertySimple(Agility.toString, 3), StatPropertySimple(Strength.toString, 5))
     val userWithPower = user.copy(power = LifePower(300, 300))
 
-    val afterAction = userWithPower.work(CreateSoul(spirit, props)).right.value
+    val msg = CreateSoulMessage(user.id, layer.id, spirit, props)
+    val afterAction = userWithPower.work(msg.action)
     val createdSoul = afterAction.souls.souls.head._1
     val soulLifepower = createdSoul.beAssimilated()._1
 
     createdSoul.spirit should be(spiritPoints)
-    soulLifepower should be(props.map(_.toLifePower).sum)
+    soulLifepower should be(props.map(_.lift.toLifePower).sum)
   }
-
 }

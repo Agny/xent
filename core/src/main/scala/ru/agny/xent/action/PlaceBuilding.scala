@@ -1,13 +1,13 @@
 package ru.agny.xent.action
 
 import ru.agny.xent.core.city.Building
-import ru.agny.xent.core.utils.{BuildingTemplate, ErrorCode}
-import ru.agny.xent.core.{Coordinate, Layer, User}
+import ru.agny.xent.core.utils.{ErrorCode, TemplateProvider}
+import ru.agny.xent.core.{Coordinate, User}
 import ru.agny.xent.messages.{ReactiveLog, ResponseOk}
 
-case class PlaceBuilding(facility: String, layer: Layer, cell: Coordinate, src: ReactiveLog) extends UserAction {
+case class PlaceBuilding(facility: String, cell: Coordinate, src: ReactiveLog) extends UserAction {
   override def run(user: User) = {
-    val bt = layer.facilities.collectFirst { case bt: BuildingTemplate if bt.name == facility => bt }
+    val bt = TemplateProvider.get(src.layer, facility)
     bt match {
       case Some(x) =>
         val b = Building(cell, x.name, x.producibles, x.buildTime)

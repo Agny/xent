@@ -16,7 +16,7 @@ package object production {
 
   @RedisEntity("user", "user", System.nanoTime().toString)
   case class BuildingConstructionMessage(user: UserId, layer: String, building: String, cell: Coordinate) extends ReactiveLog {
-    override val action = PlaceBuilding(building, ???, cell, this)
+    override val action = PlaceBuilding(building, cell, this)
   }
 
   @RedisEntity("user", "user", System.nanoTime().toString)
