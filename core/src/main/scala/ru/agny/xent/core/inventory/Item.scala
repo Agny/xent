@@ -24,11 +24,11 @@ object Item {
   type ItemId = Long
 
   object implicits {
-    implicit def convert(v: ItemStack): Slot[Item] = v match {
-      case ItemStack(stackValue, _) if stackValue > 0 => ItemSlot(v)
-      case _ => EmptySlot
+    implicit def convert(v: Item): Slot[Item] = v match {
+      case ItemStack(stackValue, _) if stackValue <= 0 => EmptySlot
+      case x => ItemSlot(x)
     }
 
-    implicit def convert(v: Vector[ItemStack])(implicit toSlot: ItemStack => Slot[Item]): Vector[Slot[Item]] = v.map(toSlot)
+    implicit def convert(v: Vector[Item])(implicit toSlot: Item => Slot[Item]): Vector[Slot[Item]] = v.map(toSlot)
   }
 }
