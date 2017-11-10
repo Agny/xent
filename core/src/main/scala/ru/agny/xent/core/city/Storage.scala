@@ -37,7 +37,7 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
         val afterSpend = recipe.v.foldRight(items)((a, b) => b.flatMap {
           case ItemStack(st, id) if a.id == id => Some(ItemStack(st - a.asInstanceOf[ItemStack].stackValue, a.id))
           case item if a.id == item.id => None
-          case _ => throw new UnsupportedOperationException("") //TODO handler of multi same non-ItemStack recipes needed
+          case x => Some(x)
         })
         Right(Storage(afterSpend))
     }
