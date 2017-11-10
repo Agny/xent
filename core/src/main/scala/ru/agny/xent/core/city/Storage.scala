@@ -1,6 +1,5 @@
 package ru.agny.xent.core.city
 
-import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.utils.ErrorCode
@@ -43,9 +42,7 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
     }
   }
 
-  def get(resource: ItemId): Option[ItemStack] = resources.find(_.id == resource)
-
-  lazy val resources: Vector[ItemStack] = holder.slots.flatMap {
+  private lazy val resources: Vector[ItemStack] = holder.slots.flatMap {
     case ItemSlot(v) => v match {
       case ru: ItemStack => Some(ru)
       case _ => None

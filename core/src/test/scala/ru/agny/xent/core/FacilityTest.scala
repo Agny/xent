@@ -39,7 +39,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
     val (sAfterSpend, updatedFacilityQueue) = facility.addToQueue(ItemStack(1, res.id))(storage).right.value
     val (result, _) = sAfterSpend.tick(1000, Vector(updatedFacilityQueue))
     val expected = Vector(ItemStack(1, res.id), ItemStack(5, woodId))
-    result.resources should be(expected)
+    result.items should be(expected)
   }
 
   it should "stop production" in {
@@ -52,7 +52,7 @@ class FacilityTest extends FlatSpec with Matchers with EitherValues {
     val (stopped, exworker) = producers.head.stop
     val (sWithStopped, stoppedUnchanged) = sWithProduced.tick(2000, Vector(stopped))
 
-    sWithProduced.resources should be(Vector(ItemStack(1, res.id)))
+    sWithProduced.items should be(Vector(ItemStack(1, res.id)))
     stopped.queue.isEmpty should be(false)
     sWithStopped should be theSameInstanceAs sWithProduced
     stopped.queue.progress should be(stoppedUnchanged.head.queue.progress)
