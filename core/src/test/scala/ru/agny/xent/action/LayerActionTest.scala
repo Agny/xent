@@ -36,7 +36,7 @@ class LayerActionTest extends FlatSpec with Matchers with EitherValues with Befo
     val msg = ResourceClaimMessage(user.id, layer.id, bt.name, place)
     val updated = layer.tick(msg.action)
     val expected = Vector(ItemStack(3, woodId))
-    updated.users.head.city.storage.resources should be(expected)
+    updated.users.head.city.storage.items should be(expected)
   }
 
   "CreateTroop" should "add troop to layer" in {
