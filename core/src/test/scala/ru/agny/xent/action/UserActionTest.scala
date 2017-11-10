@@ -1,6 +1,6 @@
 package ru.agny.xent.action
 
-import org.scalatest.{BeforeAndAfterAll, EitherValues, FlatSpec, Matchers}
+import org.scalatest._
 import ru.agny.xent.TestHelper.defaultUser
 import ru.agny.xent.battle.Military
 import ru.agny.xent.core.city.Shape.FourShape
@@ -10,16 +10,17 @@ import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.unit.characteristic.{Agility, Strength}
 import ru.agny.xent.core.unit.{Spirit, SpiritBase}
 import ru.agny.xent.core.utils.{BuildingTemplate, CityGenerator, TemplateProvider}
+import ru.agny.xent.messages.CityPillageMessage
 import ru.agny.xent.messages.production.{AddProductionMessage, BuildingConstructionMessage}
 import ru.agny.xent.messages.unit.{CreateSoulMessage, StatPropertySimple}
 
-class UserActionTest extends FlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
+class UserActionTest extends AsyncFlatSpec with Matchers with EitherValues with BeforeAndAfterAll {
 
   import ru.agny.xent.core.inventory.Item.implicits._
 
   val user = defaultUser()
   val shape = FourShape.name
-  val woodId = 1
+  val (woodId, copperId) = (1, 2)
   val constructionTime = 10
   val bTemplate = BuildingTemplate("Test", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), constructionTime, shape, "")
   val layerId = "UserActionTest"
@@ -40,7 +41,7 @@ class UserActionTest extends FlatSpec with Matchers with EitherValues with Befor
     val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
     val updated = userAndStorage.work(msg.action)
     val expected = Vector(ItemStack(3, woodId))
-    updated.city.storage.resources should be(expected)
+    updated.city.storage.items should be(expected)
   }
 
   it should "add building to the city" in {
@@ -82,5 +83,31 @@ class UserActionTest extends FlatSpec with Matchers with EitherValues with Befor
 
     createdSoul.spirit should be(spiritPoints)
     soulLifepower should be(props.map(_.lift.toLifePower).sum)
+  }
+
+  "Pillage" should "take specified resources from the city" in {
+    val loot = Vector(ItemStack(2, woodId), ItemStack(3, copperId))
+    val msg = CityPillageMessage(user.id, layerId, loot)
+    val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(5, woodId), ItemStack(7, copperId)))))
+    val afterAction = userAndStorage.work(msg.action)
+
+    val expected = Vector(ItemStack(3, woodId), ItemStack(4, copperId))
+    msg.received map { resultLoot =>
+      resultLoot.get should contain allElementsOf loot
+      afterAction.city.storage.items should be(expected)
+    }
+  }
+
+  it should "take all resources from the city if specified ones unavailable" in {
+    val loot = Vector(ItemStack(2, woodId), ItemStack(3, copperId))
+    val msg = CityPillageMessage(user.id, layerId, loot)
+    val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(5, woodId)))))
+    val afterAction = userAndStorage.work(msg.action)
+
+    val expected = Vector(ItemStack(5, woodId))
+    msg.received map { resultLoot =>
+      resultLoot.get should contain allElementsOf expected
+      afterAction.city.storage.items should be(empty)
+    }
   }
 }
