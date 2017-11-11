@@ -12,7 +12,7 @@ case class NewUser(id: UserId, name: String, src: ReactiveLog) extends LayerActi
     LayerGenerator.newCityCoordinate(layer) match {
       case Some(v) =>
         val city = City.empty(v.x, v.y)
-        val proxy = CityProxy(id, layer.id, city.storage.items, Vector.empty, city.c)
+        val proxy = CityProxy(id, layer.id, Vector.empty, city.c)
         val user = User(id, name, city)
         src.respond(ResponseOk)
         layer.copy(users = user +: layer.users, armies = layer.armies.add(proxy))

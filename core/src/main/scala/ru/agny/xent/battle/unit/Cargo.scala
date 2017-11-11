@@ -26,7 +26,7 @@ case class Cargo(id: ObjectId,
 
   override val isAggressive = false
 
-  override def concede() = (copy(resources = Vector.empty), Loot(resources))
+  override def concede(to: Troop) = (copy(resources = Vector.empty), Loot(resources))
 
   override def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]) = {
     val souls = body.filter(_.spirit > 0).map {

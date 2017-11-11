@@ -7,6 +7,7 @@ trait Producible extends DelayableItem {
   lazy val yieldTime = schema.yieldTime
   lazy val cost = schema.cost
   lazy val since = schema.since
+  lazy val weight = schema.weight
 }
 object Producible {
   private case class ProdInner(id: ItemId, name: String, schema: ProductionSchema) extends Producible

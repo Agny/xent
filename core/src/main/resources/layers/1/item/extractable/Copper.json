@@ -3,5 +3,6 @@
   "name":"Copper",
   "baseVolume": 100,
   "yieldTime":3000,
+  "weight": 20,
   "since":""
 }

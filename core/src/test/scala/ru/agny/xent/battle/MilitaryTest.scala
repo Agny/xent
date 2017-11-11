@@ -13,6 +13,8 @@ import ru.agny.xent.core.utils.{NESeq, TimeUnit}
 
 class MilitaryTest extends FlatSpec with Matchers with EitherValues {
 
+  import ru.agny.xent.TestHelper._
+
   val userOne = 1L
   val userTwo = 2L
   val dummySoul = Soul(1, SoulData(Level(1, 1), 1, Stats(Vector.empty), Vector.empty), Equipment.empty)
@@ -95,8 +97,8 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
       val pos4 = Coordinate(3, 3)
       val moveOne = MovementPlan(Vector(Movement(pos4, pos1)), pos1)
       val moveTwo = MovementPlan(Vector(Movement(pos1, pos4)), pos4)
-      val cargoOne = Cargo(1, userOne, NESeq(Vector(Guard.tiered(0)(userOne))), Vector(ItemStack(1, 2)), moveOne)
-      val cargoTwo = Cargo(2, userTwo, NESeq(Vector(Guard.tiered(0)(userTwo))), Vector(ItemStack(1, 2)), moveTwo)
+      val cargoOne = Cargo(1, userOne, NESeq(Vector(Guard.tiered(0)(userOne))), Vector(ItemStack(1, 2, defaultWeight)), moveOne)
+      val cargoTwo = Cargo(2, userTwo, NESeq(Vector(Guard.tiered(0)(userTwo))), Vector(ItemStack(1, 2, defaultWeight)), moveTwo)
       Military(Vector(cargoOne, cargoTwo), Vector.empty, System.currentTimeMillis())
     }
     val samePositions = System.currentTimeMillis() + Distance.tileToDistance(2) / Guard.speed
@@ -113,7 +115,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
     val extractableYieldTime = 2000
     val start = {
       val user = User(userOne, "Vasya", City.empty(pos1.x, pos1.y))
-      val extractable = Extractable(1, "Extr", 100, 1000, Set.empty)
+      val extractable = Extractable(1, "Extr", 100, 1000, defaultWeight, Set.empty)
       val outpost = Outpost(pos2, user, "Test outpost", extractable, Vector.empty, extractableYieldTime)
       val (workingOutpost, _) = outpost.finish.run(getQuickSoul(1))
       Military(Vector(workingOutpost), Vector.empty, System.currentTimeMillis())
@@ -128,7 +130,7 @@ class MilitaryTest extends FlatSpec with Matchers with EitherValues {
   }
 
   "Troop" should "take loot from cargo" in {
-    val expectedResources = ItemStack(1, 2)
+    val expectedResources = ItemStack(1, 2, defaultWeight)
     val start = {
       val pos4 = Coordinate(3, 3)
       val moveOne = MovementPlan(Vector(Movement(pos4, pos1)), pos1)

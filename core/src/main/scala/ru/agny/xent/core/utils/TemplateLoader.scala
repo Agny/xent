@@ -6,6 +6,7 @@ import scala.io.Source._
 import ru.agny.xent.core.city.ShapeProvider
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory._
+import ru.agny.xent.core.utils.UserType.ItemWeight
 
 object TemplateLoader {
 
@@ -16,8 +17,9 @@ object TemplateLoader {
     val resourcesDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/item/producible").getPath)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
+      val r = decode[ProducibleTemplate](fromFile(f).mkString)
       val t = decode[ProducibleTemplate](fromFile(f).mkString).right.get
-      Producible(t.id, t.name, ProductionSchema(t.yieldTime, Cost(t.cost), Set.empty))
+      Producible(t.id, t.name, ProductionSchema(t.yieldTime, Cost(t.cost), t.weight, Set.empty))
     })
   }
 
@@ -26,7 +28,7 @@ object TemplateLoader {
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
       val t = decode[ObtainableTemplate](fromFile(f).mkString).right.get
-      Obtainable(t.id, t.name, t.yieldTime, Set.empty)
+      Obtainable(t.id, t.name, t.yieldTime, t.weight, Set.empty)
     })
   }
 
@@ -35,7 +37,7 @@ object TemplateLoader {
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
       val t = decode[ExtractableTemplate](fromFile(f).mkString).right.get
-      Extractable(t.id, t.name, t.baseVolume, t.yieldTime, Set.empty)
+      Extractable(t.id, t.name, t.baseVolume, t.yieldTime, t.weight, Set.empty)
     })
   }
 
@@ -65,9 +67,9 @@ object TemplateLoader {
 }
 
 //TODO since
-case class ExtractableTemplate(id: ItemId, name: String, baseVolume: Int, yieldTime: Long, since: String)
-case class ObtainableTemplate(id: ItemId, name: String, yieldTime: Long, since: String)
-case class ProducibleTemplate(id: ItemId, name: String, cost: Vector[ItemStack], yieldTime: Long, since: String)
+case class ExtractableTemplate(id: ItemId, name: String, weight: ItemWeight, baseVolume: Int, yieldTime: Long, since: String)
+case class ObtainableTemplate(id: ItemId, name: String, weight: ItemWeight, yieldTime: Long, since: String)
+case class ProducibleTemplate(id: ItemId, name: String, weight: ItemWeight, cost: Vector[ItemStack], yieldTime: Long, since: String)
 sealed trait FacilityTemplate {
   val name: String
   val producibles: Vector[Producible]

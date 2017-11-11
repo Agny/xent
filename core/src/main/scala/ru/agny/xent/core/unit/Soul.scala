@@ -9,6 +9,7 @@ case class Soul(id: ObjectId, private val stats: SoulData, private val equip: Eq
 
   private implicit val eq = equip
 
+  lazy val carryPower = stats.carryPower
   lazy val weight = stats.weight
   lazy val endurance = stats.endurance
   lazy val initiative = stats.initiative

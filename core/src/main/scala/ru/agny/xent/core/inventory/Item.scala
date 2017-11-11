@@ -2,18 +2,22 @@ package ru.agny.xent.core.inventory
 
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory.Progress.ProgressTime
+import ru.agny.xent.core.utils.UserType.ItemWeight
 
 trait Item {
   val id: ItemId
+  val weight: ItemWeight
 }
 trait DelayableItem extends Item {
   val name: String
   val yieldTime: ProgressTime
 }
 
-final case class ItemStack(stackValue: Int, id: ItemId) extends Item {
+final case class ItemStack(stackValue: Int, id: ItemId, singleWeight: ItemWeight) extends Item {
+  val weight = singleWeight * stackValue
+
   def add(v: ItemStack): ItemStack =
-    if (v.id == id) ItemStack(v.stackValue + stackValue, id)
+    if (v.id == id) ItemStack(v.stackValue + stackValue, id, singleWeight)
     else this
 }
 
@@ -25,7 +29,7 @@ object Item {
 
   object implicits {
     implicit def convert(v: Item): Slot[Item] = v match {
-      case ItemStack(stackValue, _) if stackValue <= 0 => EmptySlot
+      case ItemStack(stackValue, _, _) if stackValue <= 0 => EmptySlot
       case x => ItemSlot(x)
     }
 

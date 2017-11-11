@@ -9,7 +9,8 @@
   "cost": [
     {
       "stackValue": 5,
-      "id": 1
+      "id": 1,
+      "singleWeight": 10
     }
   ],
   "buildTime": 10000,

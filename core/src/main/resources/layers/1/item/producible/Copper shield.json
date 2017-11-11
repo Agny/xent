@@ -1,14 +1,17 @@
 {
   "id": 101,
   "name": "Copper shield",
+  "weight": 80,
   "cost": [
     {
       "stackValue": 2,
-      "id": 100
+      "id": 100,
+      "singleWeight": 40
     },
     {
       "stackValue": 2,
-      "id": 1
+      "id": 1,
+      "singleWeight": 10
     }
   ],
   "yieldTime": 60000,

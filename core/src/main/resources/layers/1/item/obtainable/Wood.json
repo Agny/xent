@@ -2,5 +2,6 @@
   "id": 1,
   "name":"Wood",
   "yieldTime": 1000,
+  "weight": 10,
   "since":""
 }

@@ -8,6 +8,7 @@ import ru.agny.xent.core.utils.SelfAware
 
 trait Facility extends Cell with Buildable {
   this: SelfAware =>
+  override val weight = Int.MaxValue
   val self: Self
   val obtainable: Vector[Obtainable]
   val queue: ResourceQueue

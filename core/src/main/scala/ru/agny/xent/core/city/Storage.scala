@@ -3,6 +3,7 @@ package ru.agny.xent.core.city
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.utils.ErrorCode
+import ru.agny.xent.core.utils.UserType.ItemWeight
 
 case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
@@ -34,11 +35,25 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
       case Some(v) => Left(ErrorCode.RESOURCE_CANT_BE_PRODUCED)
       case None =>
         val afterSpend = recipe.v.foldRight(items)((a, b) => b.flatMap {
-          case ItemStack(st, id) if a.id == id => Some(ItemStack(st - a.asInstanceOf[ItemStack].stackValue, a.id))
+          case ItemStack(st, id, w) if a.id == id => Some(ItemStack(st - a.asInstanceOf[ItemStack].stackValue, a.id, w))
           case item if a.id == item.id => None
           case x => Some(x)
         })
         Right(Storage(afterSpend))
+    }
+  }
+
+  def loadInWeight(weight: ItemWeight): Vector[Item] = {
+    var weightAcc = 0
+    items.map {
+      case x: ItemStack if weightAcc + x.singleWeight <= weight =>
+        val (acc, is) = weightStackPart(x, weightAcc, weight)
+        weightAcc = acc
+        is
+      case x if weightAcc + x.weight <= weight =>
+        weightAcc += x.weight
+        x
+      case x => x
     }
   }
 
@@ -53,6 +68,14 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
   lazy val items: Vector[Item] = holder.slots.flatMap {
     case ItemSlot(v) => Some(v)
     case EmptySlot => None
+  }
+
+  private def weightStackPart(is: ItemStack, acc: ItemWeight, limit: ItemWeight): (ItemWeight, ItemStack) = {
+    if (acc + is.weight < limit) (acc + is.weight, is)
+    else {
+      val n = (limit - acc) / is.singleWeight
+      (acc + is.singleWeight * n, is.copy(stackValue = n))
+    }
   }
 
   override def apply(slots: Vector[Slot[Item]]): Storage = Storage(slots)

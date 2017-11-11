@@ -1,5 +1,6 @@
 package ru.agny.xent.battle
 
+import ru.agny.xent.battle.unit.Troop
 import ru.agny.xent.core.Coordinate
 import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
 import ru.agny.xent.core.inventory.Progress.ProgressTime
@@ -29,7 +30,7 @@ abstract class MapObject {
   def isAggressive: Boolean
 
   /** return fallen state of this object along with loot list */
-  def concede(): (Self, Loot)
+  def concede(to: Troop): (Self, Loot)
 
   def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]): Self
 }

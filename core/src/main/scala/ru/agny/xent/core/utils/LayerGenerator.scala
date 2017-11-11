@@ -23,7 +23,7 @@ object LayerGenerator {
     def genByY(y: Int)(x: Int, acc: Vector[Cell]): Vector[Cell] = {
       //      val mbRes = mbResource(resources)
       val mbRes =
-        if (x == 1 && y == 2) Some(Extractable(1, "Copper", 51, 3000, Set.empty)) //test purposes
+        if (x == 1 && y == 2) Some(Extractable(1, "Copper", 51, 3000, 14, Set.empty)) //test purposes
         else mbResource(resources)
 
       val cell = mbRes match {

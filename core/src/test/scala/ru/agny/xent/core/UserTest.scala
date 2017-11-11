@@ -42,19 +42,19 @@ class UserTest extends FlatSpec with Matchers with EitherValues with BeforeAndAf
   }
 
   it should "add production to facility queue" in {
-    val toProduce = Producible(1, "meh", ProductionSchema(1000, Cost(Vector.empty), Set.empty))
+    val toProduce = Producible(1, "meh", ProductionSchema(1000, Cost(Vector.empty), defaultWeight, Set.empty))
     val building = Building(Coordinate(2, 2), "Test", Vector(toProduce), 1000).finish
     val facilityId = building.id
     val city = City.empty(0, 0).place(building, Shape.values(shape).form(building.c))
     val user = User(1, "Vasya", city.right.value)
-    val res = user.addProduction(facilityId, ItemStack(4, 1))
+    val res = user.addProduction(facilityId, ItemStack(4, 1, defaultWeight))
     val queue = res.right.value.city.producers.find(_.id == facilityId).get.queue
     queue.content should be(Vector((toProduce, 4)))
   }
 
   it should "consume troop's lifepower and get loot" in {
     val armor = StubArmor()
-    val loot = ItemStack(10, woodId)
+    val loot = ItemStack(10, woodId, defaultWeight)
     val armoredSoul = soulOne.copy(equip = Equipment.empty.add(armor)._1)
     val souls = Vector(armoredSoul, soulTwo)
     val soulsLifePower = souls.foldLeft(0)((acc, x) => acc + x.beAssimilated()._1)

@@ -4,6 +4,7 @@ import ru.agny.xent.battle.unit.Potential
 import ru.agny.xent.core.LifePowered
 import ru.agny.xent.core.unit.Stats.WeaponRate
 import ru.agny.xent.core.unit.equip.{Defensive, Equipment}
+import ru.agny.xent.core.utils.UserType.ItemWeight
 
 //TODO Equipment boosting stats
 /** @param level is required for equipping items and learning skills. Represents experience, accumulated by the soul in this incarnation */
@@ -35,6 +36,8 @@ case class SoulData(level: Level, spiritPower: Int, private val stats: Stats, pr
   }
 
   def gainExp(amount: Int) = copy(level = level.gainExp(amount))
+
+  def carryPower(implicit equipment: Equipment): ItemWeight = ???
 
   override def toLifePower = stats.weight
 }

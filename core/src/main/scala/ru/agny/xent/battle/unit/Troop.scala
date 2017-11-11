@@ -41,6 +41,15 @@ case class Troop(id: ObjectId,
 
   val home = plan.home
 
+  def carryPower = {
+    val power = activeUnits.map(_.carryPower).sum
+    val used = backpack.toLoot.map(_.weight).sum
+    power - used match {
+      case canCarryMore@x if x > 0 => x
+      case cannot@x => 0
+    }
+  }
+
   /**
     * Method should be called if and only if this troop has able to fight units,
     * in other case UnsupportedOperationException("empty.head") will be thrown. BTW, latter can happen only due programmed logical error
@@ -49,7 +58,7 @@ case class Troop(id: ObjectId,
   def attack[Target <: MapObject](other: Target): (Troop, Target) = {
     val (u, t) = activeUnits.foldLeft((Vector.empty[Soul], other))(handleBattle)
     if (!t.isActive) {
-      val (looser, loot) = t.concede()
+      val (looser, loot) = t.concede(this)
       (Troop(id, NESeq(u), backpack.add(loot.get)._1, user, plan, fatigue ++), looser.asInstanceOf[Target])
     } else {
       (Troop(id, NESeq(u), backpack, user, plan, fatigue ++), t)
@@ -78,7 +87,7 @@ case class Troop(id: ObjectId,
     else plan.goHome(moveSpeed, time)
   }
 
-  override def concede(): (Self, Loot) = {
+  override def concede(to: Troop): (Self, Loot) = {
     val (looserUnits, eq) = units.map(_.lose()).unzip
     val loot = Loot(backpack.toLoot ++ eq.flatMap(_.toLoot))
     val t = Troop(id, NESeq(looserUnits), Backpack.empty, user, plan, Fatigue.MAX)

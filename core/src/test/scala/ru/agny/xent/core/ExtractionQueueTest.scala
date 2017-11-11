@@ -5,26 +5,28 @@ import ru.agny.xent.core.inventory.{Extractable, ExtractionQueue}
 
 class ExtractionQueueTest extends FlatSpec with Matchers {
 
+  import ru.agny.xent.TestHelper._
+
   val extrId = 1
   val otherId = 2
 
   "ExtractionQueue" should "not change by item adding" in {
-    val item = Extractable(extrId, "test", 0, 0, Set.empty)
-    val other = Extractable(otherId, "test2", 0, 0, Set.empty)
+    val item = Extractable(extrId, "test", 0, 0, defaultWeight, Set.empty)
+    val other = Extractable(otherId, "test2", 0, 0, defaultWeight, Set.empty)
     val expected = ExtractionQueue(item)
     val result = expected.in(other, 4)
     result should be theSameInstanceAs expected
   }
 
   it should "return correct amount of produced items" in {
-    val item = Extractable(extrId, "test", 6, 1000, Set.empty)
+    val item = Extractable(extrId, "test", 6, 1000, defaultWeight, Set.empty)
     val queue = ExtractionQueue(item)
     val (_, result) = queue.out(5000)
     result should be(Vector((item, 5)))
   }
 
   it should "save progress" in {
-    val item = Extractable(extrId, "test", 6, 1000, Set.empty)
+    val item = Extractable(extrId, "test", 6, 1000, defaultWeight, Set.empty)
     val queue = ExtractionQueue(item)
     val (q, result) = queue.out(3300)
     result should be(Vector((item, 3)))
@@ -32,7 +34,7 @@ class ExtractionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "mutate source of extractable" in {
-    val item = Extractable(extrId, "test", 6, 1000, Set.empty)
+    val item = Extractable(extrId, "test", 6, 1000, defaultWeight, Set.empty)
     val queue = ExtractionQueue(item)
     val (q, result) = queue.out(5000)
     result should be(Vector((item, 5)))

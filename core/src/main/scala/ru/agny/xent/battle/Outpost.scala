@@ -1,6 +1,6 @@
 package ru.agny.xent.battle
 
-import ru.agny.xent.battle.unit.{Cargo, Guard}
+import ru.agny.xent.battle.unit.{Cargo, Guard, Troop}
 import ru.agny.xent.core.Facility.{Demolished, Working}
 import ru.agny.xent.core._
 import ru.agny.xent.core.inventory.Item._
@@ -32,7 +32,7 @@ final case class Outpost(id: ItemId,
   def tick(period: ProgressTime) = {
     if (state == Working) {
       val (q, prod) = queue.out(period)
-      val items = prod.map(x => ItemStack(x._2, x._1.id))
+      val items = prod.map(x => ItemStack(x._2, x._1.id, x._1.weight))
       (copy(queue = q, stored = store(items)), items)
     } else {
       (this, Vector.empty)
@@ -42,7 +42,7 @@ final case class Outpost(id: ItemId,
   def isCargoReady = stored.nonEmpty
 
   private def store(mined: Vector[ItemStack]): Vector[ItemStack] =
-    mined.map(x => stored.find(_.id == x.id).map(y => ItemStack(x.stackValue + y.stackValue, x.id)).getOrElse(x))
+    mined.map(x => stored.find(_.id == x.id).map(y => ItemStack(x.stackValue + y.stackValue, x.id, x.singleWeight)).getOrElse(x))
 
   override def pos(time: ProgressTime) = c
 
@@ -54,7 +54,7 @@ final case class Outpost(id: ItemId,
 
   override def isAggressive = false
 
-  override def concede() = (copy(stored = Vector.empty, state = Demolished), Loot(stored))
+  override def concede(to: Troop) = (copy(stored = Vector.empty, state = Demolished), Loot(stored))
 
   override def receiveDamage(d: OutcomeDamage, targeted: Vector[ObjectId]) = {
     val souls = body.filter(_.spirit > 0).map {

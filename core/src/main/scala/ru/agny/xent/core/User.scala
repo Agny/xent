@@ -4,9 +4,9 @@ import ru.agny.xent.action.{DoNothing, UserAction}
 import ru.agny.xent.battle.{MovementPlan, Outpost}
 import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.inventory.Item.ItemId
-import ru.agny.xent.core.utils.UserType.{ObjectId, UserId}
+import ru.agny.xent.core.utils.UserType.{ItemWeight, ObjectId, UserId}
 import ru.agny.xent.core.city._
-import ru.agny.xent.core.inventory.{Cost, ItemStack, ProductionQueue}
+import ru.agny.xent.core.inventory.{Cost, Item, ItemStack, ProductionQueue}
 import ru.agny.xent.core.utils.{ErrorCode, NESeq}
 
 case class User(id: UserId, name: String, city: City, queue: ProductionQueue, souls: Workers, power: LifePower, lastAction: Long) {
@@ -66,6 +66,15 @@ case class User(id: UserId, name: String, city: City, queue: ProductionQueue, so
   def spend(recipe: Cost): Either[ErrorCode.Value, User] = {
     val u = work(DoNothing)
     for {s <- u.city.storage.spend(recipe)} yield u.copy(city = u.city.copy(storage = s))
+  }
+
+  def loseResources(weight: ItemWeight): (User, Vector[Item]) = {
+    val u = work(DoNothing)
+    val toLose = u.city.storage.loadInWeight(weight)
+    spend(Cost(toLose)) match {
+      case Left(_) => (u.copy(city = u.city.copy(storage = Storage.empty)), u.city.storage.items)
+      case Right(v) => (v, toLose)
+    }
   }
 
   override def toString = s"id=$id name=$name time=$lastAction"

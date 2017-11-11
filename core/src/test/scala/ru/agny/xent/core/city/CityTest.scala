@@ -15,7 +15,7 @@ class CityTest extends FlatSpec with Matchers with EitherValues {
   val shape = FourShape.name
 
   "City" should "place building in the map" in {
-    val prod = Producible(1, "Test prod", ProductionSchema(500, Cost(Vector.empty), Set.empty))
+    val prod = Producible(1, "Test prod", ProductionSchema(500, Cost(Vector.empty), defaultWeight, Set.empty))
     val place = Coordinate(2, 1)
     val b = Building(place, bName, Vector(prod), 500)
     val city = City.empty(0, 0)
@@ -28,10 +28,10 @@ class CityTest extends FlatSpec with Matchers with EitherValues {
     val prodId = 2
     val prodTime = 1000
     val progress = 1200
-    val prod = Producible(prodId, "Test prod", ProductionSchema(prodTime, Cost(Vector.empty), Set.empty))
+    val prod = Producible(prodId, "Test prod", ProductionSchema(prodTime, Cost(Vector.empty), defaultWeight, Set.empty))
     val building = {
       val (b, _) = Building(place, bName, Vector(prod), 500).finish.run(worker)
-      b.addToQueue(ItemStack(2, prodId))(Storage.empty).right.value._2
+      b.addToQueue(ItemStack(2, prodId, defaultWeight))(Storage.empty).right.value._2
     }
     val res = City.empty(0, 0).place(building, Shape.values(shape).form(Coordinate(2, 1)))
     val city = res.right.value.produce(progress)

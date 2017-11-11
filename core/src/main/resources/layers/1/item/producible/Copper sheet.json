@@ -1,14 +1,17 @@
 {
   "id": 100,
   "name": "Copper sheet",
+  "weight": 40,
   "cost": [
     {
       "stackValue": 2,
-      "id": 2
+      "id": 2,
+      "singleWeight": 20
     },
     {
       "stackValue": 1,
-      "id": 1
+      "id": 1,
+      "singleWeight": 10
     }
   ],
   "yieldTime": 30000,

@@ -3,5 +3,6 @@
   "name":"Iron",
   "baseVolume": 80,
   "yieldTime": 4000,
+  "weight": 35,
   "since":"Iron Working"
 }

@@ -1,14 +1,17 @@
 {
   "id": 3,
   "name": "Copper sword",
+  "weight": 80,
   "cost": [
     {
       "stackValue": 3,
-      "id": 100
+      "id": 100,
+      "singleWeight": 40
     },
     {
       "stackValue": 1,
-      "id": 1
+      "id": 1,
+      "singleWeight": 10
     }
   ],
   "yieldTime": 80000,

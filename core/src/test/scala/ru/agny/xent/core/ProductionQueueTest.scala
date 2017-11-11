@@ -8,7 +8,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
 
   import ru.agny.xent.TestHelper._
 
-  val res = Extractable(1, "test", 0, 0, Set.empty)
+  val res = Extractable(1, "test", 0, 0, defaultWeight, Set.empty)
   val item = Outpost(Coordinate(0, 0), defaultUser(), "test", res, Vector.empty, 0)
   val itemLong = Outpost(Coordinate(0, 0), defaultUser(), "test", res, Vector.empty, 1000)
   val extrId2 = 2
@@ -53,7 +53,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "reduce content by completed and returned items with different entries in ordered fashion" in {
-    val item2 = Outpost(Coordinate(0, 0), defaultUser(), "test2", Extractable(extrId2, "test2", 0, 0, Set.empty), Vector.empty, 1000)
+    val item2 = Outpost(Coordinate(0, 0), defaultUser(), "test2", Extractable(extrId2, "test2", 0, 0, defaultWeight, Set.empty), Vector.empty, 1000)
     val queue = ProductionQueue(Vector((itemLong, 2), (item2, 3)))
     val (updated, res) = queue.out(1000)
     val expectedQueue = Vector((itemLong, 1), (item2, 3))
@@ -63,7 +63,7 @@ class ProductionQueueTest extends FlatSpec with Matchers {
   }
 
   it should "reduce content by completed and returned items with different entries" in {
-    val item2 = Outpost(Coordinate(0, 0), defaultUser(), "test2", Extractable(extrId2, "test2", 0, 0, Set.empty), Vector.empty, 1000)
+    val item2 = Outpost(Coordinate(0, 0), defaultUser(), "test2", Extractable(extrId2, "test2", 0, 0, defaultWeight, Set.empty), Vector.empty, 1000)
     val queue = ProductionQueue(Vector((itemLong, 2), (item2, 3)))
     val (updated, res) = queue.out(3000)
     val expectedQueue = Vector((item2, 2))

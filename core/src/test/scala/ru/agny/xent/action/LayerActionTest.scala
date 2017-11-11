@@ -18,10 +18,10 @@ class LayerActionTest extends FlatSpec with Matchers with EitherValues with Befo
   val user = defaultUser()
   val woodId = 1
   val layerId = "LayerActionTest"
-  val bt = OutpostTemplate("Test", "Test res", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, "")
+  val bt = OutpostTemplate("Test", "Test res", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId, defaultWeight))), 0, "")
 
   override protected def beforeAll(): Unit = {
-    TemplateProvider.add(layerId, OutpostTemplate("Test", "Test res", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId))), 0, ""))
+    TemplateProvider.add(layerId, OutpostTemplate("Test", "Test res", Vector.empty, Vector.empty, Cost(Vector(ItemStack(7, woodId, defaultWeight))), 0, ""))
   }
 
   override protected def afterAll(): Unit = {
@@ -30,12 +30,12 @@ class LayerActionTest extends FlatSpec with Matchers with EitherValues with Befo
 
   "ResourceClaimAction" should "spend resources" in {
     val place = Coordinate(1, 2)
-    val resourceToClaim = ResourceCell(place, Extractable(1, "Test res", 10, 111, Set.empty))
-    val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId)))))
+    val resourceToClaim = ResourceCell(place, Extractable(1, "Test res", 10, 111, 12, Set.empty))
+    val userAndStorage = user.copy(city = user.city.copy(storage = Storage(Vector(ItemStack(10, woodId, defaultWeight)))))
     val layer = Layer(layerId, 1, Vector(userAndStorage), Military.empty, CellsMap(Vector(Vector(), Vector(Cell(1, 0), Cell(1, 1), resourceToClaim), Vector())))
     val msg = ResourceClaimMessage(user.id, layer.id, bt.name, place)
     val updated = layer.tick(msg.action)
-    val expected = Vector(ItemStack(3, woodId))
+    val expected = Vector(ItemStack(3, woodId, defaultWeight))
     updated.users.head.city.storage.items should be(expected)
   }
 

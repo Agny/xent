@@ -23,7 +23,7 @@ case class Building(id: ItemId,
   def tick(period: ProgressTime): (Building, Vector[ItemStack]) = {
     if (state == Working) {
       val (q, prod) = queue.out(period)
-      val items = prod.map(x => ItemStack(x._2, x._1.id))
+      val items = prod.map(x => ItemStack(x._2, x._1.id, x._1.weight))
       (copy(queue = q), items)
     } else {
       (this, Vector.empty)

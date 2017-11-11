@@ -1,6 +1,7 @@
 package ru.agny.xent.core
 
 import org.scalatest.{FlatSpec, Matchers}
+import ru.agny.xent.TestHelper.defaultWeight
 import ru.agny.xent.core.city.{Building, Shape, ShapeMap}
 import ru.agny.xent.core.city.Shape.FourShape
 import ru.agny.xent.core.inventory.{Cost, Producible, ProductionSchema}
@@ -13,7 +14,7 @@ class ShapeMapTest extends FlatSpec with Matchers {
   val place = Coordinate(2, 1)
 
   "ShapeMap" should "add building and shape" in {
-    val p = Producible(1, "Test res", ProductionSchema(TimeUnit.minute + 1000, Cost(Vector.empty), Set.empty))
+    val p = Producible(1, "Test res", ProductionSchema(TimeUnit.minute + 1000, Cost(Vector.empty), defaultWeight, Set.empty))
     val building = Building(place, bName, Vector(p), 0)
     val cm = CityGenerator.generateCityMap(4)
     val m = ShapeMap(cm, Vector.empty)
@@ -26,7 +27,7 @@ class ShapeMapTest extends FlatSpec with Matchers {
   }
 
   it should "update existing building" in {
-    val p = Producible(1, "Test res", ProductionSchema(TimeUnit.minute + 1000, Cost(Vector.empty), Set.empty))
+    val p = Producible(1, "Test res", ProductionSchema(TimeUnit.minute + 1000, Cost(Vector.empty), defaultWeight, Set.empty))
     val building = Building(place, bName, Vector(p), 0).build
     val cm = CityGenerator.generateCityMap(4)
     val m = ShapeMap(cm, Vector.empty)

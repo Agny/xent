@@ -12,4 +12,6 @@ object TestHelper {
 
   def defaultUser(id: UserId = -1, city: City = City.empty(0, 0)): User = User(id, "Test", city)
 
+  val defaultWeight = 10
+
 }
