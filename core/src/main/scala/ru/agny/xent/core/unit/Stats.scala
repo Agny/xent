@@ -2,6 +2,7 @@ package ru.agny.xent.core.unit
 
 import ru.agny.xent.core.unit.characteristic._
 import ru.agny.xent.core.unit.equip._
+import ru.agny.xent.core.utils.UserType.ItemWeight
 
 //TODO game balancing
 case class Stats(private val s: Vector[StatProperty], private val base: SpiritBase) {
@@ -14,13 +15,10 @@ case class Stats(private val s: Vector[StatProperty], private val base: SpiritBa
     */
   def effectiveArmor(eq: Equipment): Int = {
     val armor = eq.armor.value //TODO Armor class, e.g. heavy/light?
-    val props = s.filter(x => x.prop == Strength || x.prop == PresencePower || x.prop == Agility)
-    val modifier = props.map {
-      case StatProperty(Strength, lvl) => lvl.value * 0.2
-      case StatProperty(PresencePower, lvl) => lvl.value * 0.12
-      case StatProperty(Agility, lvl) => lvl.value * 0.07
-      case _ => 0d
-    }.sum
+    val strength = getValueOrZero(Strength, s)
+    val agility = getValueOrZero(Agility, s)
+    val presence = getValueOrZero(PresencePower, s)
+    val modifier = strength * 0.2 + presence * 0.12 + agility * 0.07
     math.floor(armor + modifier).toInt
   }
 
@@ -84,6 +82,12 @@ case class Stats(private val s: Vector[StatProperty], private val base: SpiritBa
     val mhAttrs = eq.props(mh)(Offensive)
     val ohAttrs = eq.props(oh)(Offensive)
     Vector((mh, attributesWithBonus(mhAttrs, s)), (oh, attributesWithBonus(ohAttrs, s)))
+  }
+
+  def carryPower(eq: Equipment): ItemWeight = {
+    val strength = getValueOrZero(Strength, s)
+    val presence = getValueOrZero(PresencePower, s)
+    strength * 20 + presence * 10
   }
 
 }

@@ -45,15 +45,15 @@ case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 
   def loadInWeight(weight: ItemWeight): Vector[Item] = {
     var weightAcc = 0
-    items.map {
+    items.flatMap {
       case x: ItemStack if weightAcc + x.singleWeight <= weight =>
         val (acc, is) = weightStackPart(x, weightAcc, weight)
         weightAcc = acc
-        is
+        Some(is)
       case x if weightAcc + x.weight <= weight =>
         weightAcc += x.weight
-        x
-      case x => x
+        Some(x)
+      case _ => None
     }
   }
 

@@ -37,7 +37,7 @@ case class SoulData(level: Level, spiritPower: Int, private val stats: Stats, pr
 
   def gainExp(amount: Int) = copy(level = level.gainExp(amount))
 
-  def carryPower(implicit equipment: Equipment): ItemWeight = ???
+  def carryPower(implicit equipment: Equipment): ItemWeight = stats.carryPower(equipment)
 
   override def toLifePower = stats.weight
 }
