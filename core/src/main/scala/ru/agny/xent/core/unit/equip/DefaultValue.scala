@@ -17,7 +17,7 @@ object DefaultValue {
       override val name = "Default"
       override val attrs: Vector[AttrProperty] = Vector.empty
       override val schema: ProductionSchema = ProductionSchema.default()
-      override val weight: Int = 1
+      override val battleRate: Int = 1
     }
 
     implicit object DefaultArmor extends Armor with DefaultValue[Armor] {
@@ -26,7 +26,7 @@ object DefaultValue {
       override val attrs: Vector[AttrProperty] = Vector.empty
       override val name = "Default"
       override val schema: ProductionSchema = ProductionSchema.default()
-      override val weight: Int = 1
+      override val battleRate: Int = 1
     }
 
     implicit object DefaultWeapon extends Weapon with DefaultValue[Weapon] {
@@ -35,7 +35,7 @@ object DefaultValue {
       override val attrs = Vector(AttrProperty(Blunt, 1, Offensive))
       override val name = "Unarmed"
       override val schema: ProductionSchema = ProductionSchema.default()
-      override val weight: Int = 1
+      override val battleRate: Int = 1
     }
   }
 }
