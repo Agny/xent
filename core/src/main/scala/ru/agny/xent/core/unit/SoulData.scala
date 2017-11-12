@@ -2,9 +2,9 @@ package ru.agny.xent.core.unit
 
 import ru.agny.xent.battle.unit.Potential
 import ru.agny.xent.core.LifePowered
+import ru.agny.xent.core.inventory.Item.ItemWeight
 import ru.agny.xent.core.unit.Stats.WeaponRate
 import ru.agny.xent.core.unit.equip.{Defensive, Equipment}
-import ru.agny.xent.core.utils.UserType.ItemWeight
 
 //TODO Equipment boosting stats
 /** @param level is required for equipping items and learning skills. Represents experience, accumulated by the soul in this incarnation */

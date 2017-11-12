@@ -4,9 +4,8 @@ import java.io.File
 
 import scala.io.Source._
 import ru.agny.xent.core.city.ShapeProvider
-import ru.agny.xent.core.inventory.Item.ItemId
+import ru.agny.xent.core.inventory.Item.{ItemId, ItemWeight}
 import ru.agny.xent.core.inventory._
-import ru.agny.xent.core.utils.UserType.ItemWeight
 
 object TemplateLoader {
 

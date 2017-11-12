@@ -1,8 +1,8 @@
 package ru.agny.xent.core.unit
 
+import ru.agny.xent.core.inventory.Item.ItemWeight
 import ru.agny.xent.core.unit.characteristic._
 import ru.agny.xent.core.unit.equip._
-import ru.agny.xent.core.utils.UserType.ItemWeight
 
 //TODO game balancing
 case class Stats(private val s: Vector[StatProperty], private val base: SpiritBase) {

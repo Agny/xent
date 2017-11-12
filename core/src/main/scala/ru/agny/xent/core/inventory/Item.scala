@@ -1,8 +1,7 @@
 package ru.agny.xent.core.inventory
 
-import ru.agny.xent.core.inventory.Item.ItemId
+import ru.agny.xent.core.inventory.Item.{ItemId, ItemWeight}
 import ru.agny.xent.core.inventory.Progress.ProgressTime
-import ru.agny.xent.core.utils.UserType.ItemWeight
 
 trait Item {
   val id: ItemId
@@ -26,6 +25,7 @@ object Progress {
 }
 object Item {
   type ItemId = Long
+  type ItemWeight = Int
 
   object implicits {
     implicit def convert(v: Item): Slot[Item] = v match {

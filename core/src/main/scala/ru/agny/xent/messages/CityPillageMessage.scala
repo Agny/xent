@@ -2,8 +2,9 @@ package ru.agny.xent.messages
 
 import ru.agny.xent.action.PillageAction
 import ru.agny.xent.battle.Loot
+import ru.agny.xent.core.inventory.Item.ItemWeight
 import ru.agny.xent.core.utils.ErrorCode
-import ru.agny.xent.core.utils.UserType.{ItemWeight, UserId}
+import ru.agny.xent.core.utils.UserType.UserId
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

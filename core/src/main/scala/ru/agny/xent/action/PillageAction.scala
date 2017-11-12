@@ -2,7 +2,7 @@ package ru.agny.xent.action
 
 import ru.agny.xent.battle.Loot
 import ru.agny.xent.core.User
-import ru.agny.xent.core.utils.UserType.ItemWeight
+import ru.agny.xent.core.inventory.Item.ItemWeight
 import ru.agny.xent.messages.{CityPillageMessage, LootResponse}
 
 case class PillageAction(weightLimit: ItemWeight, src: CityPillageMessage) extends UserAction {

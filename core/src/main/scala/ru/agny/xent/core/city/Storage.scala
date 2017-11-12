@@ -1,9 +1,9 @@
 package ru.agny.xent.core.city
 
+import ru.agny.xent.core.inventory.Item.ItemWeight
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.inventory._
 import ru.agny.xent.core.utils.ErrorCode
-import ru.agny.xent.core.utils.UserType.ItemWeight
 
 case class Storage(holder: ItemHolder) extends InventoryLike[Storage, Item] {
 

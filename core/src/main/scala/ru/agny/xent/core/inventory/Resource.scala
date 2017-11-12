@@ -1,9 +1,8 @@
 package ru.agny.xent.core.inventory
 
 import ru.agny.xent.core.Prereq
-import ru.agny.xent.core.inventory.Item.ItemId
+import ru.agny.xent.core.inventory.Item.{ItemId, ItemWeight}
 import ru.agny.xent.core.inventory.Progress.ProgressTime
-import ru.agny.xent.core.utils.UserType.ItemWeight
 
 sealed trait Resource extends DelayableItem {
   val since: Set[Prereq]
