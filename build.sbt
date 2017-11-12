@@ -15,6 +15,10 @@ val core = project.in(file("core"))
   .settings(commonSettings, libraryDependencies ++= coreDeps)
   .dependsOn(macros)
 
+val market = project.in(file("market"))
+  .settings(commonSettings)
+  .dependsOn(core)
+
 val web = project.in(file("web"))
   .settings(commonSettings, libraryDependencies ++= webDeps)
   .settings(mainClass in assembly := Some("ru.agny.xent.web.Basic"))
