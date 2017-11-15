@@ -1,5 +1,7 @@
 package ru.agny.xent.trade
 
-case class Board(lots: Vector[Lot]) {
+import ru.agny.xent.core.Layer.LayerId
+
+case class Board(layer: LayerId, lots: Vector[Lot]) {
 
 }
