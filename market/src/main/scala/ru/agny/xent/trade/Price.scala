@@ -1,5 +1,5 @@
 package ru.agny.xent.trade
 
-trait Price {
+import ru.agny.xent.core.inventory.ItemStack
 
-}
+case class Price(amount: ItemStack)

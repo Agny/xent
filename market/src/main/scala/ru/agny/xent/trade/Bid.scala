@@ -1,5 +1,5 @@
 package ru.agny.xent.trade
 
-case class Bid() extends Price {
+import ru.agny.xent.core.utils.UserType.UserId
 
-}
+case class Bid(owner: UserId, price: Price)

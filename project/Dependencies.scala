@@ -19,9 +19,14 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test
   )
+  val akkaHttp = Seq(
+    "com.typesafe.akka" %% "akka-http" % "10.0.10",
+    "com.typesafe.akka" %% "akka-http-testkit" % "10.0.10" % Test
+  )
+
 
   val macrosDeps = Vector(reflect, parserCombinator)
   val coreDeps = Vector(scalatest, scalaRedis, akkaActor) ++ circe
   val webDeps = Vector(netty)
-  val marketDeps = akkaStream
+  val marketDeps = akkaStream ++ akkaHttp
 }
