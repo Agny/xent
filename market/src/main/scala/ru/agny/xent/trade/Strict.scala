@@ -7,6 +7,6 @@ import ru.agny.xent.core.utils.UserType.UserId
 /**
   * Lot with strictly defined price
   */
-case class Strict(user: UserId, item: Item, buyout: Price, until: TimeStamp) extends Lot {
+case class Strict(id: Long, user: UserId, item: Item, buyout: Price, until: TimeStamp) extends Lot {
 
 }
