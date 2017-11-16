@@ -16,7 +16,7 @@ val core = project.in(file("core"))
   .dependsOn(macros)
 
 val market = project.in(file("market"))
-  .settings(commonSettings)
+  .settings(commonSettings, libraryDependencies ++= marketDeps)
   .dependsOn(core)
 
 val web = project.in(file("web"))
