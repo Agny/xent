@@ -10,7 +10,7 @@ object Dependencies {
 
   val circe = Vector("io.circe" %% "circe-core", "io.circe" %% "circe-generic", "io.circe" %% "circe-parser").map(_ % "0.8.0")
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % Test
-  val scalaRedis = "net.debasishg" %% "redisclient" % "3.4" exclude("com.typesafe.akka", "akka-actor")
+  val scalaRedis = "net.debasishg" %% "redisclient" % "3.4"
 
   val netty = "io.netty" % "netty-all" % "4.1.4.Final"
 
@@ -23,10 +23,12 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % "10.0.10",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.0.10" % Test
   )
+  val akkaPersistence = "com.typesafe.akka" %% "akka-persistence" % akkaVersion
+  val levelDbJni = "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
 
 
   val macrosDeps = Vector(reflect, parserCombinator)
   val coreDeps = Vector(scalatest, scalaRedis, akkaActor) ++ circe
   val webDeps = Vector(netty)
-  val marketDeps = akkaStream ++ akkaHttp
+  val marketDeps = Vector(akkaPersistence, levelDbJni) ++ akkaStream ++ akkaHttp
 }
