@@ -23,12 +23,9 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % "10.0.10",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.0.10" % Test
   )
-  val akkaPersistence = "com.typesafe.akka" %% "akka-persistence" % akkaVersion
-  val levelDbJni = "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
-
 
   val macrosDeps = Vector(reflect, parserCombinator)
   val coreDeps = Vector(scalatest, scalaRedis, akkaActor) ++ circe
   val webDeps = Vector(netty)
-  val marketDeps = Vector(akkaPersistence, levelDbJni) ++ akkaStream ++ akkaHttp
+  val marketDeps = akkaStream ++ akkaHttp
 }

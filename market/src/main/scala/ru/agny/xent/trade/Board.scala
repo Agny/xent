@@ -1,40 +1,49 @@
 package ru.agny.xent.trade
 
-import akka.persistence.{PersistentActor, SaveSnapshotFailure, SaveSnapshotSuccess, SnapshotOffer}
+import akka.Done
+import akka.actor.ActorSystem
+import akka.stream.{ActorMaterializer, OverflowStrategy}
+import akka.stream.scaladsl.{Sink, Source, SourceQueueWithComplete}
 import ru.agny.xent.core.Layer.LayerId
+import ru.agny.xent.core.inventory.Item.ItemId
+import ru.agny.xent.core.utils.UserType.UserId
 
-class Board(layer: LayerId) extends PersistentActor {
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits._
 
-  var state: BoardState = BoardState.empty
+case class Board(layer: LayerId) {
 
-  def update(v: Lot): Unit = {
-    state = state.update(v)
-  }
+  import ru.agny.xent.trade.Board._
 
-  override val receiveRecover: Receive = {
-    case l: Lot => update(l)
-    case SnapshotOffer(_, s: BoardState) =>
-      println(s"offered state = $s")
-      state = s
-  }
+  implicit val system = ActorSystem("boards")
+  implicit val materializer = ActorMaterializer()
 
-  override val receiveCommand: Receive = {
-    case l: Lot =>
-      persist(l) { ev =>
-        update(ev)
-        context.system.eventStream.publish(ev)
+  private val source: Source[Message, SourceQueueWithComplete[Message]] = Source.queue(100, OverflowStrategy.backpressure)
+  private val sink: Sink[Message, Future[Done]] = Sink.foreach[Message] {
+    case Buy(lot, user) => Future {
+      Persistence.delete(lot)
+    }
+    case PlaceBid(lot, bid) => Future {
+      Persistence.read(lot) match {
+        case v: NonStrict => Persistence.update(lot, v.copy(lastBid = Some(bid)))
+        case x => x
       }
-    case SaveSnapshotSuccess(metadata) =>
-      println(s"SaveSnapshotSuccess(metadata) :  metadata=$metadata")
-    case SaveSnapshotFailure(metadata, reason) =>
-      println(
-        s"""SaveSnapshotFailure(metadata, reason) :
-        metadata=$metadata, reason=$reason""")
-    case "print" => println(state)
-    case "snap" => saveSnapshot(state)
-    case "boom" => throw new UnsupportedOperationException("sup")
-
+    }
+    case Add(lot) => Future {
+      Persistence.create(lot)
+    }
   }
+  private val queue: SourceQueueWithComplete[Message] = source.to(sink).run
 
-  override val persistenceId = s"board-$layer"
+  def lots(start: Int = 0, end: Int = 50) = Persistence.source()
+
+  def offer(msg: Message) = queue.offer(msg)
+
+}
+
+object Board {
+  sealed trait Message
+  final case class Add(lot: Lot) extends Message
+  final case class Buy(lot: ItemId, by: UserId) extends Message
+  final case class PlaceBid(lot: ItemId, bid: Bid) extends Message
 }

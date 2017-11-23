@@ -12,7 +12,7 @@ import ru.agny.xent.core.utils.UserType.UserId
 
 object LotProtocol {
 
-  val `vnd.example.api.v1+json` = MediaType.applicationWithFixedCharset("vnd.example.api.v1+json", HttpCharsets.`UTF-8`)
+  val `vnd.example.api.v1+json` = MediaType.applicationWithFixedCharset("vnd.xent.api.v1+json", HttpCharsets.`UTF-8`)
   val ct = ContentType.apply(`vnd.example.api.v1+json`)
 
   implicit val encodeLot: Encoder[Lot] = Encoder.forProduct7("id", "user", "item", "buyout", "until", "lastBid", "type") { lot: Lot =>
@@ -31,7 +31,8 @@ object LotProtocol {
 
 
   implicit def lotMarshaller: ToEntityMarshaller[Lot] = Marshaller.oneOf(
-    Marshaller.withFixedContentType(`vnd.example.api.v1+json`) { lot ⇒
-      HttpEntity(`vnd.example.api.v1+json`, lot.asJson.noSpaces)
-    })
+    Marshaller.withFixedContentType(ct) { lot ⇒
+      HttpEntity(ct, lot.asJson.noSpaces)
+    }
+  )
 }

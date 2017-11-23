@@ -1,20 +1,13 @@
 package ru.agny.xent.trade
 
-import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.http.javadsl.server.PathMatchers
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
-import akka.http.scaladsl.model.{HttpEntity, StatusCodes, _}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller, ToResponseMarshaller}
-import akka.http.scaladsl.model.TransferEncodings.gzip
-import akka.http.scaladsl.model.headers.{HttpEncoding, HttpEncodings}
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
-import akka.stream.scaladsl.{Flow, Source}
-import akka.util.ByteString
+import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory.ItemStack
+import ru.agny.xent.trade.Board.Add
 
 import scala.io.StdIn
 import scala.util.Random
@@ -28,18 +21,30 @@ object ApiServer extends App {
   implicit val executionContext = system.dispatcher
 
   implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json()
-    .withContentType(ContentType(MediaTypes.`application/vnd.api+json`))
+    .withContentType(ct)
     .withParallelMarshalling(parallelism = 10, unordered = false)
 
-  def fetchLots(): Source[Lot, NotUsed] = Source.fromIterator(() ⇒ Iterator.fill(10000) {
-    val id = Random.nextLong()
-    Strict(id, id, ItemStack(1, 1, 1), Price(ItemStack(2, 2, 2)), System.currentTimeMillis())
-  })
+  val layerId = "layer_1"
+  val board = Board(layerId)
 
-  val route =
-    pathPrefix("lots" / Remaining) { layer: String =>
+  val route = pathPrefix("market") {
+    path("lots" / Remaining) { layer: String =>
       get {
-        complete(fetchLots())
+        complete(board.lots())
+      }
+    } ~ path("place") {
+      get {
+        board.offer(Add(NonStrict(Random.nextLong(), 1, ItemStack(1, 1, 1), Price(ItemStack(2, 2, 2)), 1000, None)))
+        complete(board.lots())
+      }
+    } ~ path("bid" / LongNumber) { id: ItemId =>
+      post {
+        ???
+      }
+    } ~ path("buy" / LongNumber) { id: ItemId =>
+      post {
+        ???
+      }
       }
     }
 

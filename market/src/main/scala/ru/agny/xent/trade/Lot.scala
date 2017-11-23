@@ -10,4 +10,5 @@ trait Lot {
   val item: ItemStack
   val buyout: Price
   val until: TimeStamp
+  val created: TimeStamp = System.currentTimeMillis()
 }
