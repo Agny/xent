@@ -6,11 +6,9 @@ import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSup
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import ru.agny.xent.core.inventory.Item.ItemId
-import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.trade.Board.Add
 
 import scala.io.StdIn
-import scala.util.Random
 
 object ApiServer extends App {
 
@@ -33,9 +31,11 @@ object ApiServer extends App {
         complete(board.lots())
       }
     } ~ path("place") {
-      get {
-        board.offer(Add(NonStrict(Random.nextLong(), 1, ItemStack(1, 1, 1), Price(ItemStack(2, 2, 2)), 1000, None)))
-        complete(board.lots())
+      post {
+        entity(as[Lot]) { lot =>
+          board.offer(Add(lot))
+          complete(board.lots())
+        }
       }
     } ~ path("bid" / LongNumber) { id: ItemId =>
       post {
