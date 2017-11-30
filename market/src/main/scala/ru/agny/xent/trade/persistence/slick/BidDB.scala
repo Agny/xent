@@ -8,16 +8,19 @@ import ru.agny.xent.persistence.slick.{ItemStackDB, UserDB}
 object BidDB {
   private lazy val users = UserDB.table
   private lazy val stack = ItemStackDB.table
+  private lazy val nonStrict = NonStrictDB.table
   lazy val table = TableQuery[BidTable]
 
   class BidTable(tag: Tag) extends Table[BidFlat](tag, "strict") {
-    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    def lotId = column[Long]("lot_id")
 
     def userId = column[Long]("user_id")
 
     def itemStackId = column[Long]("stack_id")
 
     override def * = (userId, itemStackId).mapTo[BidFlat]
+
+    def lot = foreignKey("lot_fk", lotId, nonStrict)(_.id)
 
     def user = foreignKey("user_fk", userId, users)(_.id)
 
