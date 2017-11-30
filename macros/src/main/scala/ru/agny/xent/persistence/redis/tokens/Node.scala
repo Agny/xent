@@ -1,4 +1,4 @@
-package ru.agny.xent.persistence.tokens
+package ru.agny.xent.persistence.redis.tokens
 
 trait Node[T] {
   def from(v: String): T

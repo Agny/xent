@@ -1,4 +1,4 @@
-package ru.agny.xent.persistence.tokens
+package ru.agny.xent.persistence.redis.tokens
 
 import scala.util.parsing.combinator.{PackratParsers, RegexParsers}
 

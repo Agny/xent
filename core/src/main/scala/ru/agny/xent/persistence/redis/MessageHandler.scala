@@ -1,4 +1,4 @@
-package ru.agny.xent.persistence
+package ru.agny.xent.persistence.redis
 
 import scala.collection.mutable
 

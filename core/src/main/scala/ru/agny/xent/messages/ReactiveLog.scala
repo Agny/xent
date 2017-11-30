@@ -3,7 +3,7 @@ package ru.agny.xent.messages
 import ru.agny.xent.action.{DoNothing, LayerChange, NewUser}
 import ru.agny.xent.core.utils.ErrorCode
 import ru.agny.xent.core.utils.UserType.UserId
-import ru.agny.xent.persistence.{Loggable, RedisAdapter, RedisEntity}
+import ru.agny.xent.persistence.redis.{Loggable, RedisAdapter, RedisEntity}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

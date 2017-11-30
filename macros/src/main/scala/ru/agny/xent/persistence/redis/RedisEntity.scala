@@ -1,8 +1,8 @@
-package ru.agny.xent.persistence
+package ru.agny.xent.persistence.redis
 
 import java.util.concurrent.atomic.AtomicLong
 
-import scala.annotation.{compileTimeOnly, StaticAnnotation}
+import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.experimental.macros
 import scala.reflect.api.Trees
 import scala.reflect.macros.blackbox
@@ -37,12 +37,12 @@ object RedisEntity {
             private val forcedCompanion = $companionName
           }
           object $companionName {
-            import ru.agny.xent.persistence.tokens._
-            import ru.agny.xent.persistence.tokens.Nodes._
-            import ru.agny.xent.persistence.MessageHandler
+            import ru.agny.xent.persistence.redis.tokens._
+            import ru.agny.xent.persistence.redis.tokens.Nodes._
+            import ru.agny.xent.persistence.redis.MessageHandler
             ..$additionalImports
 
-            def create(v:String):ru.agny.xent.persistence.Loggable = {
+            def create(v:String):ru.agny.xent.persistence.redis.Loggable = {
               val result = TokenParser.tokenize(v)
               $parsedTree
             }

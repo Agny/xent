@@ -1,4 +1,4 @@
-package ru.agny.xent.persistence
+package ru.agny.xent.persistence.redis
 
 import akka.actor.ActorSystem
 import com.redis.RedisClient

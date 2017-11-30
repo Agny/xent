@@ -1,4 +1,4 @@
-package ru.agny.xent.persistence
+package ru.agny.xent.persistence.redis
 
 /**
   * Trait for working with Redis persistence.
