@@ -24,9 +24,7 @@ object NonStrictDB {
 
     def buyoutId = column[Long]("buyout_id")
 
-    def bidId = column[Option[Long]]("bid")
-
-    override def * = (id, userId, itemStackId, buyoutId, until, bidId).mapTo[NonStrictFlat]
+    override def * = (id, userId, itemStackId, buyoutId, until).mapTo[NonStrictFlat]
 
     def user = foreignKey("user_fk", userId, users)(_.id)
 
@@ -34,7 +32,7 @@ object NonStrictDB {
 
     def buyout = foreignKey("buyout_fk", buyoutId, stack)(_.id)
 
-    def lastBid = foreignKey("bid_fk", bidId, bid)(_.id)
+    def lastBid = foreignKey("bid_fk", id, bid)(_.lotId)
   }
 
   case class NonStrictFlat(id: Long, user: UserId, itemId: ItemId, priceId: ItemId, until: TimeStamp, lastBid: Option[Long])
