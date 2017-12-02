@@ -11,4 +11,5 @@ trait Lot {
   val buyout: Price
   val until: TimeStamp
   val created: TimeStamp = System.currentTimeMillis()
+  val tpe: LotType = LotType(getClass.getSimpleName)
 }
