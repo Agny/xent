@@ -3,12 +3,12 @@ package ru.agny.xent.trade.persistence.slick
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.persistence.slick.DefaultProfile.api._
-import ru.agny.xent.persistence.slick.{ItemStackDB, UserDB}
+import ru.agny.xent.persistence.slick.{ItemStackEntity, UserEntity}
 
-object BidDB {
-  private lazy val users = UserDB.table
-  private lazy val stack = ItemStackDB.table
-  private lazy val lots = LotDB.table
+object BidEntity {
+  private lazy val users = UserEntity.table
+  private lazy val stack = ItemStackEntity.table
+  private lazy val lots = LotEntity.table
   lazy val table = TableQuery[BidTable]
 
   class BidTable(tag: Tag) extends Table[BidFlat](tag, "strict") {

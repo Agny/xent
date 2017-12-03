@@ -4,7 +4,7 @@ import DefaultProfile.api._
 import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.inventory.Item.{ItemId, ItemWeight}
 
-object ItemStackDB {
+object ItemStackEntity {
   lazy val table = TableQuery[ItemStackTable]
 
   class ItemStackTable(tag: Tag) extends Table[ItemStack](tag, "item_stack") {

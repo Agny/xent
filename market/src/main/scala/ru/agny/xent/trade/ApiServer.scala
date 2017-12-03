@@ -5,8 +5,10 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.trade.Board.Add
+import ru.agny.xent.trade.persistence.slick.LotRepository
 
 import scala.io.StdIn
 
@@ -28,7 +30,7 @@ object ApiServer extends App {
   val route = pathPrefix("market") {
     path("lots" / Remaining) { layer: String =>
       get {
-        complete(board.lots())
+        complete(Source.fromPublisher(LotRepository.load()))
       }
     } ~ path("place") {
       post {

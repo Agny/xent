@@ -4,7 +4,7 @@ import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.persistence.slick.DefaultProfile.api._
 
-object UserDB {
+object UserEntity {
   lazy val table = TableQuery[UserTable]
 
   class UserTable(tag: Tag) extends Table[UserFlat](tag, "item_stack") {

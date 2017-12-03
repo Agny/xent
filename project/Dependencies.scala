@@ -16,6 +16,7 @@ object Dependencies {
     "org.slf4j" % "slf4j-nop" % "1.6.4",
     "com.typesafe.slick" %% "slick-hikaricp" % "3.2.1"
   )
+  val postgre = "org.postgresql" % "postgresql" % "42.1.4"
 
   val netty = "io.netty" % "netty-all" % "4.1.4.Final"
 
@@ -30,7 +31,7 @@ object Dependencies {
   )
 
   val macrosDeps = Vector(reflect, parserCombinator)
-  val coreDeps = Vector(scalatest, scalaRedis, akkaActor) ++ circe ++ slick
+  val coreDeps = Vector(scalatest, scalaRedis, akkaActor, postgre) ++ circe ++ slick
   val webDeps = Vector(netty)
   val marketDeps = akkaStream ++ akkaHttp
 }
