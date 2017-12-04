@@ -6,13 +6,14 @@ import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSup
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import akka.stream.QueueOfferResult.Failure
+import com.typesafe.scalalogging.LazyLogging
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.trade.Board.Add
 import ru.agny.xent.trade.persistence.slick.MarketInitializer
 
 import scala.io.StdIn
 
-object ApiServer extends App {
+object ApiServer extends App with LazyLogging {
 
   import ru.agny.xent.trade.LotProtocol._
 
@@ -25,7 +26,7 @@ object ApiServer extends App {
     .withParallelMarshalling(parallelism = 10, unordered = false)
 
   val initDB = {
-    println("Initializing database tables...")
+    logger.debug("Initializing database tables...")
     MarketInitializer.init()
   }
 
