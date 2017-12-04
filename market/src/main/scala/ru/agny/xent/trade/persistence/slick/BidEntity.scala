@@ -18,7 +18,7 @@ object BidEntity {
 
     def itemStackId = column[Long]("stack_id")
 
-    override def * = (lotId, userId, itemStackId).mapTo[BidFlat]
+    override def * = (lotId.?, userId, itemStackId).mapTo[BidFlat]
 
     def lot = foreignKey("lot_fk", lotId, lots)(_.id)
 
@@ -27,6 +27,6 @@ object BidEntity {
     def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id)
   }
 
-  case class BidFlat(id: Long, user: UserId, itemId: ItemId)
+  case class BidFlat(id: Option[Long], user: UserId, itemId: ItemId)
 
 }
