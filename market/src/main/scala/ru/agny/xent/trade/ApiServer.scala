@@ -5,6 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import akka.stream.QueueOfferResult.Failure
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.trade.Board.Add
 import ru.agny.xent.trade.persistence.slick.MarketInitializer
@@ -39,8 +40,10 @@ object ApiServer extends App {
     } ~ path("place") {
       post {
         entity(as[Lot]) { lot =>
-          board.offer(Add(lot))
-          complete(board.lots())
+          onSuccess(board.offer(Add(lot))) {
+            case Failure(e) => failWith(e)
+            case _ => complete(board.lots())
+          }
         }
       }
     } ~ path("bid" / LongNumber) { id: ItemId =>
@@ -51,8 +54,8 @@ object ApiServer extends App {
       post {
         ???
       }
-      }
     }
+  }
 
   val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
 

@@ -31,9 +31,7 @@ case class Board(layer: LayerId) {
         case x => x
       }
     }
-    case Add(lot) => Future {
-      LotRepository.create(lot)
-    }
+    case Add(lot) => LotRepository.create(lot)
   }
   private val queue: SourceQueueWithComplete[Message] = source.to(sink).run
 

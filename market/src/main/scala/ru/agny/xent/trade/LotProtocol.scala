@@ -21,8 +21,8 @@ object LotProtocol {
 
   implicit val encodeLot: Encoder[Lot] = Encoder.forProduct7("id", "user", "item", "buyout", "until", "lastBid", "type") { lot: Lot =>
     lot match {
-      case v@(_: Strict | _: Dealer) => (v.id, v.user, v.item, v.buyout, v.until, None, v.tpe)
-      case n: NonStrict => (n.id, n.user, n.item, n.buyout, n.until, n.lastBid, n.tpe)
+      case v@(_: Strict | _: Dealer) => (v.id, v.user, v.item, v.buyout, v.until, None, v.tpe.v)
+      case n: NonStrict => (n.id, n.user, n.item, n.buyout, n.until, n.lastBid, n.tpe.v)
     }
   }
 

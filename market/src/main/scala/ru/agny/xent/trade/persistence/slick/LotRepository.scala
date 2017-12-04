@@ -9,18 +9,11 @@ import ru.agny.xent.persistence.slick.{ItemStackEntity, UserEntity}
 import ru.agny.xent.trade._
 import ru.agny.xent.trade.persistence.slick.BidEntity.BidFlat
 import ru.agny.xent.trade.persistence.slick.LotEntity.LotFlat
+
+import scala.concurrent.ExecutionContext.Implicits._
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 
 object LotRepository {
-  def update(lot: Lot) = ???
-
-  def create(lot: Lot) = ???
-
-  def read(lot: ItemId): Lot = ???
-
-  def delete(lot: ItemId) = ???
-
-
   private lazy val users = UserEntity.table
   private lazy val stack = ItemStackEntity.table
   private lazy val bid = BidEntity.table
@@ -45,16 +38,34 @@ object LotRepository {
       }
   }
 
+  def create(lot: Lot) = {
+    val idReturn = stack returning stack.map(_.id)
+    val lotReturn = lots returning lots.map(_.id) into { case (l, id) => l.copy(id = Some(id)) }
+    val (item, priceItem) = (lot.item, lot.buyout.amount)
+    val query = for {
+      itemId <- idReturn += ItemStackFlat(None, item.stackValue, item.id, item.singleWeight)
+      priceId <- idReturn += ItemStackFlat(None, priceItem.stackValue, priceItem.id, priceItem.singleWeight)
+      x <- lotReturn += LotFlat(None, lot.user, itemId, priceId, lot.until, None, lot.tpe)
+    } yield x
+    db.run(query.transactionally)
+  }
+
+  def read(lot: ItemId): Lot = ???
+
+  def update(lot: Lot) = ???
+
+  def delete(lot: ItemId) = ???
+
   private def mapToLot(lotFlat: LotFlat, buyout: ItemStack, item: ItemStack, bidFlat: Option[BidFlat], bidItem: Option[ItemStackFlat]): Lot = {
     lotFlat.tpe.v match {
-      case dealer if dealer == Dealer.toString() => Dealer(lotFlat.id, lotFlat.user, item, Price(buyout), lotFlat.until)
-      case strict if strict == Strict.toString() => Strict(lotFlat.id, lotFlat.user, item, Price(buyout), lotFlat.until)
+      case dealer if dealer == Dealer.toString() => Dealer(lotFlat.id.get, lotFlat.user, item, Price(buyout), lotFlat.until)
+      case strict if strict == Strict.toString() => Strict(lotFlat.id.get, lotFlat.user, item, Price(buyout), lotFlat.until)
       case nStrict if nStrict == NonStrict.toString() =>
         val mbBid = for {
           b <- bidFlat
           bItem <- bidItem
         } yield Bid(b.user, Price(bItem.toItemStack))
-        NonStrict(lotFlat.id, lotFlat.user, item, Price(buyout), lotFlat.until, mbBid)
+        NonStrict(lotFlat.id.get, lotFlat.user, item, Price(buyout), lotFlat.until, mbBid)
     }
   }
 
