@@ -1,8 +1,10 @@
 package ru.agny.xent.trade.persistence.slick
 
+import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.persistence.slick.DefaultProfile._
 import ru.agny.xent.persistence.slick.DefaultProfile.api._
+import ru.agny.xent.persistence.slick.ItemStackEntity.ItemStackFlat
 import ru.agny.xent.persistence.slick.{ItemStackEntity, UserEntity}
 import ru.agny.xent.trade._
 import ru.agny.xent.trade.persistence.slick.BidEntity.BidFlat
@@ -10,6 +12,14 @@ import ru.agny.xent.trade.persistence.slick.LotEntity.LotFlat
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 
 object LotRepository {
+  def update(lot: Lot) = ???
+
+  def create(lot: Lot) = ???
+
+  def read(lot: ItemId): Lot = ???
+
+  def delete(lot: ItemId) = ???
+
 
   private lazy val users = UserEntity.table
   private lazy val stack = ItemStackEntity.table
@@ -31,11 +41,11 @@ object LotRepository {
       rsConcurrency = ResultSetConcurrency.ReadOnly,
       fetchSize = limit).transactionally)
       .mapResult {
-        case (lotFlat, buyout, item, bidFlat, bidItem) => mapToLot(lotFlat, buyout, item, bidFlat, bidItem)
+        case (lotFlat, buyout, item, bidFlat, bidItem) => mapToLot(lotFlat, buyout.toItemStack, item.toItemStack, bidFlat, bidItem)
       }
   }
 
-  private def mapToLot(lotFlat: LotFlat, buyout: ItemStack, item: ItemStack, bidFlat: Option[BidFlat], bidItem: Option[ItemStack]): Lot = {
+  private def mapToLot(lotFlat: LotFlat, buyout: ItemStack, item: ItemStack, bidFlat: Option[BidFlat], bidItem: Option[ItemStackFlat]): Lot = {
     lotFlat.tpe.v match {
       case dealer if dealer == Dealer.toString() => Dealer(lotFlat.id, lotFlat.user, item, Price(buyout), lotFlat.until)
       case strict if strict == Strict.toString() => Strict(lotFlat.id, lotFlat.user, item, Price(buyout), lotFlat.until)
@@ -43,7 +53,7 @@ object LotRepository {
         val mbBid = for {
           b <- bidFlat
           bItem <- bidItem
-        } yield Bid(b.user, Price(bItem))
+        } yield Bid(b.user, Price(bItem.toItemStack))
         NonStrict(lotFlat.id, lotFlat.user, item, Price(buyout), lotFlat.until, mbBid)
     }
   }

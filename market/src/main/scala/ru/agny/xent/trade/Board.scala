@@ -7,6 +7,7 @@ import akka.stream.scaladsl.{Sink, Source, SourceQueueWithComplete}
 import ru.agny.xent.core.Layer.LayerId
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.utils.UserType.UserId
+import ru.agny.xent.trade.persistence.slick.LotRepository
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
@@ -21,21 +22,22 @@ case class Board(layer: LayerId) {
   private val source: Source[Message, SourceQueueWithComplete[Message]] = Source.queue(100, OverflowStrategy.backpressure)
   private val sink: Sink[Message, Future[Done]] = Sink.foreach[Message] {
     case Buy(lot, user) => Future {
-      Persistence.delete(lot)
+      LotRepository.delete(lot)
     }
     case PlaceBid(lot, bid) => Future {
-      Persistence.read(lot) match {
-        case v: NonStrict => Persistence.update(lot, v.copy(lastBid = Some(bid)))
+      LotRepository.read(lot) match {
+        case v: NonStrict =>
+          LotRepository.update(v.copy(lastBid = Some(bid)))
         case x => x
       }
     }
     case Add(lot) => Future {
-      Persistence.create(lot)
+      LotRepository.create(lot)
     }
   }
   private val queue: SourceQueueWithComplete[Message] = source.to(sink).run
 
-  def lots(start: Int = 0, end: Int = 50) = Persistence.source()
+  def lots(start: Int = 0, end: Int = 50) = Source.fromPublisher(LotRepository.load(start, end))
 
   def offer(msg: Message) = queue.offer(msg)
 

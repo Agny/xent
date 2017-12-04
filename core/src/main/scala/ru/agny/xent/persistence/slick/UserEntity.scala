@@ -5,9 +5,9 @@ import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.persistence.slick.DefaultProfile.api._
 
 object UserEntity {
-  lazy val table = TableQuery[UserTable]
+  val table = TableQuery[UserTable]
 
-  class UserTable(tag: Tag) extends Table[UserFlat](tag, "item_stack") {
+  class UserTable(tag: Tag) extends Table[UserFlat](tag, "user") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def name = column[String]("name")
