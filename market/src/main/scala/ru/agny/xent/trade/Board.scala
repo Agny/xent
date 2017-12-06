@@ -24,13 +24,13 @@ case class Board(layer: LayerId) {
     case Buy(lot, user) => Future {
       LotRepository.delete(lot)
     }
-    case PlaceBid(lot, bid) => Future {
-      LotRepository.read(lot) match {
-        case v: NonStrict =>
-          LotRepository.update(v.copy(lastBid = Some(bid)))
-        case x => x
+    case PlaceBid(lot, bid) =>
+      LotRepository.read(lot).flatMap {
+        case Some(v) if v.tpe == NonStrict.`type` =>
+          val nonStrictLot = v.asInstanceOf[NonStrict]
+          LotRepository.updateBid(nonStrictLot.copy(lastBid = Some(bid)))
+        case _ => Future.failed(new IllegalArgumentException(s"Input lot[id:$lot] is not biddable")) // TODO stream passing error messages to client?
       }
-    }
     case Add(lot) => LotRepository.create(lot)
   }
   private val queue: SourceQueueWithComplete[Message] = source.to(sink).run

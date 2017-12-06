@@ -27,6 +27,6 @@ object BidEntity {
     def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id)
   }
 
-  case class BidFlat(id: Option[Long], user: UserId, itemId: ItemId)
+  case class BidFlat(lotId: Option[Long], user: UserId, itemId: ItemId)
 
 }

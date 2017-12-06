@@ -35,9 +35,9 @@ object LotProtocol {
                    lastBid: Option[Bid],
                    `type`: String): Lot = {
       `type` match {
-        case v if v == Dealer.toString() => Dealer(id, user, item, buyout, until)
-        case v if v == Strict.toString() => Strict(id, user, item, buyout, until)
-        case v if v == NonStrict.toString() => NonStrict(id, user, item, buyout, until, lastBid)
+        case v if v == Dealer.`type`.v => Dealer(id, user, item, buyout, until)
+        case v if v == Strict.`type`.v => Strict(id, user, item, buyout, until)
+        case v if v == NonStrict.`type`.v => NonStrict(id, user, item, buyout, until, lastBid)
       }
     }
 
