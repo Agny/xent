@@ -6,7 +6,6 @@ import akka.stream.{ActorMaterializer, OverflowStrategy}
 import akka.stream.scaladsl.{Sink, Source, SourceQueueWithComplete}
 import ru.agny.xent.core.Layer.LayerId
 import ru.agny.xent.core.inventory.Item.ItemId
-import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.trade.persistence.slick.LotRepository
 
 import scala.concurrent.Future
@@ -21,9 +20,7 @@ case class Board(layer: LayerId) {
 
   private val source: Source[Message, SourceQueueWithComplete[Message]] = Source.queue(100, OverflowStrategy.backpressure)
   private val sink: Sink[Message, Future[Done]] = Sink.foreach[Message] {
-    case Buy(lot, user) => Future {
-      LotRepository.delete(lot)
-    }
+    case Buy(lot, bid) => LotRepository.buy(lot, bid)
     case PlaceBid(lot, bid) =>
       LotRepository.read(lot).flatMap {
         case Some(v) if v.tpe == NonStrict.`type` =>
@@ -44,6 +41,6 @@ case class Board(layer: LayerId) {
 object Board {
   sealed trait Message
   final case class Add(lot: Lot) extends Message
-  final case class Buy(lot: ItemId, by: UserId) extends Message
+  final case class Buy(lot: ItemId, bid: Bid) extends Message
   final case class PlaceBid(lot: ItemId, bid: Bid) extends Message
 }

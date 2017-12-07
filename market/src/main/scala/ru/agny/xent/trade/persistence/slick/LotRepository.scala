@@ -1,6 +1,5 @@
 package ru.agny.xent.trade.persistence.slick
 
-import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.persistence.slick.DefaultProfile._
 import ru.agny.xent.persistence.slick.DefaultProfile.api._
@@ -79,9 +78,18 @@ object LotRepository {
     db.run(resultAction.transactionally)
   }
 
-  def update(lot: Lot) = ???
+  def buy(lot: Long, withBid: Bid) = {
+    val paidItem = withBid.price.amount
+    val retrieveLot = lots.filter(_.id === lot)
 
-  def delete(lot: ItemId) = ???
+    val priceValidated = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id && s.stackValue === paidItem.stackValue).exists
+
+    val resultAction = priceValidated.result.flatMap {
+      case true => retrieveLot.delete
+      case _ => DBIO.failed(new IllegalArgumentException("???"))
+    }
+    db.run(resultAction.transactionally)
+  }
 
   private def fullLoad(origin: Query[LotTable, LotTable#TableElementType, Seq]) = {
     origin.

@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import akka.stream.QueueOfferResult.Failure
 import com.typesafe.scalalogging.LazyLogging
-import ru.agny.xent.trade.Board.{Add, PlaceBid}
+import ru.agny.xent.trade.Board.{Add, Buy, PlaceBid}
 import ru.agny.xent.trade.persistence.slick.MarketInitializer
 
 import scala.io.StdIn
@@ -58,7 +58,12 @@ object ApiServer extends App with LazyLogging {
       }
     } ~ path("buy" / LongNumber) { lotId: Long =>
       post {
-        ???
+        entity(as[Bid]) { bid =>
+          onSuccess(board.offer(Buy(lotId, bid))) {
+            case Failure(e) => failWith(e)
+            case _ => complete(board.lots())
+          }
+        }
       }
     }
   }
