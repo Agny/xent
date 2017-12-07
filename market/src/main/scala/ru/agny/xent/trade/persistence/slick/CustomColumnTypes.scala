@@ -1,7 +1,7 @@
 package ru.agny.xent.trade.persistence.slick
 
-import ru.agny.xent.persistence.slick.DefaultProfile.api._
 import ru.agny.xent.trade.LotType
+import slick.jdbc.PostgresProfile.api._
 
 object CustomColumnTypes {
 

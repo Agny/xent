@@ -2,7 +2,7 @@ package ru.agny.xent.persistence.slick
 
 import ru.agny.xent.core.inventory.Progress.ProgressTime
 import ru.agny.xent.core.utils.UserType.UserId
-import ru.agny.xent.persistence.slick.DefaultProfile.api._
+import slick.jdbc.PostgresProfile.api._
 
 object UserEntity {
   val table = TableQuery[UserTable]

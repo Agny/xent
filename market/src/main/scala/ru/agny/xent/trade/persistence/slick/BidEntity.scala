@@ -2,8 +2,8 @@ package ru.agny.xent.trade.persistence.slick
 
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.utils.UserType.UserId
-import ru.agny.xent.persistence.slick.DefaultProfile.api._
 import ru.agny.xent.persistence.slick.{ItemStackEntity, UserEntity}
+import slick.jdbc.PostgresProfile.api._
 
 object BidEntity {
   private val users = UserEntity.table

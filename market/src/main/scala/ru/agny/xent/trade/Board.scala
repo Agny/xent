@@ -11,28 +11,30 @@ import ru.agny.xent.trade.persistence.slick.LotRepository
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
 
-case class Board(layer: LayerId) {
+case class Board(layer: LayerId, dbConfig: String) {
 
   import ru.agny.xent.trade.Board._
 
   implicit val system = ActorSystem("boards")
   implicit val materializer = ActorMaterializer()
 
+  private val lotRepository = LotRepository(dbConfig)
+
   private val source: Source[Message, SourceQueueWithComplete[Message]] = Source.queue(100, OverflowStrategy.backpressure)
   private val sink: Sink[Message, Future[Done]] = Sink.foreach[Message] {
-    case Buy(lot, bid) => LotRepository.buy(lot, bid)
+    case Buy(lot, bid) => lotRepository.buy(lot, bid)
     case PlaceBid(lot, bid) =>
-      LotRepository.read(lot).flatMap {
+      lotRepository.read(lot).flatMap {
         case Some(v) if v.tpe == NonStrict.`type` =>
           val nonStrictLot = v.asInstanceOf[NonStrict]
-          LotRepository.updateBid(nonStrictLot.copy(lastBid = Some(bid)))
+          lotRepository.updateBid(nonStrictLot.copy(lastBid = Some(bid)))
         case _ => Future.failed(new IllegalArgumentException(s"Input lot[id:$lot] is not biddable")) // TODO stream passing error messages to client?
       }
-    case Add(lot) => LotRepository.create(lot)
+    case Add(lot) => lotRepository.create(lot)
   }
   private val queue: SourceQueueWithComplete[Message] = source.to(sink).run
 
-  def lots(start: Int = 0, end: Int = 50) = Source.fromPublisher(LotRepository.load(start, end))
+  def lots(start: Int = 0, end: Int = 50) = Source.fromPublisher(lotRepository.load(start, end))
 
   def offer(msg: Message) = queue.offer(msg)
 

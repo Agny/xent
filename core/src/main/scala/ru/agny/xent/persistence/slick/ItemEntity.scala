@@ -1,7 +1,7 @@
 package ru.agny.xent.persistence.slick
 
-import DefaultProfile.api._
 import ru.agny.xent.core.inventory.Item.{ItemId, ItemWeight}
+import slick.jdbc.PostgresProfile.api._
 
 object ItemEntity {
 

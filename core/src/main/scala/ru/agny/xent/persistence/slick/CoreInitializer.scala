@@ -1,14 +1,15 @@
 package ru.agny.xent.persistence.slick
 
-import DefaultProfile.api._
-import DefaultProfile.db
 import slick.jdbc.meta.MTable
+import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
-object CoreInitializer {
+class CoreInitializer(configPath: String) {
+
+  val db = Database.forConfig(configPath)
 
   private val toInit = Seq(
     UserEntity.table,
@@ -31,5 +32,14 @@ object CoreInitializer {
       }
     })
   }
+}
 
+object CoreInitializer {
+  lazy val common = new CoreInitializer("db")
+  lazy val test = new CoreInitializer("db-test")
+
+  def forConfig(path: String): CoreInitializer = path match {
+    case "db" => common
+    case "db-test" => test
+  }
 }

@@ -25,13 +25,16 @@ object ApiServer extends App with LazyLogging {
     .withContentType(ct)
     .withParallelMarshalling(parallelism = 10, unordered = false)
 
+  val dbPath = "db"
   val initDB = {
     logger.debug("Initializing database tables...")
-    MarketInitializer.init()
+    val initializer = MarketInitializer.forConfig(dbPath)
+    initializer.init()
+    initializer
   }
 
   val layerId = "layer_1"
-  val board = Board(layerId)
+  val board = Board(layerId, dbPath)
 
   val route = pathPrefix("market") {
     path("lots" / Remaining) { layer: String =>

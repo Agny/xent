@@ -1,24 +1,24 @@
 package ru.agny.xent.trade.persistence.slick
 
 import ru.agny.xent.core.inventory.ItemStack
-import ru.agny.xent.persistence.slick.DefaultProfile._
-import ru.agny.xent.persistence.slick.DefaultProfile.api._
 import ru.agny.xent.persistence.slick.ItemStackEntity.ItemStackFlat
-import ru.agny.xent.persistence.slick.{ItemStackEntity, UserEntity}
+import ru.agny.xent.persistence.slick.{CoreInitializer, ItemStackEntity, UserEntity}
 import ru.agny.xent.trade._
 import ru.agny.xent.trade.persistence.slick.BidEntity.BidFlat
 import ru.agny.xent.trade.persistence.slick.LotEntity.{LotFlat, LotTable}
 
 import scala.concurrent.ExecutionContext.Implicits._
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
+import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
 
-object LotRepository {
-  private lazy val users = UserEntity.table
-  private lazy val stack = ItemStackEntity.table
-  private lazy val bids = BidEntity.table
-  private lazy val lots = LotEntity.table
+case class LotRepository(configPath: String) {
+  private val db = CoreInitializer.forConfig(configPath).db
+  private val users = UserEntity.table
+  private val stack = ItemStackEntity.table
+  private val bids = BidEntity.table
+  private val lots = LotEntity.table
 
   def load(start: Int = 0, limit: Int = 20) = {
     val query = for {
