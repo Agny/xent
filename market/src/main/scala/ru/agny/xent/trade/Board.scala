@@ -25,9 +25,7 @@ case class Board(layer: LayerId, dbConfig: String) {
     case Buy(lot, bid) => lotRepository.buy(lot, bid)
     case PlaceBid(lot, bid) =>
       lotRepository.read(lot).flatMap {
-        case Some(v) if v.tpe == NonStrict.`type` =>
-          val nonStrictLot = v.asInstanceOf[NonStrict]
-          lotRepository.updateBid(nonStrictLot.copy(lastBid = Some(bid)))
+        case Some(v) if v.tpe == NonStrict.`type` => lotRepository.updateBid(v.id, bid)
         case _ => Future.failed(new IllegalArgumentException(s"Input lot[id:$lot] is not biddable")) // TODO stream passing error messages to client?
       }
     case Add(lot) => lotRepository.create(lot)

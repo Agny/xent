@@ -55,11 +55,10 @@ case class LotRepository(configPath: String) {
     }
   }
 
-  def updateBid(lot: NonStrict) = {
-    val bidToSet = lot.lastBid.get
-    val itemToAdd = bidToSet.price.amount
+  def updateBid(lot: Long, bid: Bid) = {
+    val itemToAdd = bid.price.amount
 
-    val isUpdateValid = bids.filter(_.lotId === lot.id)
+    val isUpdateValid = bids.filter(_.lotId === lot)
       .joinLeft(stack).on((b, s) => b.itemStackId === s.id && s.stackValue < itemToAdd.stackValue).map(_._2.nonEmpty)
 
     val insertItemStack = stack.returning(stack.map(_.id))
@@ -67,8 +66,8 @@ case class LotRepository(configPath: String) {
 
     val updateAction = for {
       s <- insertItemStack
-      _ <- bids.insertOrUpdate(BidFlat(Some(lot.id), bidToSet.owner, s))
-      l <- lots.map(_.lastBidId).update(Some(lot.id))
+      _ <- bids.insertOrUpdate(BidFlat(Some(lot), bid.owner, s))
+      l <- lots.map(_.lastBidId).update(Some(lot))
     } yield l
 
     val resultAction = isUpdateValid.result.headOption.flatMap {
