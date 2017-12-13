@@ -33,6 +33,9 @@ sealed trait Secondary extends Characteristic {
 }
 
 package object characteristic {
+
+  import Attribute.magic
+
   case object Agility extends Primary {
     val relatedAttributesWithModifier = (Map[Attribute, Double](
       Piercing -> 0.3,
@@ -40,7 +43,7 @@ package object characteristic {
       SlashingS -> 0.2,
       Projectile -> 0.8,
       Firearm -> 0.3)
-      ++ magicRelated.map(_ -> 0.1)).withDefaultValue(0d)
+      ++ magic.map(_ -> 0.1)).withDefaultValue(0d)
   }
   case object Strength extends Primary {
     val relatedAttributesWithModifier = Map[Attribute, Double](
@@ -58,7 +61,7 @@ package object characteristic {
       Firearm -> 0.1,
       SummonSpirit -> 1.5,
       SummonThing -> 1.2)
-      ++ magicRelated.map(_ -> 1.2)).withDefaultValue(0d)
+      ++ magic.map(_ -> 1.2)).withDefaultValue(0d)
   }
   case object PresencePower extends Primary {
     val relatedAttributesWithModifier = Map[Attribute, Double](

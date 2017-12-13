@@ -28,5 +28,10 @@ case class StatProperty(prop: Characteristic, level: Level) extends SoulProperty
 }
 
 sealed trait Mode
+object Mode {
+  private val all = Vector(Offensive, Defensive)
+
+  def from(name: String): Option[Mode] = all.find(_.toString == name)
+}
 case object Offensive extends Mode
 case object Defensive extends Mode
