@@ -1,9 +1,9 @@
 package ru.agny.xent.core.unit
 
 import org.scalatest.{FlatSpec, Matchers}
-import ru.agny.xent.core.unit.characteristic.{CritPower, Agility}
+import ru.agny.xent.core.unit.Characteristic.{CritPower, Agility}
 import ru.agny.xent.core.unit.equip.StatProperty
-import ru.agny.xent.core.unit.equip.attributes.Piercing
+import ru.agny.xent.core.unit.equip.Attribute.Piercing
 
 class CharacteristicTest extends FlatSpec with Matchers {
 

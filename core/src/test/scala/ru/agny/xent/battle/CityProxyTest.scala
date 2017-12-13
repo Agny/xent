@@ -5,7 +5,7 @@ import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.city.Storage
 import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.unit.{Level, Soul, SoulData, Stats}
-import ru.agny.xent.core.unit.characteristic.Strength
+import ru.agny.xent.core.unit.Characteristic.Strength
 import ru.agny.xent.core.unit.equip.{Equipment, StatProperty}
 import ru.agny.xent.core.utils.NESeq
 import ru.agny.xent.core.{CellsMap, Coordinate, Layer, LayerRuntime}

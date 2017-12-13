@@ -1,7 +1,8 @@
 package ru.agny.xent.core.unit
 
 import ru.agny.xent.core.inventory.Item.ItemWeight
-import ru.agny.xent.core.unit.characteristic._
+import ru.agny.xent.core.unit.Characteristic._
+import ru.agny.xent.core.unit.equip.Mode.Offensive
 import ru.agny.xent.core.unit.equip._
 
 //TODO game balancing

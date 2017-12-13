@@ -1,9 +1,10 @@
 package ru.agny.xent.core.unit
 
-import org.scalatest.{Matchers, FlatSpec}
-import ru.agny.xent.core.unit.characteristic._
-import ru.agny.xent.core.unit.equip.attributes.Blunt
-import ru.agny.xent.core.unit.equip.{Offensive, AttrProperty, Equipment, StatProperty}
+import org.scalatest.{FlatSpec, Matchers}
+import ru.agny.xent.core.unit.Characteristic._
+import ru.agny.xent.core.unit.equip.Attribute.Blunt
+import ru.agny.xent.core.unit.equip.Mode.Offensive
+import ru.agny.xent.core.unit.equip.{AttrProperty, Equipment, StatProperty}
 
 class SoulDataTest extends FlatSpec with Matchers {
 

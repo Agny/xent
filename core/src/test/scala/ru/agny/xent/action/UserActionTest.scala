@@ -7,7 +7,7 @@ import ru.agny.xent.core.city.Shape.FourShape
 import ru.agny.xent.core.{CellsMap, Coordinate, Layer, LifePower}
 import ru.agny.xent.core.city._
 import ru.agny.xent.core.inventory._
-import ru.agny.xent.core.unit.characteristic.{Agility, Strength}
+import ru.agny.xent.core.unit.Characteristic.{Agility, Strength}
 import ru.agny.xent.core.unit.{Spirit, SpiritBase}
 import ru.agny.xent.core.utils.{BuildingTemplate, CityGenerator, TemplateProvider}
 import ru.agny.xent.messages.CityPillageMessage

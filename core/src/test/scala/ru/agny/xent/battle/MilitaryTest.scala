@@ -6,7 +6,7 @@ import ru.agny.xent.battle.unit._
 import ru.agny.xent.core.city.City
 import ru.agny.xent.core.{Coordinate, User}
 import ru.agny.xent.core.inventory.{Extractable, ItemStack}
-import ru.agny.xent.core.unit.characteristic.{Agility, PresencePower}
+import ru.agny.xent.core.unit.Characteristic.{Agility, PresencePower}
 import ru.agny.xent.core.unit.equip.{Equipment, StatProperty}
 import ru.agny.xent.core.unit._
 import ru.agny.xent.core.utils.{NESeq, TimeUnit}

@@ -5,7 +5,8 @@ import ru.agny.xent.core.city.Storage
 import ru.agny.xent.core.inventory.{EmptySlot, ItemSlot}
 import ru.agny.xent.core.unit.equip.DefaultValue.implicits.{DefaultArmor, DefaultWeapon}
 import ru.agny.xent.core.unit.equip._
-import ru.agny.xent.core.unit.equip.attributes.{Piercing, Slashing}
+import ru.agny.xent.core.unit.equip.Attribute.{Piercing, Slashing}
+import ru.agny.xent.core.unit.equip.Mode.{Defensive, Offensive}
 
 import scala.collection.immutable.Vector
 

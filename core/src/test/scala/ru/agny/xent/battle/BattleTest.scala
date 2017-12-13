@@ -4,7 +4,7 @@ import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import ru.agny.xent.TestHelper
 import ru.agny.xent.battle.unit.{Backpack, Troop}
 import ru.agny.xent.core.Coordinate
-import ru.agny.xent.core.unit.characteristic.PresencePower
+import ru.agny.xent.core.unit.Characteristic.PresencePower
 import ru.agny.xent.core.unit.equip.{Equipment, StatProperty}
 import ru.agny.xent.core.unit._
 import ru.agny.xent.core.utils.{NESeq, TimeUnit}

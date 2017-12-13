@@ -1,7 +1,7 @@
 package ru.agny.xent.core.unit
 
 import ru.agny.xent.core.unit.equip.Attribute
-import ru.agny.xent.core.unit.equip.attributes._
+import ru.agny.xent.core.unit.equip.Attribute._
 
 sealed trait Characteristic {
   val name: String = getClass.getSimpleName
@@ -15,26 +15,9 @@ sealed trait Characteristic {
 
 object Characteristic {
 
-  import ru.agny.xent.core.unit.characteristic._
-
   private val all = Vector(Agility, Strength, Intelligence, PresencePower, CritRate, CritPower, Initiative)
 
   def from(name: String): Option[Characteristic] = all.find(_.name.equalsIgnoreCase(name))
-}
-
-sealed trait Primary extends Characteristic {
-  //TODO game balancing
-  val weightModifier = 10
-}
-sealed trait Secondary extends Characteristic {
-  //TODO game balancing
-  val weightModifier = 2
-  val relatedAttributesWithModifier: Map[Attribute, Double] = Map.empty.withDefaultValue(0d)
-}
-
-package object characteristic {
-
-  import Attribute.magic
 
   case object Agility extends Primary {
     val relatedAttributesWithModifier = (Map[Attribute, Double](
@@ -71,4 +54,14 @@ package object characteristic {
   case object CritRate extends Secondary
   case object CritPower extends Secondary
   case object Initiative extends Secondary
+}
+
+sealed trait Primary extends Characteristic {
+  //TODO game balancing
+  val weightModifier = 10
+}
+sealed trait Secondary extends Characteristic {
+  //TODO game balancing
+  val weightModifier = 2
+  val relatedAttributesWithModifier: Map[Attribute, Double] = Map.empty.withDefaultValue(0d)
 }

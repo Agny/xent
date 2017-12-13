@@ -4,7 +4,7 @@ import ru.agny.xent.battle.unit.Potential
 import ru.agny.xent.core.LifePowered
 import ru.agny.xent.core.inventory.Item.ItemWeight
 import ru.agny.xent.core.unit.Stats.WeaponRate
-import ru.agny.xent.core.unit.equip.{Defensive, Equipment}
+import ru.agny.xent.core.unit.equip.{Equipment, Mode}
 
 //TODO Equipment boosting stats
 /** @param level is required for equipping items and learning skills. Represents experience, accumulated by the soul in this incarnation */
@@ -24,7 +24,7 @@ case class SoulData(level: Level, spiritPower: Int, private val stats: Stats, pr
 
   def attackModifiers(implicit equipment: Equipment): Vector[WeaponRate] = stats.attackModifiers(equipment)
 
-  def defenseModifiers(implicit equipment: Equipment): Potential = Potential(equipment.props()(Defensive))
+  def defenseModifiers(implicit equipment: Equipment): Potential = Potential(equipment.props()(Mode.Defensive))
 
   def receiveDamage(dmg: Int)(implicit equipment: Equipment): SoulData = {
     val updatedSpirit = spirit.change(-dmg)

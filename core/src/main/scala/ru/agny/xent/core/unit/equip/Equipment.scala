@@ -21,10 +21,10 @@ case class Equipment(holder: EquippableHolder) extends InventoryLike[Equipment, 
   def weight = holder.items.foldLeft(0)((w, eq) => w + eq.battleRate)
 
   def props(wpn: Weapon = DefaultWeapon)(implicit mode: Mode): Vector[AttrProperty] = (mode match {
-    case Defensive => holder.items.foldLeft(Map.empty[Attribute, Int])((a, b) =>
+    case Mode.Defensive => holder.items.foldLeft(Map.empty[Attribute, Int])((a, b) =>
       b.attrs.foldLeft(a)(collectAllPotential)
     )
-    case Offensive => //TODO second weapon attack potential? Skill|reduced effect|something else
+    case Mode.Offensive => //TODO second weapon attack potential? Skill|reduced effect|something else
       val wpnAttrs = wpn.attrs.filter(_.mode == mode).map(x => x.prop -> x.value).toMap
       holder.passiveItems.foldLeft(wpnAttrs)((a, b) =>
         b.attrs.foldLeft(a)(collectSpecifiedPotential)

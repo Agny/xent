@@ -8,17 +8,13 @@ sealed trait Summon extends Attribute
 
 object Attribute {
 
-  import ru.agny.xent.core.unit.equip.attributes._
-
   val kinetic = Vector(Piercing, Blunt, Slashing, SlashingS, Projectile, Firearm, Siege)
   val magic = Vector(Fire, Water, Earth, Wind, Light, Dark, Void)
   val summon = Vector(SummonSpirit, SummonThing)
   val all = kinetic ++ magic ++ summon
 
   def from(name: String): Option[Attribute] = all.find(_.toString == name)
-}
 
-package object attributes {
   case object Piercing extends Kinetic
   case object Blunt extends Kinetic
   case object Slashing extends Kinetic
