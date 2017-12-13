@@ -2,7 +2,7 @@ package ru.agny.xent.trade.persistence.slick
 
 import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.persistence.slick.ItemStackEntity.ItemStackFlat
-import ru.agny.xent.persistence.slick.{CoreInitializer, ItemStackEntity, UserEntity}
+import ru.agny.xent.persistence.slick.{ItemStackEntity, ConfigurableRepository, UserEntity}
 import ru.agny.xent.trade._
 import ru.agny.xent.trade.persistence.slick.BidEntity.BidFlat
 import ru.agny.xent.trade.persistence.slick.LotEntity.{LotFlat, LotTable}
@@ -13,8 +13,7 @@ import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
 
-case class LotRepository(configPath: String) {
-  private val db = CoreInitializer.forConfig(configPath).db
+case class LotRepository(configPath: String) extends ConfigurableRepository {
   private val users = UserEntity.table
   private val stack = ItemStackEntity.table
   private val bids = BidEntity.table
