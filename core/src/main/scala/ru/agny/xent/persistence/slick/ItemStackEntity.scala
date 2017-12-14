@@ -3,10 +3,9 @@ package ru.agny.xent.persistence.slick
 import slick.jdbc.PostgresProfile.api._
 import ru.agny.xent.core.inventory.Item.{ItemId, ItemWeight}
 import ru.agny.xent.core.inventory.ItemStack
-import ru.agny.xent.persistence.slick.ItemEntity.ItemTable
 
 object ItemStackEntity {
-  private val items = TableQuery[ItemTable]
+  private lazy val items = ItemTemplateEntity.table
   val table = TableQuery[ItemStackTable]
 
   class ItemStackTable(tag: Tag) extends Table[ItemStackFlat](tag, "item_stack") {

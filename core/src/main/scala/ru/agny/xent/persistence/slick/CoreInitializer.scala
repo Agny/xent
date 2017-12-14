@@ -13,7 +13,7 @@ class CoreInitializer(configPath: String) {
 
   private val toInit = Seq(
     UserEntity.table,
-    ItemEntity.table,
+    ItemTemplateEntity.table,
     ItemStackEntity.table,
   )
 

@@ -3,17 +3,17 @@ package ru.agny.xent.persistence.slick
 import ru.agny.xent.core.inventory.Item.{ItemId, ItemWeight}
 import slick.jdbc.PostgresProfile.api._
 
-object ItemEntity {
+object ItemTemplateEntity {
 
   val table = TableQuery[ItemTable]
 
   class ItemTable(tag: Tag) extends Table[ItemFlat](tag, "item") {
-    def id = column[ItemId]("id", O.PrimaryKey, O.AutoInc)
+    def id = column[ItemId]("id", O.PrimaryKey)
 
     def weight = column[ItemWeight]("weight")
 
-    override def * = (id.?, weight).mapTo[ItemFlat]
+    override def * = (id, weight).mapTo[ItemFlat]
   }
-  case class ItemFlat(id: Option[ItemId], weight: ItemWeight)
+  case class ItemFlat(id: ItemId, weight: ItemWeight)
 
 }

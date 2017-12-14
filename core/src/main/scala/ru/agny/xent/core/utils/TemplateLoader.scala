@@ -16,7 +16,6 @@ object TemplateLoader {
     val resourcesDir = new File(getClass.getClassLoader.getResource(s"./layers/$layer/item/producible").getPath)
     val s = resourcesDir.listFiles().toVector.filter(_.isFile)
     s.map(f => {
-      val r = decode[ProducibleTemplate](fromFile(f).mkString)
       val t = decode[ProducibleTemplate](fromFile(f).mkString).right.get
       Producible(t.id, t.name, ProductionSchema(t.yieldTime, Cost(t.cost), t.weight, Set.empty))
     })
