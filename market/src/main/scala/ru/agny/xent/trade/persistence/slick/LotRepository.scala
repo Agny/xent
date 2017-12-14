@@ -32,7 +32,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
       }
   }
 
-  def create(lot: Lot) = {
+  def create(lot: PlaceLot) = {
     val idReturn = stack returning stack.map(_.id)
     val lotReturn = lots returning lots.map(_.id) into { case (l, id) => l.copy(id = Some(id)) }
     val (item, priceItem) = (lot.item, lot.buyout.amount)

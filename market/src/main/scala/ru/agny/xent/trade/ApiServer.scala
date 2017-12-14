@@ -43,7 +43,7 @@ object ApiServer extends App with LazyLogging {
       }
     } ~ path("place") {
       post {
-        entity(as[Lot]) { lot =>
+        entity(as[PlaceLot]) { lot =>
           onSuccess(board.offer(Add(lot))) {
             case Failure(e) => failWith(e)
             case _ => complete(board.lots())

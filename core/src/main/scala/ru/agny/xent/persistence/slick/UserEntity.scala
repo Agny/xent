@@ -14,9 +14,9 @@ object UserEntity {
 
     def lastAction = column[ProgressTime]("last_action")
 
-    override def * = (id, name, lastAction).mapTo[UserFlat]
+    override def * = (id.?, name, lastAction).mapTo[UserFlat]
   }
 
-  case class UserFlat(id: UserId, name: String, lastAction: Long)
+  case class UserFlat(id: Option[UserId], name: String, lastAction: Long)
 
 }

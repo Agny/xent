@@ -40,7 +40,7 @@ case class Board(layer: LayerId, dbConfig: String) {
 
 object Board {
   sealed trait Message
-  final case class Add(lot: Lot) extends Message
+  final case class Add(lot: PlaceLot) extends Message
   final case class Buy(lot: ItemId, bid: Bid) extends Message
   final case class PlaceBid(lot: ItemId, bid: Bid) extends Message
 }

@@ -6,11 +6,7 @@ import io.circe.syntax._
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
-import io.circe.{Decoder, Encoder}
-import ru.agny.xent.core.inventory.Item.ItemId
-import ru.agny.xent.core.inventory.ItemStack
-import ru.agny.xent.core.utils.TimeUnit.TimeStamp
-import ru.agny.xent.core.utils.UserType.UserId
+import io.circe.Encoder
 
 import scala.concurrent.Future
 
@@ -26,33 +22,14 @@ object LotProtocol {
     }
   }
 
-  implicit val decodeLot: Decoder[Lot] = {
-    def collectLot(id: ItemId,
-                   user: UserId,
-                   item: ItemStack,
-                   buyout: Price,
-                   until: TimeStamp,
-                   lastBid: Option[Bid],
-                   `type`: String): Lot = {
-      `type` match {
-        case v if v == Dealer.`type`.v => Dealer(id, user, item, buyout, until)
-        case v if v == Strict.`type`.v => Strict(id, user, item, buyout, until)
-        case v if v == NonStrict.`type`.v => NonStrict(id, user, item, buyout, until, lastBid)
-      }
-    }
-
-    Decoder.forProduct7("id", "user", "item", "buyout", "until", "lastBid", "type")(collectLot)
-  }
-
-
   implicit def lotMarshaller: ToEntityMarshaller[Lot] = Marshaller.oneOf(
     Marshaller.withFixedContentType(ct) { lot ⇒
       HttpEntity(ct, lot.asJson.noSpaces)
     }
   )
 
-  implicit def lotUnmarshaller: FromEntityUnmarshaller[Lot] = Unmarshaller.stringUnmarshaller.flatMap(ctx => mat => json =>
-    decode[Lot](json).fold(Future.failed, Future.successful)
+  implicit def placelotUnmarshaller: FromEntityUnmarshaller[PlaceLot] = Unmarshaller.stringUnmarshaller.flatMap(ctx => mat => json =>
+    decode[PlaceLot](json).fold(Future.failed, Future.successful)
   )
 
 }
