@@ -57,6 +57,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   def updateBid(lot: Long, bid: Bid) = {
     val itemToAdd = bid.price.amount
 
+    val selectedLot = lots.filter(_.id === lot)
     val isUpdateValid = bids.filter(_.lotId === lot)
       .joinLeft(stack).on((b, s) => b.itemStackId === s.id && s.stackValue < itemToAdd.stackValue).map(_._2.nonEmpty)
 
@@ -66,12 +67,12 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     val updateAction = for {
       s <- insertItemStack
       _ <- bids.insertOrUpdate(BidFlat(Some(lot), bid.owner, s))
-      l <- lots.map(_.lastBidId).update(Some(lot))
+      l <- selectedLot.map(_.lastBidId).update(Some(lot))
     } yield l
 
     val resultAction = isUpdateValid.result.headOption.flatMap {
       case Some(true) | None => updateAction
-      case _ => DBIO.failed(new IllegalArgumentException("???")) // TODO error handle
+      case _ => DBIO.failed(new IllegalStateException(s"Bid with price ${bid.price} is less than current bidded price of Lot[$lot]")) // TODO error handle
     }
     db.run(resultAction.transactionally)
   }
@@ -84,7 +85,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
 
     val resultAction = priceValidated.result.flatMap {
       case true => retrieveLot.delete
-      case _ => DBIO.failed(new IllegalArgumentException("???"))
+      case _ => DBIO.failed(new IllegalStateException(s"Bidded price ${withBid.price} isn't high enough to buyout lot[$lot]"))
     }
     db.run(resultAction.transactionally)
   }
