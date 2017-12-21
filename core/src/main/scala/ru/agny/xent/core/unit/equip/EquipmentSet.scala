@@ -55,10 +55,7 @@ object EquipmentSet {
   private def getEquip[T <: Equippable](v: Vector[Slot[Equippable]], idx: Int)
                                        (implicit matcher: SubTyper[Equippable, T]): Option[T] = {
     if (idx < v.length && !v(idx).isEmpty) {
-      matcher.asSub(v(idx).get) match {
-        case a@Some(x) => a
-        case _ => None
-      }
+      Some(matcher.asSub(v(idx).get))
     } else None
   }
 }

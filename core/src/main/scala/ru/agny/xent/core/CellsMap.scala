@@ -1,6 +1,6 @@
 package ru.agny.xent.core
 
-import ru.agny.xent.core.utils.SubTyper
+import ru.agny.xent.core.city.Building
 
 case class CellsMap(private val cells: Vector[Vector[Cell]]) {
   val length = cells.length
@@ -12,7 +12,7 @@ case class CellsMap(private val cells: Vector[Vector[Cell]]) {
     }
   }
 
-  def collect[That <: Cell]()(implicit ev: SubTyper[Cell, That]): Vector[That] = cells.flatten.flatMap(c => ev.asSub(c))
+  def buildings(): Vector[Building] = cells.flatten.collect { case c: Building => c }
 
   def filter(c: Cell => Boolean): Vector[Cell] = {
     cells.flatMap(x => rec_filter(c)(x, Vector.empty))

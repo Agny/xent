@@ -40,13 +40,11 @@ trait Inventory[S <: Inventory[_, T], T <: Item] {
     implicit val ths = implicitly(self)
     implicit val that = implicitly(to)
     ths.getByIdx(idx) match {
-      case Some(v) => ev1.asSub(v) match {
-        case Some(y) =>
-          val (toInv, old) = that.add(y)
-          val (fromInv, _) = ths.set(idx, old)
-          (fromInv, toInv)
-        case _ => (ths.apply(holder.slots), that.apply(that.holder.slots))
-      }
+      case Some(v) =>
+        val y = ev1.asSub(v)
+        val (toInv, old) = that.add(y)
+        val (fromInv, _) = ths.set(idx, old)
+        (fromInv, toInv)
       case _ => (ths.apply(holder.slots), that.apply(that.holder.slots))
     }
   }

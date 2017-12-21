@@ -4,9 +4,7 @@ import ru.agny.xent.core.CellsMap
 
 case class ShapeMap(private val cellsMap: CellsMap, private val shapes: Vector[ResultShape]) {
 
-  import ru.agny.xent.core.Cell.BuildingSubTyper
-
-  def buildings: Vector[Building] = cellsMap.collect()
+  def buildings: Vector[Building] = cellsMap.buildings()
 
   def isAvailable(s: ResultShape): Boolean = !shapes.exists(_.isIntersected(s))
 

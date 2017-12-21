@@ -10,10 +10,5 @@ trait Cell {
 object Cell {
   def apply(x: Int, y: Int): Cell = EmptyCell(Coordinate(x, y))
 
-  implicit object BuildingSubTyper extends SubTyper[Cell, Building] {
-    override def asSub(a: Cell) = a match {
-      case b: Building => Some(b)
-      case _ => None
-    }
-  }
+  implicit object BuildingSubTyper extends SubTyper[Cell, Building]
 }

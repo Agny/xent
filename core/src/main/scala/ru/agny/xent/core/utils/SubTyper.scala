@@ -1,11 +1,12 @@
 package ru.agny.xent.core.utils
 
 trait SubTyper[From, To] {
-  def asSub(a: From): Option[To]
+  def asSub(a: From): To = a.asInstanceOf[To]
 }
 
 object SubTyper {
 
+  /*
   def partition[A <: B, B, C](f: Vector[(C, B)])(implicit ev: SubTyper[B, A]): (Vector[(C, A)], Vector[(C, B)]) =
     f.foldLeft((Vector.empty[(C, A)], Vector.empty[(C, B)]))((s, x) => {
       ev.asSub(x._2) match {
@@ -22,4 +23,5 @@ object SubTyper {
         case _ => s
       }
     })
+    */
 }

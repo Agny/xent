@@ -14,11 +14,6 @@ trait Occupation {
 
 object OccupationSubTyper {
   object implicits {
-    implicit object BattleMatcher extends SubTyper[Occupation, Battle] {
-      override def asSub(a: Occupation): Option[Battle] = a match {
-        case a: Battle => Some(a)
-        case _ => None
-      }
-    }
+    implicit object BattleMatcher extends SubTyper[Occupation, Battle]
   }
 }
