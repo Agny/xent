@@ -1,46 +1,54 @@
 package ru.agny.xent.trade
 
-import akka.Done
-import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, OverflowStrategy}
-import akka.stream.scaladsl.{Sink, Source, SourceQueueWithComplete}
+import akka.stream.scaladsl.Source
+import com.typesafe.scalalogging.LazyLogging
 import ru.agny.xent.core.Layer.LayerId
 import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.trade.persistence.slick.LotRepository
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.Future
 
-case class Board(layer: LayerId, dbConfig: String) {
+case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
 
   import ru.agny.xent.trade.Board._
 
-  implicit val system = ActorSystem("boards")
-  implicit val materializer = ActorMaterializer()
-
   private val lotRepository = LotRepository(dbConfig)
 
-  private val source: Source[Message, SourceQueueWithComplete[Message]] = Source.queue(100, OverflowStrategy.backpressure)
-  private val sink: Sink[Message, Future[Done]] = Sink.foreach[Message] {
-    case Buy(lot, bid) => lotRepository.buy(lot, bid)
-    case PlaceBid(lot, bid) =>
-      lotRepository.read(lot).flatMap {
-        case Some(v) if v.tpe == NonStrict.`type` => lotRepository.updateBid(v.id, bid)
-        case _ => Future.failed(new IllegalArgumentException(s"Input lot[id:$lot] is not biddable")) // TODO stream passing error messages to client?
-      }
-    case Add(lot) => lotRepository.create(lot)
+  def lots(start: Int = 0, end: Int = 50) = {
+    val r = lotRepository.load(start, end)
+    Source.fromPublisher(r)
   }
-  private val queue: SourceQueueWithComplete[Message] = source.to(sink).run
 
-  def lots(start: Int = 0, end: Int = 50) = Source.fromPublisher(lotRepository.load(start, end))
-
-  def offer(msg: Message) = queue.offer(msg)
+  def offer(msg: FlowMessage) = msg match {
+    case Add(lot) =>
+      val isSuccess = for {
+        _ <- lotRepository.create(lot)
+        wsReply <- WSClient.send("Add")
+      } yield wsReply
+      Source.fromFuture(isSuccess)
+    case Buy(lot, bid) =>
+      val isSuccess = for {
+        _ <- lotRepository.buy(lot, bid)
+        wsReply <- WSClient.send("Buy")
+      } yield wsReply
+      Source.fromFuture(isSuccess)
+    case PlaceBid(lot, bid) =>
+      val isSuccess = for {
+        _ <- lotRepository.read(lot).flatMap {
+          case Some(v) if v.tpe == NonStrict.`type` => lotRepository.updateBid(v.id, bid)
+          case _ => Future.failed(new IllegalArgumentException(s"Input lot[id:$lot] is not biddable"))
+        }
+        wsReply <- WSClient.send("Bid")
+      } yield wsReply
+      Source.fromFuture(isSuccess)
+  }
 
 }
 
 object Board {
-  sealed trait Message
-  final case class Add(lot: PlaceLot) extends Message
-  final case class Buy(lot: ItemId, bid: Bid) extends Message
-  final case class PlaceBid(lot: ItemId, bid: Bid) extends Message
+  sealed trait FlowMessage
+  final case class Add(lot: PlaceLot) extends FlowMessage
+  final case class Buy(lot: ItemId, bid: Bid) extends FlowMessage
+  final case class PlaceBid(lot: ItemId, bid: Bid) extends FlowMessage
 }

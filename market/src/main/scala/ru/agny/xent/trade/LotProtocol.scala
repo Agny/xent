@@ -6,7 +6,9 @@ import io.circe.syntax._
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
+import akka.util.ByteString
 import io.circe.Encoder
+import ru.agny.xent.messages.PlainResponse
 
 import scala.concurrent.Future
 
@@ -25,6 +27,12 @@ object LotProtocol {
   implicit def lotMarshaller: ToEntityMarshaller[Lot] = Marshaller.oneOf(
     Marshaller.withFixedContentType(ct) { lot ⇒
       HttpEntity(ct, lot.asJson.noSpaces)
+    }
+  )
+
+  implicit def responseMarshaller: ToEntityMarshaller[PlainResponse] = Marshaller.oneOf(
+    Marshaller.withFixedContentType(ct) { s ⇒
+      HttpEntity(ct, ByteString(s.value))
     }
   )
 

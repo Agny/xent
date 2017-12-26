@@ -9,3 +9,4 @@ case class LootResponse(value: Loot) extends Response {
   override type T = Loot
 }
 object ResponseOk extends PlainResponse("Ok")
+object ResponseFailure extends PlainResponse("Failed")
