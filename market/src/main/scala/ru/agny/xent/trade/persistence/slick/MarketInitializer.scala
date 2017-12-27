@@ -5,13 +5,13 @@ import ru.agny.xent.persistence.slick.CoreInitializer
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class MarketInitializer(configPath: String) {
+class MarketInitializer(path: String) {
 
   val toInit = Seq(
     LotEntity.table,
     BidEntity.table,
   )
-  val core = CoreInitializer.forConfig(configPath)
+  val core = CoreInitializer.forConfig(path)
 
   def init() = {
     core.init()
@@ -24,11 +24,5 @@ class MarketInitializer(configPath: String) {
 }
 
 object MarketInitializer {
-  lazy val common = new MarketInitializer("db")
-  lazy val test = new MarketInitializer("db-test")
-
-  def forConfig(path: String): MarketInitializer = path match {
-    case "db" => common
-    case "db-test" => test
-  }
+  def forConfig(path: String): MarketInitializer = new MarketInitializer(path)
 }

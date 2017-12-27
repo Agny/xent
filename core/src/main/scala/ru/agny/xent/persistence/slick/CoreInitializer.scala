@@ -7,9 +7,9 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class CoreInitializer(configPath: String) {
+class CoreInitializer(path: String) {
 
-  val db = Database.forConfig(configPath)
+  val db = Database.forConfig(path)
 
   private val toInit = Seq(
     UserEntity.table,
@@ -35,11 +35,5 @@ class CoreInitializer(configPath: String) {
 }
 
 object CoreInitializer {
-  lazy val common = new CoreInitializer("db")
-  lazy val test = new CoreInitializer("db-test")
-
-  def forConfig(path: String): CoreInitializer = path match {
-    case "db" => common
-    case "db-test" => test
-  }
+  def forConfig(path: String): CoreInitializer = new CoreInitializer(path)
 }
