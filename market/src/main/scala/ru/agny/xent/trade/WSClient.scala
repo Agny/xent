@@ -9,14 +9,17 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import io.circe.generic.auto._
 import io.circe.parser._
+import io.circe.syntax._
 import ru.agny.xent.messages.PlainResponse
+import ru.agny.xent.trade.Board.ItemCommand
+import ru.agny.xent.web.IncomeMessage
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
 
-case class WSClient(msg: String) {
+case class WSClient(msg: IncomeMessage) {
 
-  private val outgoing = Source.single(TextMessage(msg))
+  private val outgoing = Source.single(TextMessage(msg.asJson.noSpaces))
   private val incoming = Sink.head[Message]
 
   private val webSocketFlow = Http()(WSClient.system).webSocketClientFlow(WebSocketRequest("ws://localhost:8888"))
@@ -36,7 +39,6 @@ case class WSClient(msg: String) {
 
   private val decoded = response.flatMap {
     case TextMessage.Strict(body) =>
-      println(body)
       decode[PlainResponse](body) match {
         case Left(v) => Future.failed(v)
         case Right(v) => Future.successful(v)
@@ -53,7 +55,8 @@ object WSClient {
   implicit val system = ActorSystem("api")
   val materializer = ActorMaterializer()
 
-  def send(msg: String): Future[PlainResponse] = {
-    WSClient(msg).result
+  def send(tpe: String, msg: ItemCommand): Future[PlainResponse] = {
+    val toSend = IncomeMessage(tpe, msg.asJson.noSpaces)
+    WSClient(toSend).result
   }
 }

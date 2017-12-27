@@ -1,17 +1,18 @@
 package ru.agny.xent.trade.persistence.slick
 
+import org.reactivestreams.Publisher
 import ru.agny.xent.core.inventory.ItemStack
+import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.persistence.slick.ItemStackEntity.ItemStackFlat
-import ru.agny.xent.persistence.slick.{ItemStackEntity, ConfigurableRepository, UserEntity}
+import ru.agny.xent.persistence.slick.{ConfigurableRepository, ItemStackEntity, UserEntity}
 import ru.agny.xent.trade._
 import ru.agny.xent.trade.persistence.slick.BidEntity.BidFlat
 import ru.agny.xent.trade.persistence.slick.LotEntity.{LotFlat, LotTable}
 
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.Future
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 import slick.jdbc.PostgresProfile.api._
-
-import scala.concurrent.Future
 
 case class LotRepository(configPath: String) extends ConfigurableRepository {
   private val users = UserEntity.table
@@ -19,7 +20,9 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   private val bids = BidEntity.table
   private val lots = LotEntity.table
 
-  def load(start: Int = 0, limit: Int = 20) = {
+  type BoughtFrom = (UserId, ItemStack)
+
+  def load(start: Int = 0, limit: Int = 20): Publisher[Lot] = {
     val query = for {
       ((((flat, buyouts), items), bids), bidItems) <- fullLoad(lots.sortBy(_.until.desc).drop(start).take(limit))
     } yield (flat, buyouts, items, bids, bidItems)
@@ -36,12 +39,12 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     val idReturn = stack returning stack.map(_.id)
     val lotReturn = lots returning lots.map(_.id) into { case (l, id) => l.copy(id = Some(id)) }
     val (item, priceItem) = (lot.item, lot.buyout.amount)
-    val query = for {
+    val action = for {
       itemId <- idReturn += ItemStackFlat(None, item.stackValue, item.id, item.singleWeight)
       priceId <- idReturn += ItemStackFlat(None, priceItem.stackValue, priceItem.id, priceItem.singleWeight)
       x <- lotReturn += LotFlat(None, lot.user, itemId, priceId, lot.until, None, lot.tpe)
     } yield x
-    db.run(query.transactionally)
+    db.run(action.transactionally)
   }
 
   def read(lot: Long): Future[Option[Lot]] = {
@@ -77,17 +80,19 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     db.run(resultAction.transactionally)
   }
 
-  def buy(lot: Long, withBid: Bid) = {
+  def buy(lot: Long, withBid: Bid): Future[BoughtFrom] = {
     val paidItem = withBid.price.amount
     val retrieveLot = lots.filter(_.id === lot)
-
-    val priceValidated = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id && s.stackValue === paidItem.stackValue).exists
+    val lotWithItem = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id && s.stackValue === paidItem.stackValue)
+    val priceValidated = lotWithItem.exists
 
     val resultAction = priceValidated.result.flatMap {
-      case true => retrieveLot.delete
+      case true => lotWithItem.result.head zip retrieveLot.delete
       case _ => DBIO.failed(new IllegalStateException(s"Bidded price ${withBid.price} isn't high enough to buyout lot[$lot]"))
     }
-    db.run(resultAction.transactionally)
+    db.run(resultAction.transactionally).map {
+      case ((lot, item), _) => (lot.user, item.toItemStack)
+    }
   }
 
   private def fullLoad(origin: Query[LotTable, LotTable#TableElementType, Seq]) = {
