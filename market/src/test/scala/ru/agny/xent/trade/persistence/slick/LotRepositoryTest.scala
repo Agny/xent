@@ -90,16 +90,18 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "delete bought lot" in {
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), Price(ItemStack(5, referenceItem.id, 1)), 1005000, NonStrict.`type`)
+    val itemToSell = ItemStack(5, referenceItem.id, 1)
+    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), Price(itemToSell), 1005000, NonStrict.`type`)
     val buyoutBid = Bid(userId, Price(ItemStack(5, referenceItem.id, 1)))
     val result = for {
       lot <- repository.create(lotPlacement)
-      rowsAffected <- repository.buy(lot.id.get, buyoutBid)
+      (seller, sold) <- repository.buy(lot.id.get, buyoutBid)
       lotNone <- repository.read(lot.id.get)
-    } yield (rowsAffected, lotNone)
+    } yield (seller, sold, lotNone)
 
-    result map { case (rows, lotNone) =>
-      rows should be(1)
+    result map { case (seller, sold, lotNone) =>
+      seller should be(userId)
+      sold should be(itemToSell)
       lotNone should be(None)
     }
   }
