@@ -27,11 +27,9 @@ object LotEntity {
 
     def until = column[Long]("until")
 
-    def lastBidId = column[Option[Long]]("last_bid")
-
     def tpe = column[LotType]("type")
 
-    override def * = (id.?, userId, itemStackId, buyoutId, until, lastBidId, tpe).mapTo[LotFlat]
+    override def * = (id.?, userId, itemStackId, buyoutId, until, tpe).mapTo[LotFlat]
 
     def user = foreignKey("user_fk", userId, users)(_.id)
 
@@ -39,9 +37,9 @@ object LotEntity {
 
     def buyout = foreignKey("buyout_fk", buyoutId, stack)(_.id)
 
-    def lastBid = foreignKey("bid_fk", lastBidId, bid)(_.lotId)
+    def lastBid = foreignKey("bid_fk", id, bid)(_.lotId)
   }
 
-  case class LotFlat(id: Option[Long], user: UserId, itemId: ItemId, priceId: ItemId, until: TimeStamp, lastBid: Option[Long], tpe: LotType)
+  case class LotFlat(id: Option[Long], user: UserId, itemId: ItemId, priceId: ItemId, until: TimeStamp, tpe: LotType)
 
 }

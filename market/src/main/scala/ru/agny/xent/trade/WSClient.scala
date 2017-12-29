@@ -14,8 +14,8 @@ import ru.agny.xent.messages.PlainResponse
 import ru.agny.xent.trade.Board.ItemCommand
 import ru.agny.xent.web.IncomeMessage
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.Future
 
 case class WSClient(msg: IncomeMessage) {
 
@@ -43,6 +43,7 @@ case class WSClient(msg: IncomeMessage) {
         case Left(v) => Future.failed(v)
         case Right(v) => Future.successful(v)
       }
+    case x => Future.failed(new IllegalArgumentException(s"TextMessage.Strict expected, got $x"))
   }
   val result = for {
     _ <- connected

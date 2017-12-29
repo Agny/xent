@@ -37,7 +37,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), Price(ItemStack(1, referenceItem.id, 1)), 1005000, Dealer.`type`)
     val res = repository.create(lotPlacement)
     res map { l =>
-      l.id shouldNot be(None)
+      l should not be (-1)
     }
   }
 
@@ -47,7 +47,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val lotPlacement = PlaceLot(userId, itemToSell, buyout, 1005000, NonStrict.`type`)
     val result = for {
       lot <- repository.create(lotPlacement)
-      fullLoaded <- repository.read(lot.id.get)
+      fullLoaded <- repository.read(lot)
     } yield fullLoaded
 
     result map { mbLot =>
@@ -63,8 +63,8 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val bid = Bid(userId, Price(ItemStack(1, referenceItem.id, 1)))
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
-      _ <- repository.updateBid(lot.id.get, bid)
-      withUpdatedBid <- repository.read(lot.id.get)
+      _ <- repository.updateBid(lot, bid)
+      withUpdatedBid <- repository.read(lot)
     } yield withUpdatedBid
 
     updatedLot map {
@@ -81,28 +81,26 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val smallerBid = Bid(userId, Price(ItemStack(2, referenceItem.id, 1)))
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
-      _ <- repository.updateBid(lot.id.get, bid)
-      shouldFailHere <- repository.updateBid(lot.id.get, smallerBid)
-      withUpdatedBid <- repository.read(lot.id.get)
+      _ <- repository.updateBid(lot, bid)
+      shouldFailHere <- repository.updateBid(lot, smallerBid)
+      withUpdatedBid <- repository.read(lot)
     } yield withUpdatedBid
 
     recoverToSucceededIf[IllegalStateException](updatedLot)
   }
 
-  it should "delete bought lot" in {
+  it should "return lot seller and item when buying" in {
     val itemToSell = ItemStack(5, referenceItem.id, 1)
     val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), Price(itemToSell), 1005000, NonStrict.`type`)
     val buyoutBid = Bid(userId, Price(ItemStack(5, referenceItem.id, 1)))
     val result = for {
       lot <- repository.create(lotPlacement)
-      (seller, sold) <- repository.buy(lot.id.get, buyoutBid)
-      lotNone <- repository.read(lot.id.get)
-    } yield (seller, sold, lotNone)
+      (seller, sold) <- repository.buy(lot, buyoutBid)
+    } yield (seller, sold)
 
-    result map { case (seller, sold, lotNone) =>
+    result map { case (seller, sold) =>
       seller should be(userId)
       sold should be(itemToSell)
-      lotNone should be(None)
     }
   }
 
@@ -111,8 +109,8 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val notHighEnoughBid = Bid(userId, Price(ItemStack(4, referenceItem.id, 1)))
     val result = for {
       lot <- repository.create(lotPlacement)
-      rowsAffected <- repository.buy(lot.id.get, notHighEnoughBid)
-      lotNone <- repository.read(lot.id.get)
+      rowsAffected <- repository.buy(lot, notHighEnoughBid)
+      lotNone <- repository.read(lot)
     } yield (rowsAffected, lotNone)
 
     recoverToSucceededIf[IllegalStateException](result)

@@ -5,9 +5,11 @@ import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.persistence.slick.ItemStackEntity.ItemStackFlat
 import ru.agny.xent.persistence.slick.{ConfigurableRepository, ItemStackEntity, UserEntity}
+import ru.agny.xent.trade.Lot.LotId
 import ru.agny.xent.trade._
 import ru.agny.xent.trade.persistence.slick.BidEntity.BidFlat
 import ru.agny.xent.trade.persistence.slick.LotEntity.{LotFlat, LotTable}
+import ru.agny.xent.trade.persistence.slick.ReservedItemEntity.ReservedFlat
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
@@ -19,6 +21,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   private val stack = ItemStackEntity.table
   private val bids = BidEntity.table
   private val lots = LotEntity.table
+  private val reserved = ReservedItemEntity.table
 
   type BoughtFrom = (UserId, ItemStack)
 
@@ -35,14 +38,14 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
       }
   }
 
-  def create(lot: PlaceLot) = {
+  def create(lot: PlaceLot): Future[LotId] = {
     val idReturn = stack returning stack.map(_.id)
-    val lotReturn = lots returning lots.map(_.id) into { case (l, id) => l.copy(id = Some(id)) }
+    val lotIdReturn = lots returning lots.map(_.id)
     val (item, priceItem) = (lot.item, lot.buyout.amount)
     val action = for {
       itemId <- idReturn += ItemStackFlat(None, item.stackValue, item.id, item.singleWeight)
       priceId <- idReturn += ItemStackFlat(None, priceItem.stackValue, priceItem.id, priceItem.singleWeight)
-      x <- lotReturn += LotFlat(None, lot.user, itemId, priceId, lot.until, None, lot.tpe)
+      x <- lotIdReturn += LotFlat(None, lot.user, itemId, priceId, lot.until, lot.tpe)
     } yield x
     db.run(action.transactionally)
   }
@@ -57,42 +60,86 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
-  def updateBid(lot: Long, bid: Bid) = {
+  def updateBid(lot: LotId, bid: Bid): Future[Boolean] = {
     val itemToAdd = bid.price.amount
-
-    val selectedLot = lots.filter(_.id === lot)
     val isUpdateValid = bids.filter(_.lotId === lot)
       .joinLeft(stack).on((b, s) => b.itemStackId === s.id && s.stackValue < itemToAdd.stackValue).map(_._2.nonEmpty)
 
-    val insertItemStack = stack.returning(stack.map(_.id))
-      .+=(ItemStackFlat(None, itemToAdd.stackValue, itemToAdd.id, itemToAdd.singleWeight))
-
-    val updateAction = for {
-      s <- insertItemStack
-      _ <- bids.insertOrUpdate(BidFlat(Some(lot), bid.owner, s))
-      l <- selectedLot.map(_.lastBidId).update(Some(lot))
-    } yield l
-
     val resultAction = isUpdateValid.result.headOption.flatMap {
-      case Some(true) | None => updateAction
+      case Some(true) | None => insertBidAction(lot, bid)
       case _ => DBIO.failed(new IllegalStateException(s"Bid with price ${bid.price} is less than current bidded price of Lot[$lot]")) // TODO error handle
     }
-    db.run(resultAction.transactionally)
+    db.run(resultAction.transactionally).map {
+      case rowsAffected@0 => false
+      case 1 => true
+      case x => println(x); throw new RuntimeException("")
+    }
   }
 
-  def buy(lot: Long, withBid: Bid): Future[BoughtFrom] = {
+  def revertBid(lot: LotId, toRevert: Bid, prevBid: Option[Bid]): Future[Boolean] = {
+    val itemToRevert = toRevert.price.amount
+    val selectedBid = bids.filter(b => b.lotId === lot)
+    val isNotChanged = selectedBid.joinLeft(stack).on((b, s) => b.itemStackId === s.id
+      && s.stackValue === itemToRevert.stackValue
+      && s.itemId === itemToRevert.id
+    ).exists
+    val resultAction = isNotChanged.result.flatMap {
+      case true => prevBid match {
+        case Some(v) => selectedBid.delete >> insertBidAction(lot, v)
+        case None => selectedBid.delete
+      }
+      case false => DBIO.failed(new IllegalStateException(s"Bid $toRevert has been overwritten already"))
+    }
+
+    db.run(resultAction.transactionally).map {
+      case rowsAffected@0 => false
+      case 1 => true
+    }
+  }
+
+  def buy(lotId: LotId, withBid: Bid): Future[BoughtFrom] = {
     val paidItem = withBid.price.amount
-    val retrieveLot = lots.filter(_.id === lot)
+    val retrieveLot = lots.filter(_.id === lotId)
     val lotWithItem = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id && s.stackValue === paidItem.stackValue)
     val priceValidated = lotWithItem.exists
 
     val resultAction = priceValidated.result.flatMap {
-      case true => lotWithItem.result.head zip retrieveLot.delete
-      case _ => DBIO.failed(new IllegalStateException(s"Bidded price ${withBid.price} isn't high enough to buyout lot[$lot]"))
+      case true => lotWithItem.result.head
+      case _ => DBIO.failed(new IllegalStateException(s"Bidded price ${withBid.price} isn't high enough to buyout lot[$lotId]"))
     }
     db.run(resultAction.transactionally).map {
-      case ((lot, item), _) => (lot.user, item.toItemStack)
+      case (lot, item) => (lot.user, item.toItemStack)
     }
+  }
+
+  def reserveItem(forUser: UserId, item: ItemStack): Future[Boolean] = {
+    val idReturn = stack returning stack.map(_.id)
+    val action = for {
+      itemId <- idReturn += ItemStackFlat(None, item.stackValue, item.id, item.singleWeight)
+      x <- reserved += ReservedFlat(forUser, itemId)
+    } yield x
+    db.run(action.transactionally).map {
+      case rowsAffected@0 => false
+      case 1 => true
+    }
+  }
+
+  def delete(lot: LotId): Future[Boolean] = {
+    db.run(lots.filter(_.id === lot).delete).map {
+      case rowsAffected@0 => false
+      case 1 => true
+    }
+  }
+
+  private def insertBidAction(lot: LotId, bid: Bid) = {
+    val itemToAdd = bid.price.amount
+    val insertItemStack = stack.returning(stack.map(_.id))
+      .+=(ItemStackFlat(None, itemToAdd.stackValue, itemToAdd.id, itemToAdd.singleWeight))
+
+    for {
+      s <- insertItemStack
+      b <- bids.insertOrUpdate(BidFlat(Some(lot), bid.owner, s))
+    } yield b
   }
 
   private def fullLoad(origin: Query[LotTable, LotTable#TableElementType, Seq]) = {
