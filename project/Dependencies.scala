@@ -25,10 +25,7 @@ object Dependencies {
   val netty = "io.netty" % "netty-all" % "4.1.4.Final"
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-  val akkaStream = Seq(
-    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test
-  )
+
   val akkaHttp = Seq(
     "com.typesafe.akka" %% "akka-http" % "10.0.10",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.0.10" % Test
@@ -37,5 +34,5 @@ object Dependencies {
   val macrosDeps = Vector(reflect, parserCombinator)
   val coreDeps = Vector(scalatest, scalaRedis, akkaActor, postgre) ++ circe ++ slick ++ logging
   val webDeps = Vector(netty)
-  val marketDeps = akkaStream ++ akkaHttp
+  val marketDeps = akkaHttp
 }
