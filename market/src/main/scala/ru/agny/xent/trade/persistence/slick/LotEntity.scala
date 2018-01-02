@@ -13,7 +13,6 @@ object LotEntity {
 
   private lazy val users = UserEntity.table
   private lazy val stack = ItemStackEntity.table
-  private lazy val bid = BidEntity.table
   lazy val table = TableQuery[LotTable]
 
   class LotTable(tag: Tag) extends Table[LotFlat](tag, "lot") {
@@ -31,13 +30,11 @@ object LotEntity {
 
     override def * = (id.?, userId, itemStackId, buyoutId, until, tpe).mapTo[LotFlat]
 
-    def user = foreignKey("user_fk", userId, users)(_.id)
+    def user = foreignKey("user_fk", userId, users)(_.id, onDelete = ForeignKeyAction.Cascade)
 
-    def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id)
+    def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id, onDelete = ForeignKeyAction.Cascade)
 
-    def buyout = foreignKey("buyout_fk", buyoutId, stack)(_.id)
-
-    def lastBid = foreignKey("bid_fk", id, bid)(_.lotId)
+    def buyout = foreignKey("buyout_fk", buyoutId, stack)(_.id, onDelete = ForeignKeyAction.Cascade)
   }
 
   case class LotFlat(id: Option[Long], user: UserId, itemId: ItemId, priceId: ItemId, until: TimeStamp, tpe: LotType)

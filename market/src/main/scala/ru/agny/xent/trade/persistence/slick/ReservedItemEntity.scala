@@ -18,9 +18,9 @@ object ReservedItemEntity {
 
     override def * = (userId, itemStackId).mapTo[ReservedFlat]
 
-    def user = foreignKey("user_fk", userId, users)(_.id)
+    def user = foreignKey("user_fk", userId, users)(_.id, onDelete = ForeignKeyAction.Cascade)
 
-    def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id)
+    def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id, onDelete = ForeignKeyAction.Cascade)
   }
 
   case class ReservedFlat(user: UserId, item: Long)

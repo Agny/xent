@@ -19,7 +19,7 @@ object ItemStackEntity {
 
     override def * = (id.?, stackValue, itemId, singleWeight).mapTo[ItemStackFlat]
 
-    def item = foreignKey("item_fk", itemId, items)(_.id)
+    def item = foreignKey("item_fk", itemId, items)(_.id, onDelete = ForeignKeyAction.Cascade)
   }
   case class ItemStackFlat(id: Option[Long], stackValue: Int, itemId: ItemId, singleWeight: ItemWeight) {
     def toItemStack: ItemStack = ItemStack(stackValue, itemId, singleWeight)

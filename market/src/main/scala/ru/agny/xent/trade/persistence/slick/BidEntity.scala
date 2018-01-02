@@ -22,9 +22,9 @@ object BidEntity {
 
     def lot = foreignKey("lot_fk", lotId, lots)(_.id)
 
-    def user = foreignKey("user_fk", userId, users)(_.id)
+    def user = foreignKey("user_fk", userId, users)(_.id, onDelete = ForeignKeyAction.Cascade)
 
-    def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id)
+    def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id, onDelete = ForeignKeyAction.Cascade)
   }
 
   case class BidFlat(lotId: Option[Long], user: UserId, itemId: ItemId)
