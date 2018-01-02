@@ -20,17 +20,24 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val weight = 1
   }
   var userId: UserId = _
+  var specifiedUserId: UserId = _
+  var otherUserId: UserId = _
 
   override protected def beforeAll(): Unit = {
     MarketInitializer.forConfig(DbConfig.path).init()
     items.create(referenceItem)
 
     userId = Await.result(users.create("Test"), 1 seconds)
+    specifiedUserId = Await.result(users.create("Test2"), 1 seconds)
+    otherUserId = Await.result(users.create("Test3"), 1 seconds)
   }
 
   override protected def afterAll(): Unit = {
     items.delete(referenceItem.id)
     users.delete(userId)
+    users.delete(specifiedUserId)
+    users.delete(otherUserId)
+    println("after all complete")
   }
 
   "LotRepository" should "create lot record" in {
@@ -38,6 +45,22 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val res = repository.create(lotPlacement)
     res map { l =>
       l should not be (-1)
+    }
+  }
+
+  it should "return all user lots" in {
+    val userLot1 = PlaceLot(specifiedUserId, ItemStack(1, referenceItem.id, 1), Price(ItemStack(1, referenceItem.id, 1)), 1005000, Dealer.`type`)
+    val userLot2 = PlaceLot(specifiedUserId, ItemStack(1, referenceItem.id, 1), Price(ItemStack(1, referenceItem.id, 1)), 1005000, Dealer.`type`)
+    val otherLot = PlaceLot(otherUserId, ItemStack(1, referenceItem.id, 1), Price(ItemStack(1, referenceItem.id, 1)), 1005000, Dealer.`type`)
+    val result = for {
+      _ <- repository.create(userLot1)
+      _ <- repository.create(userLot2)
+      _ <- repository.create(otherLot)
+      res <- repository.findByUser(specifiedUserId)
+    } yield res
+
+    result map { x =>
+      x.size should be(2)
     }
   }
 

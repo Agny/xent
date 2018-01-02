@@ -11,6 +11,7 @@ import ru.agny.xent.trade.persistence.slick.BidEntity.BidFlat
 import ru.agny.xent.trade.persistence.slick.LotEntity.{LotFlat, LotTable}
 import ru.agny.xent.trade.persistence.slick.ReservedItemEntity.ReservedFlat
 
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
@@ -33,9 +34,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
       rsType = ResultSetType.ForwardOnly,
       rsConcurrency = ResultSetConcurrency.ReadOnly,
       fetchSize = limit).transactionally)
-      .mapResult {
-        case (lotFlat, buyout, item, bidFlat, bidItem) => mapToLot(lotFlat, buyout.toItemStack, item.toItemStack, bidFlat, bidItem)
-      }
+      .mapResult(mapToLot)
   }
 
   def create(lot: PlaceLot): Future[LotId] = {
@@ -55,8 +54,18 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
       ((((flat, buyouts), items), bids), bidItems) <- fullLoad(lots.filter(_.id === lot))
     } yield (flat, buyouts, items, bids, bidItems)
     db.run(query.result.headOption).map {
-      case Some((lotFlat, buyout, item, bidFlat, bidItem)) => Some(mapToLot(lotFlat, buyout.toItemStack, item.toItemStack, bidFlat, bidItem))
+      case Some(x) => Some(mapToLot(x))
       case _ => None
+    }
+  }
+
+  def findByUser(id: UserId): Future[Seq[Lot]] = {
+    val query = for {
+      ((((flat, buyouts), items), bids), bidItems) <- fullLoad(lots.filter(_.userId === id))
+    } yield (flat, buyouts, items, bids, bidItems)
+    db.run(query.result).map {
+      case lots@_ +: _ => lots.map(mapToLot)
+      case _ => immutable.Seq.empty
     }
   }
 
@@ -153,17 +162,18 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
-  private def mapToLot(lotFlat: LotFlat, buyout: ItemStack, item: ItemStack, bidFlat: Option[BidFlat], bidItem: Option[ItemStackFlat]): Lot = {
-    lotFlat.tpe match {
-      case dealer if dealer == Dealer.`type` => Dealer(lotFlat.id.get, lotFlat.user, item, Price(buyout), lotFlat.until)
-      case strict if strict == Strict.`type` => Strict(lotFlat.id.get, lotFlat.user, item, Price(buyout), lotFlat.until)
-      case nStrict if nStrict == NonStrict.`type` =>
-        val mbBid = for {
-          b <- bidFlat
-          bItem <- bidItem
-        } yield Bid(b.user, Price(bItem.toItemStack))
-        NonStrict(lotFlat.id.get, lotFlat.user, item, Price(buyout), lotFlat.until, mbBid)
-    }
+  private def mapToLot(params: (LotFlat, ItemStackFlat, ItemStackFlat, Option[BidFlat], Option[ItemStackFlat])): Lot = params match {
+    case (lotFlat, buyout, item, bidFlat, bidItem) =>
+      lotFlat.tpe match {
+        case dealer if dealer == Dealer.`type` => Dealer(lotFlat.id.get, lotFlat.user, item.toItemStack, Price(buyout.toItemStack), lotFlat.until)
+        case strict if strict == Strict.`type` => Strict(lotFlat.id.get, lotFlat.user, item.toItemStack, Price(buyout.toItemStack), lotFlat.until)
+        case nStrict if nStrict == NonStrict.`type` =>
+          val mbBid = for {
+            b <- bidFlat
+            bItem <- bidItem
+          } yield Bid(b.user, Price(bItem.toItemStack))
+          NonStrict(lotFlat.id.get, lotFlat.user, item.toItemStack, Price(buyout.toItemStack), lotFlat.until, mbBid)
+      }
   }
 
 }
