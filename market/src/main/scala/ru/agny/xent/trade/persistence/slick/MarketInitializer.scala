@@ -10,6 +10,7 @@ class MarketInitializer(path: String) {
   val toInit = Seq(
     LotEntity.table,
     BidEntity.table,
+    ReservedItemEntity.table
   )
   val core = CoreInitializer.forConfig(path)
 
