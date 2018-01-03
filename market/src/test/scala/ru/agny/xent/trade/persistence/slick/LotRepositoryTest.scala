@@ -3,7 +3,7 @@ package ru.agny.xent.trade.persistence.slick
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 import ru.agny.xent.core.inventory.{Item, ItemStack}
 import ru.agny.xent.core.utils.UserType.UserId
-import ru.agny.xent.persistence.slick.{ItemRepository, UserRepository}
+import ru.agny.xent.persistence.slick.{DbConfig, ItemRepository, UserRepository}
 import ru.agny.xent.trade._
 
 import scala.concurrent.Await
@@ -37,7 +37,6 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     users.delete(userId)
     users.delete(specifiedUserId)
     users.delete(otherUserId)
-    println("after all complete")
   }
 
   "LotRepository" should "create lot record" in {
