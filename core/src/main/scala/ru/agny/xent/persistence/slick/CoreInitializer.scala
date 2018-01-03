@@ -35,5 +35,10 @@ class CoreInitializer(path: String) {
 }
 
 object CoreInitializer {
-  def forConfig(path: String): CoreInitializer = new CoreInitializer(path)
+  val default = new CoreInitializer(DbConfig.path)
+
+  def forConfig(path: String): CoreInitializer = path match {
+    case d if d == DbConfig.path => default
+    case x => new CoreInitializer(x)
+  }
 }

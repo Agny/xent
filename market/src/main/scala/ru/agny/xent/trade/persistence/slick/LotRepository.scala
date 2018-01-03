@@ -12,7 +12,6 @@ import ru.agny.xent.trade.persistence.slick.LotEntity.{LotFlat, LotTable}
 import ru.agny.xent.trade.persistence.slick.ReservedItemEntity.ReservedFlat
 
 import scala.collection.immutable
-import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 import slick.jdbc.PostgresProfile.api._
@@ -114,7 +113,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
 
     val resultAction = priceValidated.result.flatMap {
       case true => lotWithItem.result.head
-      case _ => DBIO.failed(new IllegalStateException(s"Bidded price ${withBid.price} isn't high enough to buyout lot[$lotId]"))
+      case _ => DBIO.failed(new IllegalStateException(s"Bidded price ${withBid.price} isn't high enough to buyout lot[$lotId] or lot doesn't exist"))
     }
     db.run(resultAction.transactionally).map {
       case (lot, item) => (lot.user, item.toItemStack)

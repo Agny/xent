@@ -5,7 +5,6 @@ import ru.agny.xent.persistence.slick.UserEntity.UserFlat
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 case class UserRepository(configPath: String) extends ConfigurableRepository {
 

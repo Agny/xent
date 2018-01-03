@@ -5,8 +5,6 @@ import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.persistence.slick.ItemTemplateEntity.ItemFlat
 import slick.jdbc.PostgresProfile.api._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 case class ItemRepository(configPath: String) extends ConfigurableRepository {
 
   private val items = ItemTemplateEntity.table
