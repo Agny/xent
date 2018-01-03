@@ -11,23 +11,24 @@ import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
 import ru.agny.xent.messages.PlainResponse
-import ru.agny.xent.trade.Board.ItemCommand
 import ru.agny.xent.web.IncomeMessage
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
-case class WSClient(msg: IncomeMessage) {
+case class AkkaWSRequest(in: IncomeMessage) extends WSRequest {
+  implicit val system = ActorSystem("api")
+  val materializer = ActorMaterializer()
 
-  private val outgoing = Source.single(TextMessage(msg.asJson.noSpaces))
+  private val outgoing = Source.single(TextMessage(in.asJson.noSpaces))
   private val incoming = Sink.head[Message]
 
-  private val webSocketFlow = Http()(WSClient.system).webSocketClientFlow(WebSocketRequest("ws://localhost:8888"))
+  private val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest("ws://localhost:8888"))
 
   private val (upgrade, response) = outgoing
     .viaMat(webSocketFlow)(Keep.right)
     .toMat(incoming)(Keep.both)
-    .run()(WSClient.materializer)
+    .run()(materializer)
 
   private val connected = upgrade.flatMap { upgrade =>
     if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
@@ -45,19 +46,8 @@ case class WSClient(msg: IncomeMessage) {
       }
     case x => Future.failed(new IllegalArgumentException(s"TextMessage.Strict expected, got $x"))
   }
-  val result = for {
+  val out = for {
     _ <- connected
     x <- decoded
   } yield x
-
-}
-
-object WSClient {
-  implicit val system = ActorSystem("api")
-  val materializer = ActorMaterializer()
-
-  def send(tpe: String, msg: ItemCommand): Future[PlainResponse] = {
-    val toSend = IncomeMessage(tpe, msg.asJson.noSpaces)
-    WSClient(toSend).result
-  }
 }

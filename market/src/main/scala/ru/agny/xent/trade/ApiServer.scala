@@ -15,6 +15,7 @@ object ApiServer extends LazyLogging {
 
   import ru.agny.xent.trade.BidProtocol._
   import ru.agny.xent.trade.LotProtocol._
+  import WSAdapter.AkkaRequestBuilder
 
   implicit val system = ActorSystem("api")
   implicit val materializer = ActorMaterializer()

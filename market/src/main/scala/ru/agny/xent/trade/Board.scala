@@ -24,53 +24,58 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     Source.fromPublisher(r)
   }
 
-  def offer(msg: FlowMessage) = {
+  def offer[T <: WSRequest : WSAdapter](msg: BoardMessage): Future[PlainResponse] = {
     logger.debug("got message {}", msg)
     msg match {
-      case Add(lot) => Source.fromFuture(addLot(lot))
-      case Buy(lot, bid) => Source.fromFuture(buy(lot, bid))
-      case PlaceBid(lot, bid) => Source.fromFuture(placeBid(lot, bid))
+      case Add(lot) => addLot(lot)
+      case Buy(lot, bid) => buy(lot, bid)
+      case PlaceBid(lot, bid) => placeBid(lot, bid)
     }
   }
 
-  private def addLot(lot: PlaceLot): Future[PlainResponse] = {
+  private def addLot[T <: WSRequest : WSAdapter](lot: PlaceLot): Future[PlainResponse] = {
     lotRepository.create(lot).flatMap(lotId =>
-      verifyPlacement(lot.user, lot.item).flatMap {
+      verifyPlacement(lot.user, lot.item).map {
         case ResponseFailure =>
           lotRepository.delete(lotId).recover {
-            case t: Throwable => logger.error("cleanup unverified record failed {}", t)
+            case t: Throwable => logger.error("unverified record cleanup failed {}", t)
           }
-          Future.successful(ResponseFailure)
-        case ResponseOk => Future.successful(ResponseOk)
+          ResponseFailure
+        case x => x
       }
     )
   }
 
-  private def buy(lot: LotId, bid: Bid): Future[PlainResponse] = {
+  private def buy[T <: WSRequest : WSAdapter](lot: LotId, bid: Bid): Future[PlainResponse] = {
+    val wsAdapter = implicitly[WSAdapter[T]]
     val spend = Spend(bid.owner, bid.price.amount)
     val prepareToSpend = for {
       (seller, item) <- lotRepository.buy(lot, bid)
-      isAllowed <- WSClient.send("item_spend", spend)
+      isAllowed <- wsAdapter.send("item_spend", spend)
     } yield (seller, item, isAllowed)
 
-    prepareToSpend.flatMap { case (seller, item, isAllowed) =>
-      isAllowed match {
-        case ResponseOk =>
-          lotRepository.delete(lot).recover {
-            case t: Throwable => logger.error("bought lot deletion failure {}", t); false
-          }
-          sendItem(Receive(bid.owner, item))
-          sendItem(Receive(seller, bid.price.amount))
+    prepareToSpend.transformWith {
+      case Success((seller, item, isAllowed)) =>
+        isAllowed match {
+          case ResponseOk =>
+            lotRepository.delete(lot).recover {
+              case t: Throwable => logger.error("bought lot deletion failure {}", t); false
+            }
+            sendItem(Receive(bid.owner, item))
+            sendItem(Receive(seller, bid.price.amount))
 
-          Future.successful(ResponseOk)
-        case ResponseFailure =>
-          logger.info("buy operation is denied for {}", spend)
-          Future.successful(ResponseFailure)
-      }
+            Future.successful(ResponseOk)
+          case ResponseFailure =>
+            logger.info("buy operation is denied for {}", spend)
+            Future.successful(ResponseFailure)
+        }
+      case Failure(t) =>
+        logger.error("lot buyout failed", t)
+        Future.failed(t)
     }
   }
 
-  private def placeBid(lot: LotId, bid: Bid): Future[PlainResponse] = {
+  private def placeBid[T <: WSRequest : WSAdapter](lot: LotId, bid: Bid): Future[PlainResponse] = {
     lotRepository.read(lot).flatMap {
       case Some(lotRead: NonStrict) if lotRead.tpe == NonStrict.`type` =>
         for {
@@ -85,8 +90,9 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     }
   }
 
-  private def verifyPlacement(byUser: UserId, payment: ItemStack): Future[PlainResponse] = {
-    WSClient.send("item_spend", Spend(byUser, payment)).flatMap {
+  private def verifyPlacement[T <: WSRequest : WSAdapter](byUser: UserId, payment: ItemStack): Future[PlainResponse] = {
+    val wsAdapter = implicitly[WSAdapter[T]]
+    wsAdapter.send("item_spend", Spend(byUser, payment)).flatMap {
       case ResponseOk => Future.successful(ResponseOk)
       case ResponseFailure =>
         logger.error("item placement is denied for {}", (byUser, payment))
@@ -94,8 +100,9 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     }
   }
 
-  private def sendItem(msg: Receive): Future[Boolean] = {
-    val sendResult = WSClient.send("item_receive", msg)
+  private def sendItem[T <: WSRequest : WSAdapter](msg: Receive): Future[Boolean] = {
+    val wsAdapter = implicitly[WSAdapter[T]]
+    val sendResult = wsAdapter.send("item_receive", msg)
     sendResult.transformWith {
       case x@(Success(ResponseFailure) | Failure(_)) =>
         logger.error("item is not delivered {}", x)
@@ -109,10 +116,10 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
 }
 
 object Board {
-  sealed trait FlowMessage
-  final case class Add(lot: PlaceLot) extends FlowMessage
-  final case class Buy(lot: LotId, bid: Bid) extends FlowMessage
-  final case class PlaceBid(lot: LotId, bid: Bid) extends FlowMessage
+  sealed trait BoardMessage
+  final case class Add(lot: PlaceLot) extends BoardMessage
+  final case class Buy(lot: LotId, bid: Bid) extends BoardMessage
+  final case class PlaceBid(lot: LotId, bid: Bid) extends BoardMessage
 
   sealed trait ItemCommand
   final case class Spend(user: UserId, items: ItemStack) extends ItemCommand
