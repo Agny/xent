@@ -46,24 +46,22 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     )
   }
 
-  private def buy[T <: WSRequest : WSAdapter](lot: LotId, bid: Bid): Future[PlainResponse] = {
+  private def buy[T <: WSRequest : WSAdapter](lotId: LotId, bid: Bid): Future[PlainResponse] = {
     val wsAdapter = implicitly[WSAdapter[T]]
     val spend = Spend(bid.owner, bid.price.amount)
     val prepareToSpend = for {
-      (seller, item) <- lotRepository.buy(lot, bid)
+      lot <- lotRepository.buy(lotId, bid)
       isAllowed <- wsAdapter.send("item_spend", spend)
-    } yield (seller, item, isAllowed)
+    } yield (lot, isAllowed)
 
     prepareToSpend.transformWith {
-      case Success((seller, item, isAllowed)) =>
+      case Success((lot, isAllowed)) =>
         isAllowed match {
           case ResponseOk =>
-            lotRepository.delete(lot).recover {
-              case t: Throwable => logger.error("bought lot deletion failure {}", t); false
+            lotRepository.delete(lotId).recover {
+              case t: Throwable => logger.error("bought lot deletion failure {}", t)
             }
-            sendItem(Receive(bid.owner, item))
-            sendItem(Receive(seller, bid.price.amount))
-
+            sendItems(lot, bid)
             Future.successful(ResponseOk)
           case ResponseFailure =>
             logger.warn("buy operation is denied for {}", spend)
@@ -81,7 +79,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
         for {
           _ <- lotRepository.updateBid(lot, bid)
           verified <- verifyPlacement(bid.owner, bid.price.amount)
-          _ <- if (verified == ResponseFailure) lotRepository.revertBid(lot, bid, lotRead.lastBid) else Future.successful(false)
+          _ <- revertBidIfNeeded(verified, lotRead, bid)
         } yield verified
       case None =>
         logger.info("lot {} is not found", lot)
@@ -102,7 +100,29 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     }
   }
 
-  private def sendItem[T <: WSRequest : WSAdapter](msg: Receive): Future[Boolean] = {
+  private def revertBidIfNeeded[T <: WSRequest : WSAdapter](verification: PlainResponse, lot: NonStrict, toRevert: Bid) = {
+    if (verification == ResponseFailure) lotRepository.revertBid(lot.id, toRevert, lot.lastBid)
+    else returnBidToOwner(lot.lastBid)
+  }
+
+  private def sendItems[T <: WSRequest : WSAdapter](lot: Lot, bid: Bid): Future[Boolean] = {
+    lot match {
+      case x: NonStrict =>
+        sendReceive(Receive(bid.owner, lot.item))
+        sendReceive(Receive(lot.user, bid.price.amount))
+        returnBidToOwner(x.lastBid)
+      case _ =>
+        sendReceive(Receive(bid.owner, lot.item))
+        sendReceive(Receive(lot.user, bid.price.amount))
+    }
+  }
+
+  private def returnBidToOwner[T <: WSRequest : WSAdapter](mbBid: Option[Bid]): Future[Boolean] = mbBid match {
+    case Some(v) => sendReceive(Receive(v.owner, v.price.amount))
+    case None => Future.successful(true)
+  }
+
+  private def sendReceive[T <: WSRequest : WSAdapter](msg: Receive): Future[Boolean] = {
     val wsAdapter = implicitly[WSAdapter[T]]
     val sendResult = wsAdapter.send("item_receive", msg)
     sendResult.transformWith {

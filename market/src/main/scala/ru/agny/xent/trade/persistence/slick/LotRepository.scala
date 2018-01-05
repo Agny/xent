@@ -23,8 +23,6 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   private val lots = LotEntity.table
   private val reserved = ReservedItemEntity.table
 
-  type BoughtFrom = (UserId, ItemStack)
-
   def load(start: Int = 0, limit: Int = 20): Publisher[Lot] = {
     val query = for {
       ((((flat, buyouts), items), bids), bidItems) <- fullLoad(lots.sortBy(_.until.desc).drop(start).take(limit))
@@ -105,19 +103,21 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
-  def buy(lot: LotId, withBid: Bid): Future[BoughtFrom] = {
+  def buy(lot: LotId, withBid: Bid): Future[Lot] = {
     val paidItem = withBid.price.amount
     val retrieveLot = lots.filter(b => b.id === lot && b.userId =!= withBid.owner)
     val lotWithItem = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id && s.stackValue === paidItem.stackValue)
     val priceValidated = lotWithItem.exists
 
     val resultAction = priceValidated.result.flatMap {
-      case true => lotWithItem.result.head
+      case true =>
+        val query = for {
+          ((((flat, buyouts), items), bids), bidItems) <- fullLoad(retrieveLot)
+        } yield (flat, buyouts, items, bids, bidItems)
+        query.result.head
       case _ => DBIO.failed(new IllegalStateException(s"Bid $withBid can't be applied to Lot[$lot]"))
     }
-    db.run(resultAction.transactionally).map {
-      case (lt, item) => (lt.user, item.toItemStack)
-    }
+    db.run(resultAction.transactionally).map(loaded => mapToLot(loaded))
   }
 
   def reserveItem(forUser: UserId, item: ItemStack): Future[Boolean] = {

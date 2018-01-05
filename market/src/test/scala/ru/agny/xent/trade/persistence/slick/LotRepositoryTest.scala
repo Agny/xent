@@ -111,18 +111,18 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     recoverToSucceededIf[IllegalStateException](updatedLot)
   }
 
-  it should "return lot seller and item when buying" in {
+  it should "return lot when buying" in {
     val itemToSell = ItemStack(5, referenceItem.id, 1)
     val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), Price(itemToSell), 1005000, NonStrict.`type`)
     val buyoutBid = Bid(otherUserId, Price(ItemStack(5, referenceItem.id, 1)))
     val result = for {
       lot <- repository.create(lotPlacement)
-      (seller, sold) <- repository.buy(lot, buyoutBid)
-    } yield (seller, sold)
+      loaded <- repository.buy(lot, buyoutBid)
+    } yield (lot, loaded)
 
-    result map { case (seller, sold) =>
-      seller should be(userId)
-      sold should be(itemToSell)
+    result map { case (lotId, toBuy) =>
+      lotId should be(toBuy.id)
+      toBuy.buyout.amount should be(itemToSell)
     }
   }
 
