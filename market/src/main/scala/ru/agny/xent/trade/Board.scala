@@ -66,7 +66,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
 
             Future.successful(ResponseOk)
           case ResponseFailure =>
-            logger.info("buy operation is denied for {}", spend)
+            logger.warn("buy operation is denied for {}", spend)
             Future.successful(ResponseFailure)
         }
       case Failure(t) =>
@@ -83,9 +83,11 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
           verified <- verifyPlacement(bid.owner, bid.price.amount)
           _ <- if (verified == ResponseFailure) lotRepository.revertBid(lot, bid, lotRead.lastBid) else Future.successful(false)
         } yield verified
-      case None => Future.successful(ResponseFailure)
+      case None =>
+        logger.info("lot {} is not found", lot)
+        Future.successful(ResponseFailure)
       case _ =>
-        logger.error("lot {} is not biddable", lot)
+        logger.warn("lot {} is not biddable", lot)
         Future.successful(ResponseFailure)
     }
   }
@@ -95,7 +97,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     wsAdapter.send("item_spend", Spend(byUser, payment)).flatMap {
       case ResponseOk => Future.successful(ResponseOk)
       case ResponseFailure =>
-        logger.error("item placement is denied for {}", (byUser, payment))
+        logger.warn("item placement is denied for {}", (byUser, payment))
         Future.successful(ResponseFailure)
     }
   }

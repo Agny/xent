@@ -161,6 +161,70 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
     }
   }
 
+  "Board.offer(PlaceBid)" should "update bid" in {
+    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), Price(ItemStack(2, referenceItem.id, 20)), 1000, NonStrict.`type`)
+    val bid = Bid(otherUserId, Price(ItemStack(1, referenceItem.id, 20)))
+    val add = Add(placeLot)
+    val placeBid = (lotId: LotId) => PlaceBid(lotId, bid)
+    val result = for {
+      _ <- underTest.offer(add)
+      added <- lots.findByUser(userId)
+      res <- underTest.offer(placeBid(added.head.id))
+      withBid <- lots.findByUser(userId)
+    } yield (res, added.head, withBid.head)
+
+    result.map {
+      case (response, bidless: NonStrict, bidded: NonStrict) =>
+        bidless.lastBid should be(None)
+        bidded.lastBid should be(Some(bid))
+        response should be(ResponseOk)
+    }
+  }
+
+  it should "revert bid to None if verification fails" in {
+    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), Price(ItemStack(2, referenceItem.id, 20)), 1000, NonStrict.`type`)
+    val bid = Bid(otherUserId, Price(unspendableItemStack))
+    val add = Add(placeLot)
+    val placeBid = (lotId: LotId) => PlaceBid(lotId, bid)
+    val result = for {
+      _ <- underTest.offer(add)
+      added <- lots.findByUser(userId)
+      res <- underTest.offer(placeBid(added.head.id))
+      withBid <- lots.findByUser(userId)
+    } yield (res, added.head, withBid.head)
+
+    result.map {
+      case (response, bidless: NonStrict, bidded: NonStrict) =>
+        bidless.lastBid should be(None)
+        bidded.lastBid should be(None)
+        response should be(ResponseFailure)
+    }
+  }
+
+  it should "revert bid to previous value if verification fails " in {
+    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), Price(ItemStack(2, referenceItem.id, 20)), 1000, NonStrict.`type`)
+    val bid1 = Bid(otherUserId, Price(ItemStack(1, referenceItem.id, 20)))
+    val bid2 = Bid(otherUserId, Price(unspendableItemStack))
+    val add = Add(placeLot)
+    val placeBid = (lotId: LotId) => PlaceBid(lotId, bid1)
+    val placeUnverifiable = (lotId: LotId) => PlaceBid(lotId, bid2)
+
+    val result = for {
+      _ <- underTest.offer(add)
+      added <- lots.findByUser(userId)
+      _ <- underTest.offer(placeBid(added.head.id))
+      withBid <- lots.findByUser(userId)
+      notVerified <- underTest.offer(placeUnverifiable(added.head.id))
+      withPrevBid <- lots.findByUser(userId)
+    } yield (notVerified, withBid.head, withPrevBid.head)
+
+    result.map {
+      case (response, bid: NonStrict, sameBid: NonStrict) =>
+        bid should be(sameBid)
+        response should be(ResponseFailure)
+    }
+  }
+
   case class StubWSRequest(in: IncomeMessage) extends WSRequest {
     override lazy val out = ???
   }
