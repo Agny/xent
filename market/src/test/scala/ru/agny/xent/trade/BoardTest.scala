@@ -48,7 +48,7 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   "Board.offer(Add)" should "add lot" in {
-    val command = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), Price(ItemStack(2, referenceItem.id, 20)), 1000, Dealer.`type`)
+    val command = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), ItemStack(2, referenceItem.id, 20), 1000, Dealer.`type`)
     val msg = Add(command)
     val result = for {
       res <- underTest.offer(msg)
@@ -63,7 +63,7 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   it should "not add lot if operation is not verified" in {
-    val cantBeVerified = PlaceLot(userId, unspendableItemStack, Price(ItemStack(2, referenceItem.id, 20)), 1000, Dealer.`type`)
+    val cantBeVerified = PlaceLot(userId, unspendableItemStack, ItemStack(2, referenceItem.id, 20), 1000, Dealer.`type`)
     val msg = Add(cantBeVerified)
     val result = for {
       res <- underTest.offer(msg)
@@ -78,13 +78,13 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   "Board.offer(Buy)" should "throw exception if lot doesn't exist" in {
-    val msg = Buy(-1, Bid(userId, Price(ItemStack(2, referenceItem.id, 20))))
+    val msg = Buy(-1, Bid(userId, ItemStack(2, referenceItem.id, 20)))
     recoverToSucceededIf[IllegalStateException](underTest.offer(msg))
   }
 
   it should "throw exception if bid isn't high enough" in {
-    val actualPrice = Price(ItemStack(2, referenceItem.id, 20))
-    val biddedPrice = Price(ItemStack(1, referenceItem.id, 20))
+    val actualPrice = ItemStack(2, referenceItem.id, 20)
+    val biddedPrice = ItemStack(1, referenceItem.id, 20)
     val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), actualPrice, 1000, NonStrict.`type`)
     val add = Add(placeLot)
     val buy = (lotId: LotId) => Buy(lotId, Bid(userId, biddedPrice))
@@ -98,11 +98,9 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   it should "not proceed buy operation if bid isn't verified" in {
-    val actualPrice = Price(spendableWithCondition)
-    val biddedPrice = Price(unspendableItemStack)
-    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), actualPrice, 1000, NonStrict.`type`)
+    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), spendableWithCondition, 1000, NonStrict.`type`)
     val add = Add(placeLot)
-    val buy = (lotId: LotId) => Buy(lotId, Bid(otherUserId, biddedPrice))
+    val buy = (lotId: LotId) => Buy(lotId, Bid(otherUserId, unspendableItemStack))
     val result = for {
       _ <- underTest.offer(add)
       lot <- lots.findByUser(userId)
@@ -118,7 +116,7 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   it should "delete lot if buy operation succeeded" in {
-    val price = Price(ItemStack(2, referenceItem.id, 20))
+    val price = ItemStack(2, referenceItem.id, 20)
     val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), price, 1000, NonStrict.`type`)
     val add = Add(placeLot)
     val buy = (lotId: LotId) => Buy(lotId, Bid(otherUserId, price))
@@ -139,10 +137,9 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   it should "reserve items if send transaction doesn't complete successfully" in {
-    val price = Price(unreceivableItemStack)
-    val placeLot = PlaceLot(userId, unreceivableItemStack, price, 1000, NonStrict.`type`)
+    val placeLot = PlaceLot(userId, unreceivableItemStack, unreceivableItemStack, 1000, NonStrict.`type`)
     val add = Add(placeLot)
-    val buy = (lotId: LotId) => Buy(lotId, Bid(otherUserId, price))
+    val buy = (lotId: LotId) => Buy(lotId, Bid(otherUserId, unreceivableItemStack))
     val result = for {
       _ <- underTest.offer(add)
       lot <- lots.findByUser(userId)
@@ -162,8 +159,8 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   "Board.offer(PlaceBid)" should "update bid" in {
-    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), Price(ItemStack(2, referenceItem.id, 20)), 1000, NonStrict.`type`)
-    val bid = Bid(otherUserId, Price(ItemStack(1, referenceItem.id, 20)))
+    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), ItemStack(2, referenceItem.id, 20), 1000, NonStrict.`type`)
+    val bid = Bid(otherUserId, ItemStack(1, referenceItem.id, 20))
     val add = Add(placeLot)
     val placeBid = (lotId: LotId) => PlaceBid(lotId, bid)
     val result = for {
@@ -182,8 +179,8 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   it should "revert bid to None if verification fails" in {
-    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), Price(ItemStack(2, referenceItem.id, 20)), 1000, NonStrict.`type`)
-    val bid = Bid(otherUserId, Price(unspendableItemStack))
+    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), ItemStack(2, referenceItem.id, 20), 1000, NonStrict.`type`)
+    val bid = Bid(otherUserId, unspendableItemStack)
     val add = Add(placeLot)
     val placeBid = (lotId: LotId) => PlaceBid(lotId, bid)
     val result = for {
@@ -202,9 +199,9 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   }
 
   it should "revert bid to previous value if verification fails " in {
-    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), Price(ItemStack(2, referenceItem.id, 20)), 1000, NonStrict.`type`)
-    val bid1 = Bid(otherUserId, Price(ItemStack(1, referenceItem.id, 20)))
-    val bid2 = Bid(otherUserId, Price(unspendableItemStack))
+    val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), ItemStack(2, referenceItem.id, 20), 1000, NonStrict.`type`)
+    val bid1 = Bid(otherUserId, ItemStack(1, referenceItem.id, 20))
+    val bid2 = Bid(otherUserId, unspendableItemStack)
     val add = Add(placeLot)
     val placeBid = (lotId: LotId) => PlaceBid(lotId, bid1)
     val placeUnverifiable = (lotId: LotId) => PlaceBid(lotId, bid2)

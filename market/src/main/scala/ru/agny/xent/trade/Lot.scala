@@ -9,7 +9,7 @@ trait Lot {
   val id: LotId
   val user: UserId
   val item: ItemStack
-  val buyout: Price
+  val buyout: ItemStack
   val until: TimeStamp
   val created: TimeStamp = System.currentTimeMillis()
   val tpe: LotType = LotType(getClass.getSimpleName)

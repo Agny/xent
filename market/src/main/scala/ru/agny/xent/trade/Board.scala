@@ -48,7 +48,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
 
   private def buy[T <: WSRequest : WSAdapter](lotId: LotId, bid: Bid): Future[PlainResponse] = {
     val wsAdapter = implicitly[WSAdapter[T]]
-    val spend = Spend(bid.owner, bid.price.amount)
+    val spend = Spend(bid.owner, bid.price)
     val prepareToSpend = for {
       lot <- lotRepository.buy(lotId, bid)
       isAllowed <- wsAdapter.send("item_spend", spend)
@@ -78,7 +78,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
       case Some(lotRead: NonStrict) if lotRead.tpe == NonStrict.`type` =>
         for {
           _ <- lotRepository.updateBid(lot, bid)
-          verified <- verifyPlacement(bid.owner, bid.price.amount)
+          verified <- verifyPlacement(bid.owner, bid.price)
           _ <- revertBidIfNeeded(verified, lotRead, bid)
         } yield verified
       case None =>
@@ -109,16 +109,16 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     lot match {
       case x: NonStrict =>
         sendReceive(Receive(bid.owner, lot.item))
-        sendReceive(Receive(lot.user, bid.price.amount))
+        sendReceive(Receive(lot.user, bid.price))
         returnBidToOwner(x.lastBid)
       case _ =>
         sendReceive(Receive(bid.owner, lot.item))
-        sendReceive(Receive(lot.user, bid.price.amount))
+        sendReceive(Receive(lot.user, bid.price))
     }
   }
 
   private def returnBidToOwner[T <: WSRequest : WSAdapter](mbBid: Option[Bid]): Future[Boolean] = mbBid match {
-    case Some(v) => sendReceive(Receive(v.owner, v.price.amount))
+    case Some(v) => sendReceive(Receive(v.owner, v.price))
     case None => Future.successful(true)
   }
 

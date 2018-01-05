@@ -37,7 +37,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   def create(lot: PlaceLot): Future[LotId] = {
     val idReturn = stack returning stack.map(_.id)
     val lotIdReturn = lots returning lots.map(_.id)
-    val (item, priceItem) = (lot.item, lot.buyout.amount)
+    val (item, priceItem) = (lot.item, lot.buyout)
     val action = for {
       itemId <- idReturn += ItemStackFlat(None, item.stackValue, item.id, item.singleWeight)
       priceId <- idReturn += ItemStackFlat(None, priceItem.stackValue, priceItem.id, priceItem.singleWeight)
@@ -67,7 +67,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   def updateBid(lot: LotId, bid: Bid): Future[Boolean] = {
-    val itemToAdd = bid.price.amount
+    val itemToAdd = bid.price
     val isUpdateValid = bids.filter(b => b.lotId === lot && b.userId =!= bid.owner)
       .joinLeft(stack).on((b, s) => b.itemStackId === s.id && s.stackValue < itemToAdd.stackValue).map(_._2.nonEmpty)
 
@@ -83,7 +83,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   def revertBid(lot: LotId, toRevert: Bid, prevBid: Option[Bid]): Future[Boolean] = {
-    val itemToRevert = toRevert.price.amount
+    val itemToRevert = toRevert.price
     val selectedBid = bids.filter(b => b.lotId === lot)
     val isNotChanged = selectedBid.joinLeft(stack).on((b, s) => b.itemStackId === s.id
       && s.stackValue === itemToRevert.stackValue
@@ -104,7 +104,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   def buy(lot: LotId, withBid: Bid): Future[Lot] = {
-    val paidItem = withBid.price.amount
+    val paidItem = withBid.price
     val retrieveLot = lots.filter(b => b.id === lot && b.userId =!= withBid.owner)
     val lotWithItem = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id && s.stackValue === paidItem.stackValue)
     val priceValidated = lotWithItem.exists
@@ -140,7 +140,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   private def insertBidAction(lot: LotId, bid: Bid) = {
-    val itemToAdd = bid.price.amount
+    val itemToAdd = bid.price
     val insertItemStack = stack.returning(stack.map(_.id))
       .+=(ItemStackFlat(None, itemToAdd.stackValue, itemToAdd.id, itemToAdd.singleWeight))
 
@@ -164,14 +164,14 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   private def mapToLot(params: (LotFlat, ItemStackFlat, ItemStackFlat, Option[BidFlat], Option[ItemStackFlat])): Lot = params match {
     case (lotFlat, buyout, item, bidFlat, bidItem) =>
       lotFlat.tpe match {
-        case dealer if dealer == Dealer.`type` => Dealer(lotFlat.id.get, lotFlat.user, item.toItemStack, Price(buyout.toItemStack), lotFlat.until)
-        case strict if strict == Strict.`type` => Strict(lotFlat.id.get, lotFlat.user, item.toItemStack, Price(buyout.toItemStack), lotFlat.until)
+        case dealer if dealer == Dealer.`type` => Dealer(lotFlat.id.get, lotFlat.user, item.toItemStack, buyout.toItemStack, lotFlat.until)
+        case strict if strict == Strict.`type` => Strict(lotFlat.id.get, lotFlat.user, item.toItemStack, buyout.toItemStack, lotFlat.until)
         case nStrict if nStrict == NonStrict.`type` =>
           val mbBid = for {
             b <- bidFlat
             bItem <- bidItem
-          } yield Bid(b.user, Price(bItem.toItemStack))
-          NonStrict(lotFlat.id.get, lotFlat.user, item.toItemStack, Price(buyout.toItemStack), lotFlat.until, mbBid)
+          } yield Bid(b.user, bItem.toItemStack)
+          NonStrict(lotFlat.id.get, lotFlat.user, item.toItemStack, buyout.toItemStack, lotFlat.until, mbBid)
       }
   }
 

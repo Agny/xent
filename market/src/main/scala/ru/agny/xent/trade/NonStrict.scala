@@ -8,8 +8,8 @@ import ru.agny.xent.core.utils.UserType.UserId
   * Lot with Bid-based price
   * It remains on the Board until time is up or buyout is met
   */
-case class NonStrict(id: Long, user: UserId, item: ItemStack, buyout: Price, until: TimeStamp, lastBid: Option[Bid]) extends Lot
+case class NonStrict(id: Long, user: UserId, item: ItemStack, buyout: ItemStack, until: TimeStamp, lastBid: Option[Bid]) extends Lot
 
 object NonStrict {
-  val `type`: LotType = NonStrict(0, 0, ItemStack(0, 0, 0), Price(ItemStack(0, 0, 0)), 0, None).tpe
+  val `type`: LotType = NonStrict(0, 0, ItemStack(0, 0, 0), ItemStack(0, 0, 0), 0, None).tpe
 }
