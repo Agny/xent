@@ -24,19 +24,23 @@ object LotEntity {
 
     def buyoutId = column[Long]("buyout_id")
 
+    def minPriceId = column[Long]("min_price_id")
+
     def until = column[Long]("until")
 
     def tpe = column[LotType]("type")
 
-    override def * = (id.?, userId, itemStackId, buyoutId, until, tpe).mapTo[LotFlat]
+    override def * = (id.?, userId, itemStackId, buyoutId, minPriceId, until, tpe).mapTo[LotFlat]
 
     def user = foreignKey("user_fk", userId, users)(_.id, onDelete = ForeignKeyAction.Cascade)
 
     def itemStack = foreignKey("stack_fk", itemStackId, stack)(_.id, onDelete = ForeignKeyAction.Cascade)
 
     def buyout = foreignKey("buyout_fk", buyoutId, stack)(_.id, onDelete = ForeignKeyAction.Cascade)
+
+    def minPrice = foreignKey("min_price_fk", minPriceId, stack)(_.id, onDelete = ForeignKeyAction.Cascade)
   }
 
-  case class LotFlat(id: Option[Long], user: UserId, itemId: ItemId, priceId: ItemId, until: TimeStamp, tpe: LotType)
+  case class LotFlat(id: Option[Long], user: UserId, itemId: ItemId, priceId: ItemId, minPriceId: ItemId, until: TimeStamp, tpe: LotType)
 
 }

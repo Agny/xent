@@ -1,6 +1,7 @@
 package ru.agny.xent.trade.persistence.slick
 
 import org.reactivestreams.Publisher
+import ru.agny.xent.core.inventory.Item.ItemId
 import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.persistence.slick.ItemStackEntity.ItemStackFlat
@@ -24,9 +25,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   private val reserved = ReservedItemEntity.table
 
   def load(start: Int = 0, limit: Int = 20): Publisher[Lot] = {
-    val query = for {
-      ((((flat, buyouts), items), bids), bidItems) <- fullLoad(lots.sortBy(_.until.desc).drop(start).take(limit))
-    } yield (flat, buyouts, items, bids, bidItems)
+    val query = fullLoad(lots.sortBy(_.until.desc).drop(start).take(limit))
     db.stream(query.result.withStatementParameters(
       rsType = ResultSetType.ForwardOnly,
       rsConcurrency = ResultSetConcurrency.ReadOnly,
@@ -35,21 +34,18 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   def create(lot: PlaceLot): Future[LotId] = {
-    val idReturn = stack returning stack.map(_.id)
-    val lotIdReturn = lots returning lots.map(_.id)
-    val (item, priceItem) = (lot.item, lot.buyout)
-    val action = for {
-      itemId <- idReturn += ItemStackFlat(None, item.stackValue, item.id, item.singleWeight)
-      priceId <- idReturn += ItemStackFlat(None, priceItem.stackValue, priceItem.id, priceItem.singleWeight)
-      x <- lotIdReturn += LotFlat(None, lot.user, itemId, priceId, lot.until, lot.tpe)
-    } yield x
+    val minPriceAction = lot.tpe match {
+      case NonStrict.`type` => lot.minPrice.map(
+        x => stack returning stack.map(_.id) += ItemStackFlat(None, x.stackValue, x.id, x.singleWeight)
+      )
+      case _ => None
+    }
+    val action = insertLotAction(lot, minPriceAction)
     db.run(action.transactionally)
   }
 
   def read(lot: Long): Future[Option[Lot]] = {
-    val query = for {
-      ((((flat, buyouts), items), bids), bidItems) <- fullLoad(lots.filter(_.id === lot))
-    } yield (flat, buyouts, items, bids, bidItems)
+    val query = fullLoad(lots.filter(_.id === lot))
     db.run(query.result.headOption).map {
       case Some(x) => Some(mapToLot(x))
       case _ => None
@@ -57,9 +53,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   def findByUser(id: UserId): Future[Seq[Lot]] = {
-    val query = for {
-      ((((flat, buyouts), items), bids), bidItems) <- fullLoad(lots.filter(_.userId === id))
-    } yield (flat, buyouts, items, bids, bidItems)
+    val query = fullLoad(lots.filter(_.userId === id))
     db.run(query.result).map {
       case lots@_ +: _ => lots.map(mapToLot)
       case _ => immutable.Seq.empty
@@ -67,18 +61,22 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   def updateBid(lot: LotId, bid: Bid): Future[Boolean] = {
-    val itemToAdd = bid.price
-    val isUpdateValid = bids.filter(b => b.lotId === lot && b.userId =!= bid.owner)
-      .joinLeft(stack).on((b, s) => b.itemStackId === s.id && s.stackValue < itemToAdd.stackValue).map(_._2.nonEmpty)
+    val isGreaterThanMinPrice = lots.filter(l => l.id === lot && l.userId =!= bid.owner)
+      .join(stack).on((l, s) => l.minPriceId === s.id && s.stackValue <= bid.price.stackValue).exists
+    val isGreaterThanPrevBid = bids.filter(b => b.lotId === lot && b.userId =!= bid.owner)
+      .joinLeft(stack).on((b, s) => b.itemStackId === s.id && s.stackValue < bid.price.stackValue).map(_._2.nonEmpty)
 
-    val resultAction = isUpdateValid.result.headOption.flatMap {
-      case Some(true) | None => insertBidAction(lot, bid)
-      case _ => DBIO.failed(new IllegalStateException(s"Bid $bid can't be applied to Lot[$lot]"))
+    val resultAction = isGreaterThanPrevBid.result.headOption.flatMap {
+      case Some(true) => insertBidAction(lot, bid)
+      case None => isGreaterThanMinPrice.result.flatMap {
+        case true => insertBidAction(lot, bid)
+        case false => DBIO.failed(new IllegalStateException(s"$bid price is less than minimal price of Lot[$lot]"))
+      }
+      case _ => DBIO.failed(new IllegalStateException(s"$bid price is less than previous bid"))
     }
     db.run(resultAction.transactionally).map {
       case rowsAffected@0 => false
       case 1 => true
-      case x => println(x); throw new RuntimeException("")
     }
   }
 
@@ -110,11 +108,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     val priceValidated = lotWithItem.exists
 
     val resultAction = priceValidated.result.flatMap {
-      case true =>
-        val query = for {
-          ((((flat, buyouts), items), bids), bidItems) <- fullLoad(retrieveLot)
-        } yield (flat, buyouts, items, bids, bidItems)
-        query.result.head
+      case true => fullLoad(retrieveLot).result.head
       case _ => DBIO.failed(new IllegalStateException(s"Bid $withBid can't be applied to Lot[$lot]"))
     }
     db.run(resultAction.transactionally).map(loaded => mapToLot(loaded))
@@ -139,6 +133,18 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
+  private def insertLotAction(lot: PlaceLot, withMinPrice: Option[DBIOAction[ItemId, NoStream, Effect.Write]] = None) = {
+    val idReturn = stack returning stack.map(_.id)
+    val lotIdReturn = lots returning lots.map(_.id)
+    val (item, priceItem) = (lot.item, lot.buyout)
+    for {
+      itemId <- idReturn += ItemStackFlat(None, item.stackValue, item.id, item.singleWeight)
+      priceId <- idReturn += ItemStackFlat(None, priceItem.stackValue, priceItem.id, priceItem.singleWeight)
+      minPriceId <- withMinPrice getOrElse DBIO.successful(priceId)
+      x <- lotIdReturn += LotFlat(None, lot.user, itemId, priceId, minPriceId, lot.until, lot.tpe)
+    } yield x
+  }
+
   private def insertBidAction(lot: LotId, bid: Bid) = {
     val itemToAdd = bid.price
     val insertItemStack = stack.returning(stack.map(_.id))
@@ -151,18 +157,23 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   private def fullLoad(origin: Query[LotTable, LotTable#TableElementType, Seq]) = {
-    origin.
+    val query = origin.
       join(stack).on(_.buyoutId === _.id).
-      join(stack).on(_._1.itemStackId === _.id).
+      join(stack).on(_._1.minPriceId === _.id).
+      join(stack).on(_._1._1.itemStackId === _.id).
       joinLeft(bids).
       joinLeft(stack).on {
-      case ((((_, _), _), b), bitem) =>
+      case (((((_, _), _), _), b), bitem) =>
         b.map(_.itemStackId === bitem.id)
     }
+    for {
+      (((((flat, buyouts), items), minPrice), bids), bidItems) <- query
+    } yield (flat, buyouts, items, minPrice, bids, bidItems)
+
   }
 
-  private def mapToLot(params: (LotFlat, ItemStackFlat, ItemStackFlat, Option[BidFlat], Option[ItemStackFlat])): Lot = params match {
-    case (lotFlat, buyout, item, bidFlat, bidItem) =>
+  private def mapToLot(params: (LotFlat, ItemStackFlat, ItemStackFlat, ItemStackFlat, Option[BidFlat], Option[ItemStackFlat])): Lot = params match {
+    case (lotFlat, buyout, minPrice, item, bidFlat, bidItem) =>
       lotFlat.tpe match {
         case dealer if dealer == Dealer.`type` => Dealer(lotFlat.id.get, lotFlat.user, item.toItemStack, buyout.toItemStack, lotFlat.until)
         case strict if strict == Strict.`type` => Strict(lotFlat.id.get, lotFlat.user, item.toItemStack, buyout.toItemStack, lotFlat.until)
@@ -171,7 +182,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
             b <- bidFlat
             bItem <- bidItem
           } yield Bid(b.user, bItem.toItemStack)
-          NonStrict(lotFlat.id.get, lotFlat.user, item.toItemStack, buyout.toItemStack, lotFlat.until, mbBid)
+          NonStrict(lotFlat.id.get, lotFlat.user, item.toItemStack, buyout.toItemStack, minPrice.toItemStack, lotFlat.until, mbBid)
       }
   }
 

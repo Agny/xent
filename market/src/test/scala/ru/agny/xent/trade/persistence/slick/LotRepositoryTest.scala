@@ -40,7 +40,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   "LotRepository" should "create lot record" in {
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), 1005000, Dealer.`type`)
+    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), None, 1005000, Dealer.`type`)
     val res = repository.create(lotPlacement)
     res map { l =>
       l should not be (-1)
@@ -48,9 +48,9 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "return all user lots" in {
-    val userLot1 = PlaceLot(specifiedUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), 1005000, Dealer.`type`)
-    val userLot2 = PlaceLot(specifiedUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), 1005000, Dealer.`type`)
-    val otherLot = PlaceLot(otherUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), 1005000, Dealer.`type`)
+    val userLot1 = PlaceLot(specifiedUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), None, 1005000, Dealer.`type`)
+    val userLot2 = PlaceLot(specifiedUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), None, 1005000, Dealer.`type`)
+    val otherLot = PlaceLot(otherUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), None, 1005000, Dealer.`type`)
     val result = for {
       _ <- repository.create(userLot1)
       _ <- repository.create(userLot2)
@@ -65,7 +65,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
 
   it should "create itemstack and buyout entities along with lot" in {
     val item = ItemStack(1, referenceItem.id, 1)
-    val lotPlacement = PlaceLot(userId, item, item, 1005000, NonStrict.`type`)
+    val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
     val result = for {
       lot <- repository.create(lotPlacement)
       fullLoaded <- repository.read(lot)
@@ -81,8 +81,8 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
 
   it should "update lot's bid" in {
     val item = ItemStack(1, referenceItem.id, 1)
-    val lotPlacement = PlaceLot(userId, item, item, 1005000, NonStrict.`type`)
-    val bid = Bid(userId, item)
+    val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
+    val bid = Bid(otherUserId, item)
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
       _ <- repository.updateBid(lot, bid)
@@ -98,7 +98,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "fail to update bid by less price than lot's bid has" in {
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(5, referenceItem.id, 1), 1005000, NonStrict.`type`)
+    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(5, referenceItem.id, 1), None, 1005000, NonStrict.`type`)
     val bid = Bid(userId, ItemStack(3, referenceItem.id, 1))
     val smallerBid = Bid(otherUserId, ItemStack(2, referenceItem.id, 1))
     val updatedLot = for {
@@ -113,7 +113,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
 
   it should "return lot when buying" in {
     val itemToSell = ItemStack(5, referenceItem.id, 1)
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), itemToSell, 1005000, NonStrict.`type`)
+    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), itemToSell, None, 1005000, NonStrict.`type`)
     val buyoutBid = Bid(otherUserId, ItemStack(5, referenceItem.id, 1))
     val result = for {
       lot <- repository.create(lotPlacement)
@@ -126,8 +126,33 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     }
   }
 
+  it should "not let user to bid on his own lot" in {
+    val item = ItemStack(1, referenceItem.id, 1)
+    val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
+    val bid = Bid(userId, item)
+    val updatedLot = for {
+      lot <- repository.create(lotPlacement)
+      failHere <- repository.updateBid(lot, bid)
+      withUpdatedBid <- repository.read(lot)
+    } yield withUpdatedBid
+
+    recoverToSucceededIf[IllegalStateException](updatedLot)
+  }
+
+  it should "not let user to buy his own lot" in {
+    val item = ItemStack(1, referenceItem.id, 1)
+    val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
+    val bid = Bid(userId, item)
+    val result = for {
+      lot <- repository.create(lotPlacement)
+      failHere <- repository.buy(lot, bid)
+    } yield failHere
+
+    recoverToSucceededIf[IllegalStateException](result)
+  }
+
   it should "fail to buy lot by less price than lot's buyout" in {
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(5, referenceItem.id, 1), 1005000, NonStrict.`type`)
+    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(5, referenceItem.id, 1), None, 1005000, NonStrict.`type`)
     val notHighEnoughBid = Bid(userId, ItemStack(4, referenceItem.id, 1))
     val result = for {
       lot <- repository.create(lotPlacement)
