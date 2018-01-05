@@ -102,7 +102,7 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
     val biddedPrice = Price(unspendableItemStack)
     val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), actualPrice, 1000, NonStrict.`type`)
     val add = Add(placeLot)
-    val buy = (lotId: LotId) => Buy(lotId, Bid(userId, biddedPrice))
+    val buy = (lotId: LotId) => Buy(lotId, Bid(otherUserId, biddedPrice))
     val result = for {
       _ <- underTest.offer(add)
       lot <- lots.findByUser(userId)
@@ -121,7 +121,7 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
     val price = Price(ItemStack(2, referenceItem.id, 20))
     val placeLot = PlaceLot(userId, ItemStack(1, referenceItem.id, 20), price, 1000, NonStrict.`type`)
     val add = Add(placeLot)
-    val buy = (lotId: LotId) => Buy(lotId, Bid(userId, price))
+    val buy = (lotId: LotId) => Buy(lotId, Bid(otherUserId, price))
     val result = for {
       _ <- underTest.offer(add)
       lot <- lots.findByUser(userId)

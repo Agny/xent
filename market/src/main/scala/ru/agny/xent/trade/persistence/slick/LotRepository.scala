@@ -70,12 +70,12 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
 
   def updateBid(lot: LotId, bid: Bid): Future[Boolean] = {
     val itemToAdd = bid.price.amount
-    val isUpdateValid = bids.filter(_.lotId === lot)
+    val isUpdateValid = bids.filter(b => b.lotId === lot && b.userId =!= bid.owner)
       .joinLeft(stack).on((b, s) => b.itemStackId === s.id && s.stackValue < itemToAdd.stackValue).map(_._2.nonEmpty)
 
     val resultAction = isUpdateValid.result.headOption.flatMap {
       case Some(true) | None => insertBidAction(lot, bid)
-      case _ => DBIO.failed(new IllegalStateException(s"Bid with price ${bid.price} is less than current bidded price of Lot[$lot]")) // TODO error handle
+      case _ => DBIO.failed(new IllegalStateException(s"Bid $bid can't be applied to Lot[$lot]"))
     }
     db.run(resultAction.transactionally).map {
       case rowsAffected@0 => false
@@ -105,18 +105,18 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
-  def buy(lotId: LotId, withBid: Bid): Future[BoughtFrom] = {
+  def buy(lot: LotId, withBid: Bid): Future[BoughtFrom] = {
     val paidItem = withBid.price.amount
-    val retrieveLot = lots.filter(_.id === lotId)
+    val retrieveLot = lots.filter(b => b.id === lot && b.userId =!= withBid.owner)
     val lotWithItem = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id && s.stackValue === paidItem.stackValue)
     val priceValidated = lotWithItem.exists
 
     val resultAction = priceValidated.result.flatMap {
       case true => lotWithItem.result.head
-      case _ => DBIO.failed(new IllegalStateException(s"Bidded price ${withBid.price} isn't high enough to buyout lot[$lotId] or lot doesn't exist"))
+      case _ => DBIO.failed(new IllegalStateException(s"Bid $withBid can't be applied to Lot[$lot]"))
     }
     db.run(resultAction.transactionally).map {
-      case (lot, item) => (lot.user, item.toItemStack)
+      case (lt, item) => (lt.user, item.toItemStack)
     }
   }
 
