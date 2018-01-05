@@ -100,7 +100,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   it should "fail to update bid by less price than lot's bid has" in {
     val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), Price(ItemStack(5, referenceItem.id, 1)), 1005000, NonStrict.`type`)
     val bid = Bid(userId, Price(ItemStack(3, referenceItem.id, 1)))
-    val smallerBid = Bid(userId, Price(ItemStack(2, referenceItem.id, 1)))
+    val smallerBid = Bid(otherUserId, Price(ItemStack(2, referenceItem.id, 1)))
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
       _ <- repository.updateBid(lot, bid)
@@ -114,7 +114,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   it should "return lot seller and item when buying" in {
     val itemToSell = ItemStack(5, referenceItem.id, 1)
     val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), Price(itemToSell), 1005000, NonStrict.`type`)
-    val buyoutBid = Bid(userId, Price(ItemStack(5, referenceItem.id, 1)))
+    val buyoutBid = Bid(otherUserId, Price(ItemStack(5, referenceItem.id, 1)))
     val result = for {
       lot <- repository.create(lotPlacement)
       (seller, sold) <- repository.buy(lot, buyoutBid)
