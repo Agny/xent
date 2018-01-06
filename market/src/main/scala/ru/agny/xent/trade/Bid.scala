@@ -1,6 +1,5 @@
 package ru.agny.xent.trade
 
-import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.utils.UserType.UserId
 
-case class Bid(owner: UserId, price: ItemStack)
+case class Bid(owner: UserId, price: ItemHolder)

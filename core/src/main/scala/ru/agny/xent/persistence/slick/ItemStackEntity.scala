@@ -1,8 +1,7 @@
 package ru.agny.xent.persistence.slick
 
 import slick.jdbc.PostgresProfile.api._
-import ru.agny.xent.core.inventory.Item.{ItemId, ItemWeight}
-import ru.agny.xent.core.inventory.ItemStack
+import ru.agny.xent.core.inventory.Item.ItemId
 
 object ItemStackEntity {
   private lazy val items = ItemTemplateEntity.table
@@ -15,13 +14,9 @@ object ItemStackEntity {
 
     def itemId = column[ItemId]("item")
 
-    def singleWeight = column[ItemWeight]("weight")
-
-    override def * = (id.?, stackValue, itemId, singleWeight).mapTo[ItemStackFlat]
+    override def * = (id.?, stackValue, itemId).mapTo[ItemStackFlat]
 
     def item = foreignKey("item_fk", itemId, items)(_.id, onDelete = ForeignKeyAction.Cascade)
   }
-  case class ItemStackFlat(id: Option[Long], stackValue: Int, itemId: ItemId, singleWeight: ItemWeight) {
-    def toItemStack: ItemStack = ItemStack(stackValue, itemId, singleWeight)
-  }
+  case class ItemStackFlat(id: Option[Long], stackValue: Int, itemId: ItemId)
 }

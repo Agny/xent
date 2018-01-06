@@ -3,7 +3,6 @@ package ru.agny.xent.trade
 import akka.stream.scaladsl.Source
 import com.typesafe.scalalogging.LazyLogging
 import ru.agny.xent.core.Layer.LayerId
-import ru.agny.xent.core.inventory.ItemStack
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.messages.{PlainResponse, ResponseFailure, ResponseOk}
 import ru.agny.xent.trade.Lot.LotId
@@ -47,12 +46,12 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     )
   }
 
-  private def buy[T <: WSRequest : WSAdapter](lotId: LotId, bid: Bid): Future[PlainResponse] = {
+  private def buy[T <: WSRequest : WSAdapter](lotId: LotId, buyer: UserId): Future[PlainResponse] = {
     val wsAdapter = implicitly[WSAdapter[T]]
-    val spend = Spend(bid.owner, bid.price)
+    val spend = (price: ItemHolder) => Spend(buyer, price)
     val prepareToSpend = for {
-      lot <- lotRepository.buyPreparement(lotId, bid)
-      isAllowed <- wsAdapter.send("item_spend", spend)
+      lot <- lotRepository.buyPreparement(lotId, buyer)
+      isAllowed <- wsAdapter.send("item_spend", spend(lot.item))
     } yield (lot, isAllowed)
 
     prepareToSpend.transformWith {
@@ -62,7 +61,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
             lotRepository.delete(lotId).recover {
               case t: Throwable => logger.error("bought lot deletion failure {}", t)
             }
-            sendItems(lot, (lot.user, lot.item), (bid.owner, bid.price))
+            sendItems(lot, (lot.user, lot.item), (buyer, lot.buyout))
             Future.successful(ResponseOk)
           case ResponseFailure =>
             logger.warn("buy operation is denied for {}", spend)
@@ -97,13 +96,13 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     lotRepository.read(lotId).flatMap {
       case Some(lotRead: Dealer) if lotRead.tpe == Dealer.`type` =>
         val item = lotRead.item
-        val toSell = if (item.stackValue < amount) item.stackValue else amount
-        val soldPrice = (sold: Int) => sold * lotRead.buyout.stackValue
+        val toSell = if (item.amount < amount) item else ItemHolder(item.id, amount)
+        val soldPrice = (sold: Int) => ItemHolder(item.id, sold * lotRead.buyout.amount)
         for {
-          sold <- lotRepository.sell(lotId, user, toSell)
-          verified <- verifyPlacement(user, ItemStack(soldPrice(sold), item.id, item.singleWeight))
+          sold <- lotRepository.sell(lotId, user, toSell.amount)
+          verified <- verifyPlacement(user, soldPrice(sold))
           _ <- complete(verified,
-            sendItems(lotRead, (lotRead.user, item.copy(stackValue = toSell)), (user, lotRead.buyout.copy(stackValue = soldPrice(sold)))),
+            sendItems(lotRead, (lotRead.user, toSell), (user, soldPrice(sold))),
             lotRepository.revertSell(lotId, sold))
         } yield verified
       case None =>
@@ -115,7 +114,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     }
   }
 
-  private def verifyPlacement[T <: WSRequest : WSAdapter](byUser: UserId, payment: ItemStack): Future[PlainResponse] = {
+  private def verifyPlacement[T <: WSRequest : WSAdapter](byUser: UserId, payment: ItemHolder): Future[PlainResponse] = {
     val wsAdapter = implicitly[WSAdapter[T]]
     wsAdapter.send("item_spend", Spend(byUser, payment)).flatMap {
       case ResponseOk => Future.successful(ResponseOk)
@@ -131,7 +130,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     if (verification == ResponseFailure) cancellation else success
   }
 
-  private def sendItems[T <: WSRequest : WSAdapter](lot: Lot, itemOut: (UserId, ItemStack), itemIn: (UserId, ItemStack)): Future[Boolean] = {
+  private def sendItems[T <: WSRequest : WSAdapter](lot: Lot, itemOut: (UserId, ItemHolder), itemIn: (UserId, ItemHolder)): Future[Boolean] = {
     sendReceive(Receive(itemIn._1, itemOut._2))
     sendReceive(Receive(itemOut._1, itemIn._2))
     lot match {
@@ -163,11 +162,11 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
 object Board {
   sealed trait BoardMessage
   final case class Add(lot: PlaceLot) extends BoardMessage
-  final case class Buy(lot: LotId, bid: Bid) extends BoardMessage
+  final case class Buy(lot: LotId, buyer: UserId) extends BoardMessage
   final case class PlaceBid(lot: LotId, bid: Bid) extends BoardMessage
   final case class Sell(toLot: LotId, amount: Int, user: UserId) extends BoardMessage
 
   sealed trait ItemCommand
-  final case class Spend(user: UserId, items: ItemStack) extends ItemCommand
-  final case class Receive(user: UserId, items: ItemStack) extends ItemCommand
+  final case class Spend(user: UserId, items: ItemHolder) extends ItemCommand
+  final case class Receive(user: UserId, items: ItemHolder) extends ItemCommand
 }

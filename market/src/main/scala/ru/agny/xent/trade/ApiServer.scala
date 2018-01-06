@@ -6,6 +6,7 @@ import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSup
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.typesafe.scalalogging.LazyLogging
+import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.trade.Board._
 import ru.agny.xent.trade.persistence.slick.MarketInitializer
 
@@ -67,8 +68,8 @@ object ApiServer extends LazyLogging {
       }
     } ~ path("buy" / LongNumber) { lotId: Long =>
       post {
-        entity(as[Bid]) { bid =>
-          complete(board.offer(Buy(lotId, bid)))
+        parameter(pdm = 'uid.as[UserId]) { buyer =>
+          complete(board.offer(Buy(lotId, buyer)))
         }
       }
     }

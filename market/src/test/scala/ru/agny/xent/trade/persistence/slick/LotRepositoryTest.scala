@@ -1,7 +1,7 @@
 package ru.agny.xent.trade.persistence.slick
 
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
-import ru.agny.xent.core.inventory.{Item, ItemStack}
+import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.persistence.slick.{DbConfig, ItemRepository, UserRepository}
 import ru.agny.xent.trade._
@@ -40,7 +40,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   "LotRepository" should "create lot record" in {
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), None, 1005000, Dealer.`type`)
+    val lotPlacement = PlaceLot(userId, ItemHolder(referenceItem.id, 1), ItemHolder(referenceItem.id, 1), None, 1005000, Dealer.`type`)
     val res = repository.create(lotPlacement)
     res map { l =>
       l should not be (-1)
@@ -48,9 +48,9 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "return all user lots" in {
-    val userLot1 = PlaceLot(specifiedUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), None, 1005000, Dealer.`type`)
-    val userLot2 = PlaceLot(specifiedUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), None, 1005000, Dealer.`type`)
-    val otherLot = PlaceLot(otherUserId, ItemStack(1, referenceItem.id, 1), ItemStack(1, referenceItem.id, 1), None, 1005000, Dealer.`type`)
+    val userLot1 = PlaceLot(specifiedUserId, ItemHolder(referenceItem.id, 1), ItemHolder(referenceItem.id, 1), None, 1005000, Dealer.`type`)
+    val userLot2 = PlaceLot(specifiedUserId, ItemHolder(referenceItem.id, 1), ItemHolder(referenceItem.id, 1), None, 1005000, Dealer.`type`)
+    val otherLot = PlaceLot(otherUserId, ItemHolder(referenceItem.id, 1), ItemHolder(referenceItem.id, 1), None, 1005000, Dealer.`type`)
     val result = for {
       _ <- repository.create(userLot1)
       _ <- repository.create(userLot2)
@@ -63,8 +63,8 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     }
   }
 
-  it should "create itemstack and buyout entities along with lot" in {
-    val item = ItemStack(1, referenceItem.id, 1)
+  it should "create ItemHolder and buyout entities along with lot" in {
+    val item = ItemHolder(referenceItem.id, 1)
     val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
     val result = for {
       lot <- repository.create(lotPlacement)
@@ -80,7 +80,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "update lot's bid" in {
-    val item = ItemStack(1, referenceItem.id, 1)
+    val item = ItemHolder(referenceItem.id, 1)
     val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
     val bid = Bid(otherUserId, item)
     val updatedLot = for {
@@ -98,9 +98,9 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "fail to update bid by less price than lot's bid has" in {
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(5, referenceItem.id, 1), None, 1005000, NonStrict.`type`)
-    val bid = Bid(userId, ItemStack(3, referenceItem.id, 1))
-    val smallerBid = Bid(otherUserId, ItemStack(2, referenceItem.id, 1))
+    val lotPlacement = PlaceLot(userId, ItemHolder(referenceItem.id, 1), ItemHolder(referenceItem.id, 5), None, 1005000, NonStrict.`type`)
+    val bid = Bid(userId, ItemHolder(referenceItem.id, 3))
+    val smallerBid = Bid(otherUserId, ItemHolder(referenceItem.id, 2))
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
       _ <- repository.updateBid(lot, bid)
@@ -112,12 +112,11 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "return lot when buying" in {
-    val itemToSell = ItemStack(5, referenceItem.id, 1)
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), itemToSell, None, 1005000, NonStrict.`type`)
-    val buyoutBid = Bid(otherUserId, ItemStack(5, referenceItem.id, 1))
+    val itemToSell = ItemHolder(referenceItem.id, 5)
+    val lotPlacement = PlaceLot(userId, ItemHolder(referenceItem.id, 1), itemToSell, None, 1005000, NonStrict.`type`)
     val result = for {
       lot <- repository.create(lotPlacement)
-      loaded <- repository.buyPreparement(lot, buyoutBid)
+      loaded <- repository.buyPreparement(lot, otherUserId)
     } yield (lot, loaded)
 
     result map { case (lotId, toBuy) =>
@@ -127,7 +126,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "not let user to bid on his own lot" in {
-    val item = ItemStack(1, referenceItem.id, 1)
+    val item = ItemHolder(referenceItem.id, 1)
     val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
     val bid = Bid(userId, item)
     val updatedLot = for {
@@ -140,25 +139,13 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
   }
 
   it should "not let user to buy his own lot" in {
-    val item = ItemStack(1, referenceItem.id, 1)
+    val item = ItemHolder(referenceItem.id, 1)
     val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
     val bid = Bid(userId, item)
     val result = for {
       lot <- repository.create(lotPlacement)
-      failHere <- repository.buyPreparement(lot, bid)
+      failHere <- repository.buyPreparement(lot, userId)
     } yield failHere
-
-    recoverToSucceededIf[IllegalStateException](result)
-  }
-
-  it should "fail to buy lot by less price than lot's buyout" in {
-    val lotPlacement = PlaceLot(userId, ItemStack(1, referenceItem.id, 1), ItemStack(5, referenceItem.id, 1), None, 1005000, NonStrict.`type`)
-    val notHighEnoughBid = Bid(userId, ItemStack(4, referenceItem.id, 1))
-    val result = for {
-      lot <- repository.create(lotPlacement)
-      rowsAffected <- repository.buyPreparement(lot, notHighEnoughBid)
-      lotNone <- repository.read(lot)
-    } yield (rowsAffected, lotNone)
 
     recoverToSucceededIf[IllegalStateException](result)
   }
