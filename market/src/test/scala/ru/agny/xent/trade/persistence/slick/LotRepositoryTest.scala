@@ -117,7 +117,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val buyoutBid = Bid(otherUserId, ItemStack(5, referenceItem.id, 1))
     val result = for {
       lot <- repository.create(lotPlacement)
-      loaded <- repository.buy(lot, buyoutBid)
+      loaded <- repository.buyPreparement(lot, buyoutBid)
     } yield (lot, loaded)
 
     result map { case (lotId, toBuy) =>
@@ -145,7 +145,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val bid = Bid(userId, item)
     val result = for {
       lot <- repository.create(lotPlacement)
-      failHere <- repository.buy(lot, bid)
+      failHere <- repository.buyPreparement(lot, bid)
     } yield failHere
 
     recoverToSucceededIf[IllegalStateException](result)
@@ -156,7 +156,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val notHighEnoughBid = Bid(userId, ItemStack(4, referenceItem.id, 1))
     val result = for {
       lot <- repository.create(lotPlacement)
-      rowsAffected <- repository.buy(lot, notHighEnoughBid)
+      rowsAffected <- repository.buyPreparement(lot, notHighEnoughBid)
       lotNone <- repository.read(lot)
     } yield (rowsAffected, lotNone)
 

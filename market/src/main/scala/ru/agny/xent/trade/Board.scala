@@ -30,6 +30,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
       case Add(lot) => addLot(lot)
       case Buy(lot, bid) => buy(lot, bid)
       case PlaceBid(lot, bid) => placeBid(lot, bid)
+      case Sell(lot, amount, user) => sell(lot, amount, user)
     }
   }
 
@@ -50,7 +51,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     val wsAdapter = implicitly[WSAdapter[T]]
     val spend = Spend(bid.owner, bid.price)
     val prepareToSpend = for {
-      lot <- lotRepository.buy(lotId, bid)
+      lot <- lotRepository.buyPreparement(lotId, bid)
       isAllowed <- wsAdapter.send("item_spend", spend)
     } yield (lot, isAllowed)
 
@@ -61,7 +62,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
             lotRepository.delete(lotId).recover {
               case t: Throwable => logger.error("bought lot deletion failure {}", t)
             }
-            sendItems(lot, bid)
+            sendItems(lot, (lot.user, lot.item), (bid.owner, bid.price))
             Future.successful(ResponseOk)
           case ResponseFailure =>
             logger.warn("buy operation is denied for {}", spend)
@@ -79,13 +80,37 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
         for {
           _ <- lotRepository.updateBid(lot, bid)
           verified <- verifyPlacement(bid.owner, bid.price)
-          _ <- revertBidIfNeeded(verified, lotRead, bid)
+          _ <- complete(verified,
+            returnOldBidToOwner(lotRead.lastBid),
+            lotRepository.revertBid(lot, bid, lotRead.lastBid))
         } yield verified
       case None =>
         logger.info("lot {} is not found", lot)
         Future.successful(ResponseFailure)
       case _ =>
         logger.warn("lot {} is not biddable", lot)
+        Future.successful(ResponseFailure)
+    }
+  }
+
+  private def sell(lotId: LotId, amount: Int, user: UserId): Future[PlainResponse] = {
+    lotRepository.read(lotId).flatMap {
+      case Some(lotRead: Dealer) if lotRead.tpe == Dealer.`type` =>
+        val item = lotRead.item
+        val toSell = if (item.stackValue < amount) item.stackValue else amount
+        val soldPrice = (sold: Int) => sold * lotRead.buyout.stackValue
+        for {
+          sold <- lotRepository.sell(lotId, user, toSell)
+          verified <- verifyPlacement(user, ItemStack(soldPrice(sold), item.id, item.singleWeight))
+          _ <- complete(verified,
+            sendItems(lotRead, (lotRead.user, item.copy(stackValue = toSell)), (user, lotRead.buyout.copy(stackValue = soldPrice(sold)))),
+            lotRepository.revertSell(lotId, sold))
+        } yield verified
+      case None =>
+        logger.info("lot {} is not found", lotId)
+        Future.successful(ResponseFailure)
+      case _ =>
+        logger.warn("lot {} is not sellable", lotId)
         Future.successful(ResponseFailure)
     }
   }
@@ -100,24 +125,22 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     }
   }
 
-  private def revertBidIfNeeded[T <: WSRequest : WSAdapter](verification: PlainResponse, lot: NonStrict, toRevert: Bid) = {
-    if (verification == ResponseFailure) lotRepository.revertBid(lot.id, toRevert, lot.lastBid)
-    else returnBidToOwner(lot.lastBid)
+  private def complete(verification: PlainResponse,
+                       success: => Future[Boolean],
+                       cancellation: => Future[Boolean]) = {
+    if (verification == ResponseFailure) cancellation else success
   }
 
-  private def sendItems[T <: WSRequest : WSAdapter](lot: Lot, bid: Bid): Future[Boolean] = {
+  private def sendItems[T <: WSRequest : WSAdapter](lot: Lot, itemOut: (UserId, ItemStack), itemIn: (UserId, ItemStack)): Future[Boolean] = {
+    sendReceive(Receive(itemIn._1, itemOut._2))
+    sendReceive(Receive(itemOut._1, itemIn._2))
     lot match {
-      case x: NonStrict =>
-        sendReceive(Receive(bid.owner, lot.item))
-        sendReceive(Receive(lot.user, bid.price))
-        returnBidToOwner(x.lastBid)
-      case _ =>
-        sendReceive(Receive(bid.owner, lot.item))
-        sendReceive(Receive(lot.user, bid.price))
+      case x: NonStrict => returnOldBidToOwner(x.lastBid)
+      case _ => Future.successful(true)
     }
   }
 
-  private def returnBidToOwner[T <: WSRequest : WSAdapter](mbBid: Option[Bid]): Future[Boolean] = mbBid match {
+  private def returnOldBidToOwner[T <: WSRequest : WSAdapter](mbBid: Option[Bid]): Future[Boolean] = mbBid match {
     case Some(v) => sendReceive(Receive(v.owner, v.price))
     case None => Future.successful(true)
   }
@@ -142,6 +165,7 @@ object Board {
   final case class Add(lot: PlaceLot) extends BoardMessage
   final case class Buy(lot: LotId, bid: Bid) extends BoardMessage
   final case class PlaceBid(lot: LotId, bid: Bid) extends BoardMessage
+  final case class Sell(toLot: LotId, amount: Int, user: UserId) extends BoardMessage
 
   sealed trait ItemCommand
   final case class Spend(user: UserId, items: ItemStack) extends ItemCommand

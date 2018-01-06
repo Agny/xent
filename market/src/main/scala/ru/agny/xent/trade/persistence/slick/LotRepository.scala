@@ -101,7 +101,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
-  def buy(lot: LotId, withBid: Bid): Future[Lot] = {
+  def buyPreparement(lot: LotId, withBid: Bid): Future[Lot] = {
     val paidItem = withBid.price
     val retrieveLot = lots.filter(b => b.id === lot && b.userId =!= withBid.owner)
     val lotWithItem = retrieveLot.join(stack).on((l, s) =>
@@ -127,6 +127,41 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
       case rowsAffected@0 => false
       case 1 => true
     }
+  }
+
+  def sell(lotId: LotId, seller: UserId, amount: Int): Future[Int] = {
+    val lot = lots.filter(x => x.id === lotId && x.userId =!= seller)
+    val lotWithItem = for {
+      (l, item) <- lot
+        .join(stack)
+        .on(_.itemStackId === _.id)
+    } yield (l, item)
+    val action = lotWithItem.result.headOption.flatMap {
+      case Some((_, item)) =>
+        val amountToSell = if (item.stackValue < amount) item.stackValue else amount
+        val update = stack.filter(_.id === item.id).update(item.copy(stackValue = item.stackValue - amountToSell))
+        update.flatMap(_ => DBIO.successful(amountToSell))
+      case _ => DBIO.failed(new IllegalStateException(s"Lot[$lot] is completed"))
+    }
+
+    db.run(action)
+  }
+
+  def revertSell(lotId: LotId, amountBack: Int): Future[Boolean] = {
+    val lot = lots.filter(x => x.id === lotId)
+    val lotWithItem = for {
+      (l, item) <- lot
+        .join(stack)
+        .on(_.itemStackId === _.id)
+    } yield (l, item)
+
+    val action = lotWithItem.result.headOption.flatMap {
+      case Some((_, item)) =>
+        val update = stack.filter(_.id === item.id).update(item.copy(stackValue = item.stackValue + amountBack))
+        update.flatMap(_ => DBIO.successful(true))
+      case _ => DBIO.failed(new IllegalStateException(s"Lot[$lot] is completed"))
+    }
+    db.run(action)
   }
 
   def delete(lot: LotId): Future[Boolean] = {
