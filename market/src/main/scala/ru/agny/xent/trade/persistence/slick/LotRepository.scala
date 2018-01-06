@@ -104,7 +104,10 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   def buy(lot: LotId, withBid: Bid): Future[Lot] = {
     val paidItem = withBid.price
     val retrieveLot = lots.filter(b => b.id === lot && b.userId =!= withBid.owner)
-    val lotWithItem = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id && s.stackValue === paidItem.stackValue)
+    val lotWithItem = retrieveLot.join(stack).on((l, s) =>
+      l.buyoutId === s.id &&
+        s.itemId === paidItem.id &&
+        s.stackValue === paidItem.stackValue)
     val priceValidated = lotWithItem.exists
 
     val resultAction = priceValidated.result.flatMap {
