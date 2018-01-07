@@ -150,4 +150,40 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     recoverToSucceededIf[IllegalStateException](result)
   }
 
+  it should "sell specified amount of Dealer lot" in {
+    val item = ItemHolder(referenceItem.id, 5)
+    val price = ItemHolder(referenceItem.id, 8)
+    val toSell = 2
+    val lotPlacement = PlaceLot(userId, item, price, None, 1005000, Dealer.`type`)
+    val updated = for {
+      lot <- repository.create(lotPlacement)
+      sold <- repository.sell(lot, otherUserId, toSell)
+      updated <- repository.read(lot)
+    } yield (sold, updated)
+
+    updated map {
+      case (soldAmount, Some(lot)) =>
+        soldAmount should be(toSell)
+        lot.item should be(ItemHolder(item.id, item.amount - soldAmount))
+    }
+  }
+
+  it should "sell all items if specified amount is greater than current amount" in {
+    val item = ItemHolder(referenceItem.id, 5)
+    val price = ItemHolder(referenceItem.id, 8)
+    val toSell = 10
+    val lotPlacement = PlaceLot(userId, item, price, None, 1005000, Dealer.`type`)
+    val updated = for {
+      lot <- repository.create(lotPlacement)
+      sold <- repository.sell(lot, otherUserId, toSell)
+      updated <- repository.read(lot)
+    } yield (sold, updated)
+
+    updated map {
+      case (soldAmount, Some(lot)) =>
+        soldAmount should be(item.amount)
+        lot.item should be(ItemHolder(item.id, 0))
+    }
+  }
+
 }
