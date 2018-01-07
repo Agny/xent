@@ -106,10 +106,13 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     val priceValidated = lotWithPrice.exists
 
     val resultAction = priceValidated.result.flatMap {
-      case true => fullLoad(retrieveLot).result.head
+      case true => fullLoad(retrieveLot).result.headOption
       case _ => DBIO.failed(new IllegalStateException(s"User[$buyer] can't buy his own Lot[$lot]"))
     }
-    db.run(resultAction.transactionally).map(loaded => mapToLot(loaded))
+    db.run(resultAction.transactionally).flatMap {
+      case Some(v) => Future.successful(mapToLot(v))
+      case None => Future.failed(new IllegalStateException(s"Lot[$lot] is already deleted"))
+    }
   }
 
   def reserveItem(forUser: UserId, item: ItemHolder): Future[Boolean] = {

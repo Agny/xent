@@ -46,6 +46,17 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     )
   }
 
+  /**
+    * Buy operation is considered complete if next conditions are met:
+    * 1) lot to buy exists in database;
+    * 2) buyer has sufficient funds to cover lot price;
+    * 3) lot successfully deleted.
+    *
+    * 3-rd rule is significant due to transactional nature of operation, which I have to emulate because
+    * I don't want to create long transaction locks (and they're will be long cause websocket connection
+    * is created to ask another service about funds of buyer)
+    *
+    */
   private def buy[T <: WSRequest : WSAdapter](lotId: LotId, buyer: UserId): Future[PlainResponse] = {
     val wsAdapter = implicitly[WSAdapter[T]]
     val spend = (price: ItemHolder) => Spend(buyer, price)
@@ -55,18 +66,7 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     } yield (lot, isAllowed)
 
     prepareToSpend.transformWith {
-      case Success((lot, isAllowed)) =>
-        isAllowed match {
-          case ResponseOk =>
-            lotRepository.delete(lotId).recover {
-              case t: Throwable => logger.error("bought lot deletion failure {}", t)
-            }
-            sendItems(lot, (lot.user, lot.item), (buyer, lot.buyout))
-            Future.successful(ResponseOk)
-          case ResponseFailure =>
-            logger.warn("buy operation is denied for {}", spend)
-            Future.successful(ResponseFailure)
-        }
+      case Success((lot, isAllowed)) => buyComplete(lot, buyer, isAllowed)
       case Failure(t) =>
         logger.error("lot buyout failed", t)
         Future.failed(t)
@@ -139,11 +139,16 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
   }
 
   private def returnOldBidToOwner[T <: WSRequest : WSAdapter](mbBid: Option[Bid]): Future[Boolean] = mbBid match {
-    case Some(v) => sendReceive(Receive(v.owner, v.price))
+    case Some(v) => returnItemsToOwner(v.owner, v.price)
     case None => Future.successful(true)
   }
 
+  private def returnItemsToOwner[T <: WSRequest : WSAdapter](owner: UserId, items: ItemHolder): Future[Boolean] = {
+    sendReceive(Receive(owner, items))
+  }
+
   private def sendReceive[T <: WSRequest : WSAdapter](msg: Receive): Future[Boolean] = {
+    logger.debug("Got message to send {}", msg)
     val wsAdapter = implicitly[WSAdapter[T]]
     val sendResult = wsAdapter.send("item_receive", msg)
     sendResult.transformWith {
@@ -154,6 +159,24 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
         }
         Future.successful(false)
       case _ => Future.successful(true)
+    }
+  }
+
+  private def buyComplete[T <: WSRequest : WSAdapter](lot: Lot, buyer: UserId, verification: PlainResponse) = {
+    verification match {
+      case ResponseOk =>
+        lotRepository.delete(lot.id).transform {
+          case Success(true) =>
+            sendItems(lot, (lot.user, lot.item), (buyer, lot.buyout))
+            Success(ResponseOk)
+          case x@(Failure(_) | Success(false)) =>
+            logger.error("bought lot deletion failure {}", x)
+            returnItemsToOwner(buyer, lot.buyout)
+            Success(ResponseFailure)
+        }
+      case ResponseFailure =>
+        logger.warn("buy operation is denied for buyer {} and lot {}", buyer, lot)
+        Future.successful(ResponseFailure)
     }
   }
 }

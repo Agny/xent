@@ -1,10 +1,10 @@
 package ru.agny.xent.trade
 
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 import ru.agny.xent.core.inventory.Item
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.messages.{ResponseFailure, ResponseOk}
-import ru.agny.xent.persistence.slick.{DbConfig, ItemRepository, UserRepository}
+import ru.agny.xent.persistence.slick.{DbConfig, ItemRepository, ItemStackRepository, UserRepository}
 import ru.agny.xent.trade.Board._
 import ru.agny.xent.trade.Lot.LotId
 import ru.agny.xent.trade.persistence.slick.{LotRepository, MarketInitializer, ReservedItemRepository}
@@ -12,14 +12,16 @@ import ru.agny.xent.web.IncomeMessage
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.util.Success
 
-class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
+class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
 
   val underTest = Board("layer", DbConfig.path)
   implicit val stubRequestBuilder = StubRequestBuilder
 
   val lots = LotRepository(DbConfig.path)
   val items = ItemRepository(DbConfig.path)
+  val stacks = ItemStackRepository(DbConfig.path)
   val users = UserRepository(DbConfig.path)
   val reserves = ReservedItemRepository(DbConfig.path)
 
@@ -32,15 +34,19 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
   var userId: UserId = _
   var otherUserId: UserId = _
 
-  override protected def beforeEach(): Unit = {
+  override protected def beforeAll(): Unit = {
     MarketInitializer.forConfig(DbConfig.path).init()
     items.create(referenceItem)
-
     userId = Await.result(users.create("Test"), 1 seconds)
     otherUserId = Await.result(users.create("Test"), 1 seconds)
   }
 
   override protected def afterEach(): Unit = {
+    reserves.clean()
+    stacks.clean()
+  }
+
+  override protected def afterAll() = {
     items.delete(referenceItem.id)
     users.delete(userId)
     users.delete(otherUserId)
@@ -124,6 +130,45 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
         emptyLots should be(Seq.empty)
         sellerReserve.size should be(1)
         buyerReserve.size should be(1)
+    }
+  }
+
+  it should "handle simultaneous buy attempts" in {
+    val price = unreceivableItemStack
+    val placeLot = PlaceLot(userId, price, price, None, 1000, NonStrict.`type`)
+    val add = Add(placeLot)
+    val lotId = for {
+      _ <- underTest.offer(add)
+      lot <- lots.findByUser(userId)
+    } yield lot.head.id
+
+    val tries = lotId.map(x => {
+      val firstTry = underTest.offer(Buy(x, otherUserId))
+      val secondTry = underTest.offer(Buy(x, otherUserId))
+      val thirdTry = underTest.offer(Buy(x, otherUserId))
+      Seq(firstTry, secondTry, thirdTry)
+    })
+
+    val successCount = tries.flatMap {
+      _.foldLeft(Future.successful(0))((a, b) =>
+        b.transform {
+          case Success(_) => Success(a.value.get.get + 1)
+          case _ => Success(a.value.get.get)
+        })
+    }
+
+    val reservedItems = tries.transformWith(_ => {
+      Thread.sleep(200) // wait for reserved items generation
+      for {
+        sold <- reserves.findByUser(userId)
+        bought <- reserves.findByUser(otherUserId)
+      } yield (sold, bought)
+    })
+
+    (reservedItems zip successCount) map {
+      case ((sold, bought), successed) =>
+        sold.size should be(1)
+        bought.size should be(successed)
     }
   }
 
