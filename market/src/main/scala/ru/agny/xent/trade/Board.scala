@@ -92,17 +92,16 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     }
   }
 
-  private def sell(lotId: LotId, amount: Int, user: UserId): Future[PlainResponse] = {
+  private def sell[T <: WSRequest : WSAdapter](lotId: LotId, amount: Int, user: UserId): Future[PlainResponse] = {
     lotRepository.read(lotId).flatMap {
       case Some(lotRead: Dealer) if lotRead.tpe == Dealer.`type` =>
-        val item = lotRead.item
-        val toSell = if (item.amount < amount) item else ItemHolder(item.id, amount)
-        val soldPrice = (sold: Int) => ItemHolder(item.id, sold * lotRead.buyout.amount)
+        val soldPrice = (sold: Int) => ItemHolder(lotRead.buyout.id, sold * lotRead.buyout.amount)
+        val boughtItems = (sold: Int) => ItemHolder(lotRead.item.id, sold)
         for {
-          sold <- lotRepository.sell(lotId, user, toSell.amount)
+          sold <- lotRepository.sell(lotId, user, amount)
           verified <- verifyPlacement(user, soldPrice(sold))
           _ <- complete(verified,
-            sendItems(lotRead, (lotRead.user, toSell), (user, soldPrice(sold))),
+            sendItems(lotRead, (lotRead.user, boughtItems(sold)), (user, soldPrice(sold))),
             lotRepository.revertSell(lotId, sold))
         } yield verified
       case None =>

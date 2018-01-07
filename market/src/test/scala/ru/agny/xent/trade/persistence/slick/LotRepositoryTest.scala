@@ -186,4 +186,24 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     }
   }
 
+  it should "not sell already sold items" in {
+    val item = ItemHolder(referenceItem.id, 5)
+    val price = ItemHolder(referenceItem.id, 8)
+    val toSell = item.amount
+    val lotPlacement = PlaceLot(userId, item, price, None, 1005000, Dealer.`type`)
+    val updated = for {
+      lot <- repository.create(lotPlacement)
+      sold <- repository.sell(lot, otherUserId, toSell)
+      zero <- repository.sell(lot, otherUserId, toSell)
+      updated <- repository.read(lot)
+    } yield (sold, zero, updated)
+
+    updated map {
+      case (soldAmount, zero, Some(lot)) =>
+        soldAmount should be(item.amount)
+        zero should be(0)
+        lot.item should be(ItemHolder(item.id, 0))
+    }
+  }
+
 }

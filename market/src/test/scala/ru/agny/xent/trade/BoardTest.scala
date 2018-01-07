@@ -193,6 +193,46 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
     }
   }
 
+  "Board.offer(Sell)" should "update lot amount remained" in {
+    val price = ItemHolder(referenceItem.id, 2)
+    val placeLot = PlaceLot(userId, ItemHolder(referenceItem.id, 2), price, None, 1000, Dealer.`type`)
+    val sell = (lotId: LotId) => Sell(lotId, 1, otherUserId)
+    val add = Add(placeLot)
+    val result = for {
+      _ <- underTest.offer(add)
+      added <- lots.findByUser(userId)
+      res <- underTest.offer(sell(added.head.id))
+      partiallySold <- lots.findByUser(userId)
+    } yield (res, partiallySold.head)
+
+    result.map {
+      case (response, lot: Dealer) =>
+        response should be(ResponseOk)
+        lot.item.amount should be(1)
+    }
+  }
+
+  it should "reserve items if send transaction doesn't complete successfully" in {
+    val price = unreceivableItemStack
+    val placeLot = PlaceLot(userId, ItemHolder(referenceItem.id, 2), price, None, 1000, Dealer.`type`)
+    val sell = (lotId: LotId) => Sell(lotId, 1, otherUserId)
+    val add = Add(placeLot)
+    val result = for {
+      _ <- underTest.offer(add)
+      added <- lots.findByUser(userId)
+      res <- underTest.offer(sell(added.head.id))
+      partiallySold <- lots.findByUser(userId)
+      seller <- reserves.findByUser(userId)
+    } yield (res, partiallySold.head, seller)
+
+    result.map {
+      case (response, lot: Dealer, sellerReserves) =>
+        response should be(ResponseOk)
+        lot.item.amount should be(1)
+        sellerReserves.size should be(1)
+    }
+  }
+
   case class StubWSRequest(in: IncomeMessage) extends WSRequest {
     override lazy val out = ???
   }
