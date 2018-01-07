@@ -16,4 +16,6 @@ case class ReservedItemRepository(configPath: String) extends ConfigurableReposi
     db.run(query.result)
   }
 
+  def clean() = db.run(reserved.delete)
+
 }
