@@ -47,14 +47,10 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
   }
 
   /**
-    * Buy operation is considered complete if next conditions are met:
+    * Buy operation is considered complete if following conditions are met:
     * 1) lot to buy exists in database;
     * 2) buyer has sufficient funds to cover lot price;
     * 3) lot successfully deleted.
-    *
-    * 3-rd rule is significant due to transactional nature of operation, which I have to emulate because
-    * I don't want to create long transaction locks (and they're will be long cause websocket connection
-    * is created to ask another service about funds of buyer)
     *
     */
   private def buy[T <: WSRequest : WSAdapter](lotId: LotId, buyer: UserId): Future[PlainResponse] = {
@@ -68,28 +64,19 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     prepareToSpend.transformWith {
       case Success((lot, isAllowed)) => buyComplete(lot, buyer, isAllowed)
       case Failure(t) =>
-        logger.error("lot buyout failed", t)
+        logger.error("lot buyout failed", t.getMessage)
         Future.failed(t)
     }
   }
 
   private def placeBid[T <: WSRequest : WSAdapter](lot: LotId, bid: Bid): Future[PlainResponse] = {
-    lotRepository.read(lot).flatMap {
-      case Some(lotRead: NonStrict) if lotRead.tpe == NonStrict.`type` =>
-        for {
-          _ <- lotRepository.updateBid(lot, bid)
-          verified <- verifyPlacement(bid.owner, bid.price)
-          _ <- complete(verified,
-            returnOldBidToOwner(lotRead.lastBid),
-            lotRepository.revertBid(lot, bid, lotRead.lastBid))
-        } yield verified
-      case None =>
-        logger.info("lot {} is not found", lot)
-        Future.successful(ResponseFailure)
-      case _ =>
-        logger.warn("lot {} is not biddable", lot)
-        Future.successful(ResponseFailure)
-    }
+    for {
+      lastBid <- lotRepository.biddingPreparement(lot, bid)
+      verified <- verifyPlacement(bid.owner, bid.price)
+      _ <- complete(verified,
+        bidPlacingComplete(lot, bid, lastBid),
+        lotRepository.revertBid(lot, lastBid))
+    } yield verified
   }
 
   private def sell[T <: WSRequest : WSAdapter](lotId: LotId, amount: Int, user: UserId): Future[PlainResponse] = {
@@ -115,7 +102,9 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
 
   private def verifyPlacement[T <: WSRequest : WSAdapter](byUser: UserId, payment: ItemHolder): Future[PlainResponse] = {
     val wsAdapter = implicitly[WSAdapter[T]]
-    wsAdapter.send("item_spend", Spend(byUser, payment)).flatMap {
+    val msg = Spend(byUser, payment)
+    logger.debug("Got message to send {}", msg)
+    wsAdapter.send("item_spend", msg).flatMap {
       case ResponseOk => Future.successful(ResponseOk)
       case ResponseFailure =>
         logger.warn("item placement is denied for {}", (byUser, payment))
@@ -153,9 +142,9 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     val sendResult = wsAdapter.send("item_receive", msg)
     sendResult.transformWith {
       case x@(Success(ResponseFailure) | Failure(_)) =>
-        logger.error("item is not delivered {}", x)
+        logger.error("{} is not delivered {}", msg, x)
         lotRepository.reserveItem(msg.user, msg.items).recover {
-          case t: Throwable => logger.error("reserve item {} failure {}", msg, t)
+          case t: Throwable => logger.error("reserve item {} failure {}", msg, t.getMessage)
         }
         Future.successful(false)
       case _ => Future.successful(true)
@@ -177,6 +166,20 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
       case ResponseFailure =>
         logger.warn("buy operation is denied for buyer {} and lot {}", buyer, lot)
         Future.successful(ResponseFailure)
+    }
+  }
+
+  private def bidPlacingComplete[T <: WSRequest : WSAdapter](lotId: LotId, bid: Bid, lastBid: Option[Bid]) = {
+    val updateResult = for {
+      res <- lotRepository.insertBid(lotId, bid)
+      _ <- returnOldBidToOwner(lastBid)
+    } yield res
+
+    updateResult.transformWith {
+      case Success(x) => Future.successful(x)
+      case Failure(t) =>
+        logger.warn("lot {} update by bid {} failure {}", lotId, bid, t.getMessage)
+        returnItemsToOwner(bid.owner, bid.price)
     }
   }
 }

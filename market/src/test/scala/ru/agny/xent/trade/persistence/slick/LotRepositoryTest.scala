@@ -85,7 +85,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val bid = Bid(otherUserId, item)
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
-      _ <- repository.updateBid(lot, bid)
+      _ <- repository.insertBid(lot, bid)
       withUpdatedBid <- repository.read(lot)
     } yield withUpdatedBid
 
@@ -97,14 +97,14 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     }
   }
 
-  it should "fail to update bid by less price than lot's bid has" in {
+  it should "fail to prepare bid update by less price than lot's bid has" in {
     val lotPlacement = PlaceLot(userId, ItemHolder(referenceItem.id, 1), ItemHolder(referenceItem.id, 5), None, 1005000, NonStrict.`type`)
     val bid = Bid(userId, ItemHolder(referenceItem.id, 3))
     val smallerBid = Bid(otherUserId, ItemHolder(referenceItem.id, 2))
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
-      _ <- repository.updateBid(lot, bid)
-      shouldFailHere <- repository.updateBid(lot, smallerBid)
+      failHere <- repository.biddingPreparement(lot, bid)
+      _ <- repository.insertBid(lot, smallerBid)
       withUpdatedBid <- repository.read(lot)
     } yield withUpdatedBid
 
@@ -131,7 +131,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val bid = Bid(userId, item)
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
-      failHere <- repository.updateBid(lot, bid)
+      failHere <- repository.biddingPreparement(lot, bid)
       withUpdatedBid <- repository.read(lot)
     } yield withUpdatedBid
 

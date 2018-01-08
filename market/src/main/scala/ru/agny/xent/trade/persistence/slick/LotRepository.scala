@@ -59,39 +59,53 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
-  def updateBid(lot: LotId, bid: Bid): Future[Boolean] = {
-    val isGreaterThanMinPrice = lots.filter(l => l.id === lot && l.userId =!= bid.owner)
-      .join(stack).on((l, s) => l.minPriceId === s.id && s.stackValue <= bid.price.amount).exists
-    val isGreaterThanPrevBid = bids.filter(b => b.lotId === lot && b.userId =!= bid.owner)
-      .joinLeft(stack).on((b, s) => b.itemStackId === s.id && s.stackValue < bid.price.amount).map(_._2.nonEmpty)
+  def biddingPreparement(lotId: LotId, bid: Bid): Future[Option[Bid]] = {
+    val lot = fullLoad(lots.filter(_.id === lotId))
 
-    val resultAction = isGreaterThanPrevBid.result.headOption.flatMap {
-      case Some(true) => insertBidAction(lot, bid)
-      case None => isGreaterThanMinPrice.result.flatMap {
-        case true => insertBidAction(lot, bid)
-        case false => DBIO.failed(new IllegalStateException(s"$bid price is less than minimal price of Lot[$lot]"))
-      }
-      case _ => DBIO.failed(new IllegalStateException(s"$bid price is less than previous bid"))
+    val resultAction = lot.result.headOption.flatMap {
+      case None => DBIO.failed(new IllegalStateException(s"Lot[$lotId] doesn't exist"))
+
+      case invalidLotType@Some((lotFlat, _, _, _, _, _)) if lotFlat.tpe != NonStrict.`type` =>
+        DBIO.failed(new IllegalStateException(s"lot $lotFlat is not biddable"))
+
+      case sameUserLot@Some((lotFlat, _, _, _, _, _)) if lotFlat.user == bid.owner =>
+        DBIO.failed(new IllegalStateException(s"User[${bid.owner}] can't bid his own Lot[$lot]"))
+
+      case sameUserBid@Some((_, _, _, _, Some(bidFlat), _)) if bidFlat.user == bid.owner =>
+        DBIO.failed(new IllegalStateException(s"User[${bid.owner}] can't bid over his own Bid[$bidFlat]"))
+
+      case bidLessThanPrice@Some((_, _, minPrice, _, None, _)) if bid.price.amount < minPrice.stackValue =>
+        DBIO.failed(new IllegalStateException(s"${bid.price} price is less than minimal price $minPrice"))
+
+      case bidLessThanCurrentBid@Some((_, _, _, _, _, Some(currentPrice))) if bid.price.amount <= currentPrice.stackValue =>
+        DBIO.failed(new IllegalStateException(s"${bid.price} is less than previous price $currentPrice"))
+
+      case Some((_, _, _, _, Some(bidFlat), Some(bidItem))) =>
+        bids.filter(_.lotId === bidFlat.lotId).delete >>
+          stack.filter(_.id === bidItem.id).delete >>
+          DBIO.successful(Some(Bid(bidFlat.user, bidItem)))
+
+      case Some((_, _, _, _, None, _)) => DBIO.successful(None)
+
+      case x => DBIO.failed(new IllegalStateException(s"Unexpected input $x"))
+
     }
-    db.run(resultAction.transactionally).map {
+
+    db.run(resultAction.transactionally)
+  }
+
+  def insertBid(lot: LotId, bid: Bid): Future[Boolean] = {
+    db.run(insertBidAction(lot, bid).transactionally).map {
       case rowsAffected@0 => false
       case 1 => true
     }
   }
 
-  def revertBid(lot: LotId, toRevert: Bid, prevBid: Option[Bid]): Future[Boolean] = {
-    val itemToRevert = toRevert.price
+  def revertBid(lot: LotId, prevBid: Option[Bid]): Future[Boolean] = {
     val selectedBid = bids.filter(b => b.lotId === lot)
-    val isNotChanged = selectedBid.joinLeft(stack).on((b, s) => b.itemStackId === s.id
-      && s.stackValue === itemToRevert.amount
-      && s.itemId === itemToRevert.id
-    ).exists
-    val resultAction = isNotChanged.result.flatMap {
-      case true => prevBid match {
-        case Some(v) => selectedBid.delete >> insertBidAction(lot, v)
-        case None => selectedBid.delete
-      }
-      case false => DBIO.failed(new IllegalStateException(s"Bid $toRevert has been overwritten already"))
+    val resultAction = selectedBid.result.headOption.flatMap {
+      case Some(_) => DBIO.failed(new IllegalStateException(s"Lot $lot has been bidded already"))
+      case None => selectedBid.delete >> (prevBid.map(v => insertBidAction(lot, v)) getOrElse DBIO.successful(1))
     }
 
     db.run(resultAction.transactionally).map {
@@ -188,7 +202,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
 
     for {
       s <- insertItemStack
-      b <- bids.insertOrUpdate(BidFlat(Some(lot), bid.owner, s))
+      b <- bids += BidFlat(Some(lot), bid.owner, s)
     } yield b
   }
 
@@ -203,8 +217,8 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
         b.map(_.itemStackId === bitem.id)
     }
     for {
-      (((((flat, buyouts), items), minPrice), bids), bidItems) <- query
-    } yield (flat, buyouts, items, minPrice, bids, bidItems)
+      (((((flat, buyouts), minPrice), items), bids), bidItems) <- query
+    } yield (flat, buyouts, minPrice, items, bids, bidItems)
 
   }
 
