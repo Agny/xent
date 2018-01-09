@@ -276,7 +276,10 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
 
     // depending on the order and timespace of incoming messages there can be from 1 to [tries.size] succeed tries
     val succeedTriesCounter = tries.flatMap(
-      Future.traverse(_)(s => s.collect { case ResponseOk => 1 }).map(_.sum)
+      Future.traverse(_)(s => s.transform {
+        case Success(_) => Success(1)
+        case _ => Success(0)
+      }).map(_.sum)
     )
 
     // when bid overwritten it's content is sent to owner

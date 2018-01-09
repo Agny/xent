@@ -54,11 +54,9 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     *
     */
   private def buy[T <: WSRequest : WSAdapter](lotId: LotId, buyer: UserId): Future[PlainResponse] = {
-    val wsAdapter = implicitly[WSAdapter[T]]
-    val spend = (price: ItemHolder) => Spend(buyer, price)
     val prepareToSpend = for {
       lot <- lotRepository.buyPreparement(lotId, buyer)
-      isAllowed <- wsAdapter.send("item_spend", spend(lot.item))
+      isAllowed <- verifyPlacement(buyer, lot.item)
     } yield (lot, isAllowed)
 
     prepareToSpend.transformWith {
@@ -70,13 +68,17 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
   }
 
   private def placeBid[T <: WSRequest : WSAdapter](lot: LotId, bid: Bid): Future[PlainResponse] = {
-    for {
+    val prepareToSpend = for {
       lastBid <- lotRepository.biddingPreparement(lot, bid)
       verified <- verifyPlacement(bid.owner, bid.price)
-      _ <- complete(verified,
-        bidPlacingComplete(lot, bid, lastBid),
-        lotRepository.revertBid(lot, lastBid))
-    } yield verified
+    } yield (lastBid, verified)
+
+    prepareToSpend.transformWith {
+      case Success((prevBid, isAllowed)) => bidPlacingComplete(lot, bid, prevBid, isAllowed)
+      case Failure(t) =>
+        logger.error("lot bid failed", t.getMessage)
+        Future.failed(t)
+    }
   }
 
   private def sell[T <: WSRequest : WSAdapter](lotId: LotId, amount: Int, user: UserId): Future[PlainResponse] = {
@@ -169,17 +171,26 @@ case class Board(layer: LayerId, dbConfig: String) extends LazyLogging {
     }
   }
 
-  private def bidPlacingComplete[T <: WSRequest : WSAdapter](lotId: LotId, bid: Bid, lastBid: Option[Bid]) = {
-    val updateResult = for {
-      res <- lotRepository.insertBid(lotId, bid)
-      _ <- returnOldBidToOwner(lastBid)
-    } yield res
+  private def bidPlacingComplete[T <: WSRequest : WSAdapter](lotId: LotId,
+                                                             bid: Bid,
+                                                             lastBid: Option[Bid],
+                                                             verification: PlainResponse): Future[PlainResponse] = {
+    verification match {
+      case ResponseOk =>
+        val updateResult = for {
+          res <- lotRepository.insertBid(lotId, bid)
+          _ <- returnOldBidToOwner(lastBid)
+        } yield res
 
-    updateResult.transformWith {
-      case Success(x) => Future.successful(x)
-      case Failure(t) =>
-        logger.warn("lot {} update by bid {} failure {}", lotId, bid, t.getMessage)
-        returnItemsToOwner(bid.owner, bid.price)
+        updateResult.transformWith {
+          case Success(true) => Future.successful(ResponseOk)
+          case x@(Failure(_) | Success(false)) =>
+            logger.error("lot {} update by bid {} failure {}", lotId, bid, x)
+            returnItemsToOwner(bid.owner, bid.price).map(_ => ResponseFailure)
+        }
+      case ResponseFailure =>
+        logger.warn("lot[{}] update is denied for bid {}", lotId, bid)
+        lotRepository.revertBid(lotId, lastBid).flatMap(_ => Future.successful(ResponseFailure))
     }
   }
 }
