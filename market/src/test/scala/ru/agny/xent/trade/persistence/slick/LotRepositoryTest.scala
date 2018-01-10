@@ -162,9 +162,9 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     } yield (sold, updated)
 
     updated map {
-      case (soldAmount, Some(lot)) =>
-        soldAmount should be(toSell)
-        lot.item should be(ItemHolder(item.id, item.amount - soldAmount))
+      case ((remains, sold), Some(lot)) =>
+        sold should be(toSell)
+        lot.item should be(ItemHolder(item.id, item.amount - sold))
     }
   }
 

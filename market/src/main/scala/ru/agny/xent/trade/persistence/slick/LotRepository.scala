@@ -141,18 +141,17 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
-  def sell(lotId: LotId, seller: UserId, amount: Int): Future[Int] = {
+  def sell(lotId: LotId, seller: UserId, amount: Int): Future[(Int, Int)] = {
     val lot = lots.filter(x => x.id === lotId && x.userId =!= seller)
     val lotWithItem = for {
-      (l, item) <- lot
-        .join(stack)
-        .on(_.itemStackId === _.id)
+      (l, item) <- lot.join(stack).on(_.itemStackId === _.id)
     } yield (l, item)
     val action = lotWithItem.result.headOption.flatMap {
       case Some((_, item)) =>
         val amountToSell = if (item.stackValue < amount) item.stackValue else amount
-        val update = stack.filter(_.id === item.id).update(item.copy(stackValue = item.stackValue - amountToSell))
-        update.flatMap(_ => DBIO.successful(amountToSell))
+        val remains = item.stackValue - amountToSell
+        val update = stack.filter(_.id === item.id).update(item.copy(stackValue = remains))
+        update.flatMap(_ => DBIO.successful((remains, amountToSell)))
       case _ => DBIO.failed(new IllegalStateException(s"Lot[$lot] is completed"))
     }
 
@@ -162,9 +161,7 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   def revertSell(lotId: LotId, amountBack: Int): Future[Boolean] = {
     val lot = lots.filter(x => x.id === lotId)
     val lotWithItem = for {
-      (l, item) <- lot
-        .join(stack)
-        .on(_.itemStackId === _.id)
+      (l, item) <- lot.join(stack).on(_.itemStackId === _.id)
     } yield (l, item)
 
     val action = lotWithItem.result.headOption.flatMap {
@@ -177,10 +174,16 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
   }
 
   def delete(lot: LotId): Future[Boolean] = {
-    db.run(lots.filter(_.id === lot).delete).map {
-      case rowsAffected@0 => false
-      case 1 => true
+    val loaded = fullLoad(lots.filter(_.id === lot))
+    val action = loaded.result.head.flatMap {
+      case (_, buyout, minPrice, item, bidFlat, bidItem) =>
+        val deletes = Seq(
+          lots.filter(_.id === lot).delete,
+          stack.filter(x => x.id === buyout.id || x.id === minPrice.id || x.id === item.id).delete
+        )
+        DBIO.sequence(deletes) >> DBIO.successful(true)
     }
+    db.run(action.transactionally)
   }
 
   private def insertLotAction(lot: PlaceLot, withMinPrice: Option[DBIOAction[ItemId, NoStream, Effect.Write]] = None) = {

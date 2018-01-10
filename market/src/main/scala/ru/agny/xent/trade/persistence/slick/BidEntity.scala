@@ -20,7 +20,7 @@ object BidEntity {
 
     override def * = (lotId.?, userId, itemStackId).mapTo[BidFlat]
 
-    def lot = foreignKey("lot_fk", lotId, lots)(_.id, onDelete = ForeignKeyAction.SetNull)
+    def lot = foreignKey("lot_fk", lotId, lots)(_.id, onDelete = ForeignKeyAction.Cascade)
 
     def user = foreignKey("user_fk", userId, users)(_.id, onDelete = ForeignKeyAction.Cascade)
 

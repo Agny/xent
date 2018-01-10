@@ -337,6 +337,33 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
     }
   }
 
+  it should "handle simultaneous sell attempts" in {
+    val price = unreceivableItemStack
+    val placeLot = PlaceLot(user1, ItemHolder(referenceItem.id, 2), price, None, 1000, Dealer.`type`)
+    val addedLot = for {
+      _ <- underTest.offer(Add(placeLot))
+      added <- lots.findByUser(user1)
+    } yield added.head
+
+    val tries = addedLot.map(lot => {
+      val sell = (lotId: LotId) => Sell(lotId, 1, user2)
+      val id1 = lot.id
+      val f1 = underTest.offer(sell(id1))
+      val f2 = underTest.offer(sell(id1))
+      val f3 = underTest.offer(sell(id1))
+      Seq(f1, f2, f3)
+    })
+
+    val reservedItems = for {
+      _ <- tries
+      r <- reserves.load()
+    } yield r
+
+    val expectedSoldCount = 2
+    reservedItems map (reserved =>
+      reserved.size should be(expectedSoldCount))
+  }
+
   case class StubWSRequest(in: IncomeMessage) extends WSRequest {
     override lazy val out = ???
   }
