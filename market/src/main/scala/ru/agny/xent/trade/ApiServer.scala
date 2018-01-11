@@ -5,10 +5,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
 import com.typesafe.scalalogging.LazyLogging
 import ru.agny.xent.core.utils.UserType.UserId
 import ru.agny.xent.trade.Board._
 import ru.agny.xent.trade.persistence.slick.MarketInitializer
+import ru.agny.xent.trade.utils.SynchronizedPool
 
 import scala.io.StdIn
 
@@ -25,6 +27,8 @@ object ApiServer extends LazyLogging {
   implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json()
     .withContentType(ct)
     .withParallelMarshalling(parallelism = 10, unordered = false)
+
+  implicit val syncPool = new SynchronizedPool()
 
   val dbPath = "db"
   val initDB = {
@@ -52,7 +56,7 @@ object ApiServer extends LazyLogging {
   val route = pathPrefix("market") {
     path("lots" / Remaining) { layer: String =>
       get {
-        complete(board.lots())
+        complete(Source.fromPublisher(board.lots()))
       }
     } ~ path("place") {
       post {
