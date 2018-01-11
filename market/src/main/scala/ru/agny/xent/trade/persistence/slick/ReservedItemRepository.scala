@@ -24,7 +24,4 @@ case class ReservedItemRepository(configPath: String) extends ConfigurableReposi
     val query = reserved.filter(_.userId === user)
     db.run(query.result)
   }
-
-  def clean() = db.run(reserved.delete)
-
 }

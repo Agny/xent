@@ -6,6 +6,4 @@ import slick.jdbc.PostgresProfile.api._
 case class BidRepository(configPath: String) extends ConfigurableRepository {
 
   private val bids = BidEntity.table
-
-  def clean() = db.run(bids.delete)
 }
