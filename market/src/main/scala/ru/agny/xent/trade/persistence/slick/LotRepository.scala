@@ -59,73 +59,15 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
     }
   }
 
-  def biddingPreparement(lotId: LotId, bid: Bid): Future[Option[Bid]] = {
-    val lot = fullLoad(lots.filter(_.id === lotId))
-
-    val resultAction = lot.result.headOption.flatMap {
-      case None => DBIO.failed(new IllegalStateException(s"Lot[$lotId] doesn't exist"))
-
-      case invalidLotType@Some((lotFlat, _, _, _, _, _)) if lotFlat.tpe != NonStrict.`type` =>
-        DBIO.failed(new IllegalStateException(s"lot $lotFlat is not biddable"))
-
-      case sameUserLot@Some((lotFlat, _, _, _, _, _)) if lotFlat.user == bid.owner =>
-        DBIO.failed(new IllegalStateException(s"User[${bid.owner}] can't bid his own Lot[$lot]"))
-
-      case sameUserBid@Some((_, _, _, _, Some(bidFlat), _)) if bidFlat.user == bid.owner =>
-        DBIO.failed(new IllegalStateException(s"User[${bid.owner}] can't bid over his own Bid[$bidFlat]"))
-
-      case bidLessThanPrice@Some((_, _, minPrice, _, None, _)) if bid.price.amount < minPrice.stackValue =>
-        DBIO.failed(new IllegalStateException(s"${bid.price} price is less than minimal price $minPrice"))
-
-      case bidLessThanCurrentBid@Some((_, _, _, _, _, Some(currentPrice))) if bid.price.amount <= currentPrice.stackValue =>
-        DBIO.failed(new IllegalStateException(s"${bid.price} is less than previous price $currentPrice"))
-
-      case Some((_, _, _, _, Some(bidFlat), Some(bidItem))) =>
-        bids.filter(_.lotId === bidFlat.lotId).delete >>
-          stack.filter(_.id === bidItem.id).delete >>
-          DBIO.successful(Some(Bid(bidFlat.user, bidItem)))
-
-      case Some((_, _, _, _, None, _)) => DBIO.successful(None)
-
-      case x => DBIO.failed(new IllegalStateException(s"Unexpected input $x"))
-
+  def updateBid(lotId: LotId, bid: Bid): Future[Boolean] = {
+    val prevBid = bids.filter(_.lotId === lotId)
+    val action = prevBid.result.headOption.flatMap {
+      case Some(b) => prevBid.delete >> stack.filter(_.id === b.itemId).delete >> insertBidAction(lotId, bid)
+      case None => insertBidAction(lotId, bid)
     }
-
-    db.run(resultAction.transactionally)
-  }
-
-  def insertBid(lot: LotId, bid: Bid): Future[Boolean] = {
-    db.run(insertBidAction(lot, bid).transactionally).map {
+    db.run(action).map {
       case rowsAffected@0 => false
       case 1 => true
-    }
-  }
-
-  def revertBid(lot: LotId, prevBid: Option[Bid]): Future[Boolean] = {
-    val selectedBid = bids.filter(b => b.lotId === lot)
-    val resultAction = selectedBid.result.headOption.flatMap {
-      case Some(_) => DBIO.failed(new IllegalStateException(s"Lot $lot has been bidded already"))
-      case None => selectedBid.delete >> (prevBid.map(v => insertBidAction(lot, v)) getOrElse DBIO.successful(1))
-    }
-
-    db.run(resultAction.transactionally).map {
-      case rowsAffected@0 => false
-      case 1 => true
-    }
-  }
-
-  def buyPreparement(lot: LotId, buyer: UserId): Future[Lot] = {
-    val retrieveLot = lots.filter(b => b.id === lot && b.userId =!= buyer)
-    val lotWithPrice = retrieveLot.join(stack).on((l, s) => l.buyoutId === s.id)
-    val priceValidated = lotWithPrice.exists
-
-    val resultAction = priceValidated.result.flatMap {
-      case true => fullLoad(retrieveLot).result.headOption
-      case _ => DBIO.failed(new IllegalStateException(s"User[$buyer] can't buy his own Lot[$lot]"))
-    }
-    db.run(resultAction.transactionally).flatMap {
-      case Some(v) => Future.successful(mapToLot(v))
-      case None => Future.failed(new IllegalStateException(s"Lot[$lot] is already deleted"))
     }
   }
 
@@ -152,7 +94,6 @@ case class LotRepository(configPath: String) extends ConfigurableRepository {
         val remains = item.stackValue - amountToSell
         val update = stack.filter(_.id === item.id).update(item.copy(stackValue = remains))
         update.flatMap(_ => DBIO.successful((remains, amountToSell)))
-      case _ => DBIO.failed(new IllegalStateException(s"Lot[$lot] is completed"))
     }
 
     db.run(action)

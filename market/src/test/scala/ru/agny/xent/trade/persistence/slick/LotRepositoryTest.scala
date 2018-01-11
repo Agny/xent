@@ -85,7 +85,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     val bid = Bid(otherUserId, item)
     val updatedLot = for {
       lot <- repository.create(lotPlacement)
-      _ <- repository.insertBid(lot, bid)
+      _ <- repository.updateBid(lot, bid)
       withUpdatedBid <- repository.read(lot)
     } yield withUpdatedBid
 
@@ -95,59 +95,6 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
         v.asInstanceOf[NonStrict].lastBid.get.price should be(bid.price)
       case _ => fail("update failure")
     }
-  }
-
-  it should "fail to prepare bid update by less price than lot's bid has" in {
-    val lotPlacement = PlaceLot(userId, ItemHolder(referenceItem.id, 1), ItemHolder(referenceItem.id, 5), None, 1005000, NonStrict.`type`)
-    val bid = Bid(userId, ItemHolder(referenceItem.id, 3))
-    val smallerBid = Bid(otherUserId, ItemHolder(referenceItem.id, 2))
-    val updatedLot = for {
-      lot <- repository.create(lotPlacement)
-      failHere <- repository.biddingPreparement(lot, bid)
-      _ <- repository.insertBid(lot, smallerBid)
-      withUpdatedBid <- repository.read(lot)
-    } yield withUpdatedBid
-
-    recoverToSucceededIf[IllegalStateException](updatedLot)
-  }
-
-  it should "return lot when buying" in {
-    val itemToSell = ItemHolder(referenceItem.id, 5)
-    val lotPlacement = PlaceLot(userId, ItemHolder(referenceItem.id, 1), itemToSell, None, 1005000, NonStrict.`type`)
-    val result = for {
-      lot <- repository.create(lotPlacement)
-      loaded <- repository.buyPreparement(lot, otherUserId)
-    } yield (lot, loaded)
-
-    result map { case (lotId, toBuy) =>
-      lotId should be(toBuy.id)
-      toBuy.buyout should be(itemToSell)
-    }
-  }
-
-  it should "not let user to bid on his own lot" in {
-    val item = ItemHolder(referenceItem.id, 1)
-    val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
-    val bid = Bid(userId, item)
-    val updatedLot = for {
-      lot <- repository.create(lotPlacement)
-      failHere <- repository.biddingPreparement(lot, bid)
-      withUpdatedBid <- repository.read(lot)
-    } yield withUpdatedBid
-
-    recoverToSucceededIf[IllegalStateException](updatedLot)
-  }
-
-  it should "not let user to buy his own lot" in {
-    val item = ItemHolder(referenceItem.id, 1)
-    val lotPlacement = PlaceLot(userId, item, item, None, 1005000, NonStrict.`type`)
-    val bid = Bid(userId, item)
-    val result = for {
-      lot <- repository.create(lotPlacement)
-      failHere <- repository.buyPreparement(lot, userId)
-    } yield failHere
-
-    recoverToSucceededIf[IllegalStateException](result)
   }
 
   it should "sell specified amount of Dealer lot" in {
@@ -180,7 +127,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     } yield (sold, updated)
 
     updated map {
-      case (soldAmount, Some(lot)) =>
+      case ((remains, soldAmount), Some(lot)) =>
         soldAmount should be(item.amount)
         lot.item should be(ItemHolder(item.id, 0))
     }
@@ -199,7 +146,7 @@ class LotRepositoryTest extends AsyncFlatSpec with Matchers with BeforeAndAfterA
     } yield (sold, zero, updated)
 
     updated map {
-      case (soldAmount, zero, Some(lot)) =>
+      case ((remains, soldAmount), (_, zero), Some(lot)) =>
         soldAmount should be(item.amount)
         zero should be(0)
         lot.item should be(ItemHolder(item.id, 0))
