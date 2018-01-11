@@ -14,6 +14,7 @@ import ru.agny.xent.web.IncomeMessage
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
+/* this tests fail from time to time due to async nature of processes under test*/
 class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
 
   MarketInitializer.forConfig(DbConfig.path).init()
