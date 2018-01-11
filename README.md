@@ -15,7 +15,7 @@ The next features are more or less complete at this moment:
 - building mechanics
 - trading module
 
-###Brief overview
+### Brief overview
 Game world basically is a function from initial state iteratively mapped to received actions. All game logic is done during action processing.
 
 Almost all code is written in pure functions. Maybe I'm little too obsessed with pureness, but I'm aware about possible performance issues and consider to use variables, when it's appropriate.
