@@ -8,16 +8,19 @@ import ru.agny.xent.persistence.slick.{DbConfig, ItemRepository, ItemStackReposi
 import ru.agny.xent.trade.Board._
 import ru.agny.xent.trade.Lot.LotId
 import ru.agny.xent.trade.persistence.slick.{BidRepository, LotRepository, MarketInitializer, ReservedItemRepository}
+import ru.agny.xent.trade.utils.SynchronizedPool
 import ru.agny.xent.web.IncomeMessage
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-import scala.util.Success
 
 class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
 
+  MarketInitializer.forConfig(DbConfig.path).init()
+
   val underTest = Board("layer", DbConfig.path)
   implicit val stubRequestBuilder = StubRequestBuilder
+  implicit val syncPool = new SynchronizedPool()
 
   val lots = LotRepository(DbConfig.path)
   val items = ItemRepository(DbConfig.path)
@@ -46,27 +49,26 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
   var user3: UserId = _
   var user4: UserId = _
 
-  override protected def beforeAll(): Unit = {
-    MarketInitializer.forConfig(DbConfig.path).init()
+  override def beforeAll() = {
     items.create(referenceItem)
+  }
+
+  override protected def beforeEach(): Unit = {
     user1 = Await.result(users.create("Test"), 1 seconds)
     user2 = Await.result(users.create("Test"), 1 seconds)
     user3 = Await.result(users.create("Test"), 1 seconds)
     user4 = Await.result(users.create("Test"), 1 seconds)
   }
 
-  override protected def afterEach(): Unit = {
-    reserves.clean()
-    bids.clean()
-    stacks.clean()
-  }
-
-  override protected def afterAll() = {
-    items.delete(referenceItem.id)
+  override protected def afterEach() = {
     users.delete(user1)
     users.delete(user2)
     users.delete(user3)
     users.delete(user4)
+  }
+
+  override def afterAll() = {
+    items.delete(referenceItem.id)
   }
 
   "Board.offer(Add)" should "add lot" in {
@@ -99,9 +101,11 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
     }
   }
 
-  "Board.offer(Buy)" should "throw exception if lot doesn't exist" in {
+  "Board.offer(Buy)" should "return ResponseFailure if lot doesn't exist" in {
     val msg = Buy(-1, user1)
-    recoverToSucceededIf[IllegalStateException](underTest.offer(msg))
+    underTest.offer(msg).map(x =>
+      x should be(ResponseFailure)
+    )
   }
 
   it should "delete lot if buy operation succeeded" in {
@@ -134,10 +138,7 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
       lot <- lots.findByUser(user1)
       buyRes <- underTest.offer(buy(lot.head.id))
       lotEmpty <- lots.findByUser(user1)
-      reserve1 <- {
-        Thread.sleep(100) // wait for reserved items cleanup
-        reserves.findByUser(user1)
-      }
+      reserve1 <- reserves.findByUser(user1)
       reserve2 <- reserves.findByUser(user2)
     } yield (buyRes, lotEmpty, reserve1, reserve2)
 
@@ -153,9 +154,8 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
   it should "handle simultaneous buy attempts" in {
     val price = unreceivableItemStack
     val placeLot = PlaceLot(user1, price, price, None, 1000, NonStrict.`type`)
-    val add = Add(placeLot)
     val lotId = for {
-      _ <- underTest.offer(add)
+      _ <- underTest.offer(Add(placeLot))
       lot <- lots.findByUser(user1)
     } yield lot.head.id
 
@@ -167,26 +167,17 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
       Seq(firstTry, secondTry, thirdTry)
     })
 
-    val successCount = tries.flatMap {
-      _.foldLeft(Future.successful(0))((a, b) =>
-        b.transform {
-          case Success(_) => Success(a.value.get.get + 1)
-          case _ => Success(a.value.get.get)
-        })
-    }
+    val reservedItems = for {
+      _ <- tries
+      sold <- reserves.findByUser(user1)
+      bought <- reserves.findByUser(user2)
+    } yield (sold, bought)
 
-    val reservedItems = tries.transformWith(_ => {
-      Thread.sleep(200) // wait for reserved items generation
-      for {
-        sold <- reserves.findByUser(user1)
-        bought <- reserves.findByUser(user2)
-      } yield (sold, bought)
-    })
-
-    (reservedItems zip successCount) map {
-      case ((sold, bought), count) =>
-        sold.size should be(1)
-        bought.size should be(count)
+    val expectedBuyCount = 1
+    reservedItems map {
+      case (sold, bought) =>
+        sold.size should be(expectedBuyCount)
+        bought.size should be(expectedBuyCount)
     }
   }
 
@@ -259,12 +250,10 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
   it should "handle simultaneous bid attempts" in {
     val price = unreceivableItemStack
     val placeLot = PlaceLot(user1, price, price, Some(ItemHolder(referenceItem.id, 1)), 1000, NonStrict.`type`)
-    val add = Add(placeLot)
     val lotId = for {
-      _ <- underTest.offer(add)
+      _ <- underTest.offer(Add(placeLot))
       lot <- lots.findByUser(user1)
       _ <- underTest.offer(PlaceBid(lot.head.id, Bid(user2, ItemHolder(referenceItem.id, 2))))
-      _ <- lots.findByUser(user1)
     } yield lot.head.id
 
     val tries = lotId.map(x => {
@@ -274,26 +263,16 @@ class BoardTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with
       Seq(first, second, third)
     })
 
-    // depending on the order and timespace of incoming messages there can be from 1 to [tries.size] succeed tries
-    val succeedTriesCounter = tries.flatMap(
-      Future.traverse(_)(s => s.transform {
-        case Success(_) => Success(1)
-        case _ => Success(0)
-      }).map(_.sum)
-    )
+    val reservedItems = for {
+      x <- tries
+      succeedBids <- Future.sequence(x)
+      r <- reserves.load()
+    } yield (r, succeedBids.count(_ == ResponseOk))
 
-    // when bid overwritten it's content is sent to owner
-    // counting this records let us know how many bids was actually replaced
-    val reservedItems = succeedTriesCounter.flatMap { x =>
-      Thread.sleep(200) // wait for reserved items generation
-      for {
-        r <- reserves.load()
-      } yield (r, x)
-    }
 
     reservedItems map {
       case (reserved, count) =>
-        reserved.size should be(count - 1)
+        reserved.size should be(count - 1) // reserved items count = succeed #placeBid - 1
     }
   }
 
