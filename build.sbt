@@ -1,32 +1,29 @@
 import Dependencies._
 
-val commonSettings = Seq(
-  organization := "ru.agny",
-  version := "0.1.0",
-  scalaVersion := currentScalaVersion,
-  scalacOptions ++= Seq("-language:implicitConversions", "-language:postfixOps", "-feature"),
-  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
-)
+ThisBuild / organization := "ru.agny"
+ThisBuild / version := "0.2.0"
+ThisBuild / scalaVersion := "0.26.0-RC1"
+ThisBuild / crossPaths := false
 
-val macros = project.in(file("macros"))
-  .settings(commonSettings, libraryDependencies ++= macrosDeps)
+//val macros = project.in(file("macros"))
+//  .settings(commonSettings, libraryDependencies ++= macrosDeps)
+
+val common = project.in(file("common"))
+  .settings(libraryDependencies ++= Cats ++ Circe ++ Config ++ Logging)
 
 val core = project.in(file("core"))
-  .settings(commonSettings, libraryDependencies ++= coreDeps)
-  .dependsOn(macros)
+  .settings(libraryDependencies ++= Kafka ++ Testing)
+  .dependsOn(common)
+//  .dependsOn(macros)
 
-val shared = project.in(file("shared"))
-  .settings(commonSettings)
+//val shared = project.in(file("shared"))
+//  .settings(commonSettings)
 
-val market = project.in(file("market"))
-  .settings(commonSettings, libraryDependencies ++= marketDeps)
-  .dependsOn(core % "compile->compile;test->test", shared)
+//val market = project.in(file("market"))
+//  .settings(commonSettings, libraryDependencies ++= marketDeps)
+//  .dependsOn(core % "compile->compile;test->test", shared)
 
-val web = project.in(file("web"))
-  .settings(commonSettings, libraryDependencies ++= webDeps)
-  .settings(mainClass in assembly := Some("ru.agny.xent.web.Basic"))
-  .dependsOn(core, shared)
-
-lazy val root = project.in(file("."))
-  .aggregate(web, core)
-  .settings(commonSettings: _*)
+//val web = project.in(file("web"))
+//  .settings(commonSettings, libraryDependencies ++= webDeps)
+//  .settings(mainClass in assembly := Some("ru.agny.xent.web.Basic"))
+//  .dependsOn(core, shared)
