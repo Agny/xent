@@ -7,7 +7,8 @@ case class MessagePoolConf(
     maxPollRecords: Int = 100,
     maxPollDuration: Int = 500,
     commitInterval: Int = 1000,
-    isAutoCommit: Boolean = true,
+    isAutoCommit: Boolean = false,
+    autoOffsetResetConfig: String = "earliest",
     inputTopic: String,
     outputTopic: String
 )

@@ -40,7 +40,7 @@ class MessagePoolTest extends AnyFlatSpec with ForAllTestContainer {
     val messages: Seq[Event] = Seq(Event(1, 1020, Noop).asInstanceOf[Event], Event(2, 1040, Noop).asInstanceOf[Event])
     notificationToEventPool.submit(messages)
 
-    Thread.sleep(1000) //warmup
+    Thread.sleep(1000) //consumers startup
 
     eventToNotificationPool.take() should contain theSameElementsAs(messages)
   }

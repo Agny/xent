@@ -9,8 +9,9 @@ import scala.jdk.DurationConverters._
 import com.typesafe.config.Config
 import io.circe.{Decoder, Encoder, Json, Printer}
 import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
+import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer, OffsetAndMetadata}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{Serde, Serdes}
 import ru.agny.xent.Message._
 
@@ -62,6 +63,7 @@ object MessagePool extends LazyLoggingDotty {
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, conf.isAutoCommit)
     props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, conf.maxPollRecords)
     props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, conf.commitInterval)
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, conf.autoOffsetResetConfig)
     props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, conf.maxRequestSize)
 
     val producer = new KafkaProducer[Unit, Out](
@@ -89,47 +91,68 @@ object MessagePool extends LazyLoggingDotty {
     }
 
     private class Buffer() {
-      private val state = ArrayBuffer.empty[In]
+      private val state = State(ArrayBuffer.empty[In])
 
-      def add(a: In): Unit = this.synchronized {
-        state += a
+      var consumer: KafkaConsumer[Unit, In] = _
+
+      def takeAndClear(): Seq[In] = state.takeAndClear()
+
+      def startPollingLoop(): Unit = try {
+        consumer = newConsumer()
+        logger.debug(s"Subscribing to ${conf.inputTopic}")
+        consumer.subscribe(Seq(conf.inputTopic).asJavaCollection)
+        logger.debug("Start polling")
+        while (true) {
+          if (state.isCommitRequested) {
+            //NB: this works only in a single partition per topic scenario.
+            //It is enough for now, but should be changed to Map usage in case of additional partition
+            val tp = new TopicPartition(conf.inputTopic, 0)
+            val offset = new OffsetAndMetadata(state.lastOffset + 1)
+            logger.debug(s"Commit requested for offset: ${offset}")
+            consumer.commitAsync(Map(tp -> offset).asJava, null)
+            state.committed()
+          }
+
+          val polled = consumer.poll(ScalaDurationOps(FiniteDuration(conf.maxPollDuration, TimeUnit.MILLISECONDS)).toJava)
+          polled.partitions().forEach { p =>
+            polled.records(p).forEach { r =>
+              logger.debug(s"Polled ${r}")
+              state.add(r)
+            }
+          }
+          Thread.sleep(100)
+        }
+      } catch {
+        case e: Exception =>
+          logger.error("Consumer failed", e)
+          startPollingLoop()
+      }
+
+      private def newConsumer(): KafkaConsumer[Unit, In] = new KafkaConsumer[Unit, In](
+        props,
+        KafkaSerde.unitDeserializer,
+        KafkaSerde.deserializer[In]()
+      )
+    }
+
+    private case class State(records: ArrayBuffer[In]) {
+      var lastOffset = 0L
+      var isCommitRequested = false
+
+      def add(a: ConsumerRecord[Unit, In]): Unit = this.synchronized {
+        records += a.value()
+        lastOffset = a.offset()
       }
 
       def takeAndClear(): Seq[In] = this.synchronized {
-        logger.debug(s"Taking from buffer ${state.size} messages")
-        val r = state.toSeq
-        state.clear()
+        logger.debug(s"Taking from buffer ${records.size} messages")
+        val r = records.toSeq
+        records.clear()
+        isCommitRequested = true
         r
       }
 
-      def startPollingLoop(): Unit = {
-        logger.debug("Start consumer")
-        val consumer = {
-          new KafkaConsumer[Unit, In](
-            props,
-            KafkaSerde.unitDeserializer,
-            KafkaSerde.deserializer[In]()
-          )
-        }
-        consumer.subscribe(Seq(conf.inputTopic).asJavaCollection)
-        try {
-          logger.debug("Start polling")
-          while (true) {
-            val polled = consumer.poll(ScalaDurationOps(FiniteDuration(conf.maxPollDuration, TimeUnit.MILLISECONDS)).toJava)
-            polled.partitions().forEach { p =>
-              polled.records(p).forEach { r =>
-                logger.debug(s"Polled ${r}")
-                add(r.value)
-              }
-            }
-            Thread.sleep(100)
-          }
-        } catch {
-          case e: Exception =>
-            logger.error("Consumer failed", e)
-            startPollingLoop()
-        }
-      }
+      def committed(): Unit = isCommitRequested = false
     }
   }
 }
