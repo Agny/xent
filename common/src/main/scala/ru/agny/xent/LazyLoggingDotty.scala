@@ -13,6 +13,10 @@ object LazyLoggingDotty {
   class Logger(underlying: Underlying) {
     inline def info(msg: => String): Unit = underlying.info(msg)
 
+    inline def error(msg: => String): Unit = underlying.error(msg)
+
+    inline def error(msg: => String, e: Throwable): Unit = underlying.error(msg, e)
+
     inline def debug(msg: => String): Unit = {
       if (underlying.isDebugEnabled) underlying.debug(msg)
     }

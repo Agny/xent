@@ -18,7 +18,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.{ClassTag, Manifest, classTag}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Random, Success, Try}
 
 trait MessagePool[In <: Message, Out <: Message] {
   def take(): Seq[In]
@@ -87,10 +87,9 @@ object MessagePool extends LazyLoggingDotty {
         producer.send(record).get()
       }
     }
-    
+
     private class Buffer() {
       private val state = ArrayBuffer.empty[In]
-      private var isAlreadyStarted = false
 
       def add(a: In): Unit = this.synchronized {
         state += a
@@ -103,27 +102,33 @@ object MessagePool extends LazyLoggingDotty {
         r
       }
 
-      private val consumer = {
-        new KafkaConsumer[Unit, In](
-          props,
-          KafkaSerde.unitDeserializer,
-          KafkaSerde.deserializer[In]()
-        )
-      }
-
       def startPollingLoop(): Unit = {
-        while (!isAlreadyStarted) {
-          consumer.subscribe(Seq(conf.inputTopic).asJavaCollection)
-          val polled = consumer.poll(ScalaDurationOps(FiniteDuration(conf.maxPollDuration, TimeUnit.MILLISECONDS)).toJava)
-          polled.partitions().forEach { p =>
-            polled.records(p).forEach { r =>
-              logger.debug(s"Polled ${r}")
-              add(r.value)
-            }
-          }
-          Thread.sleep(100)
+        logger.debug("Start consumer")
+        val consumer = {
+          new KafkaConsumer[Unit, In](
+            props,
+            KafkaSerde.unitDeserializer,
+            KafkaSerde.deserializer[In]()
+          )
         }
-        isAlreadyStarted = true
+        consumer.subscribe(Seq(conf.inputTopic).asJavaCollection)
+        try {
+          logger.debug("Start polling")
+          while (true) {
+            val polled = consumer.poll(ScalaDurationOps(FiniteDuration(conf.maxPollDuration, TimeUnit.MILLISECONDS)).toJava)
+            polled.partitions().forEach { p =>
+              polled.records(p).forEach { r =>
+                logger.debug(s"Polled ${r}")
+                add(r.value)
+              }
+            }
+            Thread.sleep(100)
+          }
+        } catch {
+          case e: Exception =>
+            logger.error("Consumer failed", e)
+            startPollingLoop()
+        }
       }
     }
   }
