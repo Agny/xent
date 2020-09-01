@@ -3,9 +3,9 @@ package ru.agny.xent
 import java.nio.charset.StandardCharsets
 
 import cats.syntax.EitherOps
-import io.circe.{Decoder, Encoder}
 import io.circe.parser._
 import io.circe.syntax._
+import io.circe.{Decoder, Encoder}
 import org.apache.kafka.common.serialization.{Deserializer, Serializer}
 
 object KafkaSerde {

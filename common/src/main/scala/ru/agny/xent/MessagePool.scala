@@ -4,8 +4,6 @@ import java.nio.charset.StandardCharsets
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 
-import scala.jdk.CollectionConverters._
-import scala.jdk.DurationConverters._
 import com.typesafe.config.Config
 import io.circe.{Decoder, Encoder, Json, Printer}
 import org.apache.kafka.clients.CommonClientConfigs
@@ -18,6 +16,8 @@ import ru.agny.xent.Message._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
+import scala.jdk.DurationConverters._
 import scala.reflect.{ClassTag, Manifest, classTag}
 import scala.util.{Failure, Random, Success, Try}
 

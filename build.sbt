@@ -9,10 +9,9 @@ ThisBuild / crossPaths := false
 //  .settings(commonSettings, libraryDependencies ++= macrosDeps)
 
 val common = project.in(file("common"))
-  .settings(libraryDependencies ++= Cats ++ Circe ++ Config ++ Logging)
+  .settings(libraryDependencies ++= Cats ++ Circe ++ Config ++ Kafka ++ Logging ++ Testing)
 
 val core = project.in(file("core"))
-  .settings(libraryDependencies ++= Kafka ++ Testing)
   .dependsOn(common)
 //  .dependsOn(macros)
 
