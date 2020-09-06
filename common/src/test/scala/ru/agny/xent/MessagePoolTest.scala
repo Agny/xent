@@ -2,14 +2,13 @@ package ru.agny.xent
 
 import com.dimafeng.testcontainers.{ForAllTestContainer, KafkaContainer}
 import org.scalactic.source.Position
-import org.scalatest.{Args, Status}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.{Args, Status}
+import ru.agny.xent.Action._
+import ru.agny.xent.Message._
 
 import scala.language.implicitConversions
-
-import ru.agny.xent.Message._
-import ru.agny.xent.Action._
 
 class MessagePoolTest extends AnyFlatSpec with ForAllTestContainer {
 
