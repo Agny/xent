@@ -12,7 +12,7 @@ val common = project.in(file("common"))
   .settings(libraryDependencies ++= Cats ++ Circe ++ Config ++ Kafka ++ Logging ++ Testing)
 
 val core = project.in(file("core"))
-  .dependsOn(common)
+  .dependsOn(common % "compile->compile;test->test")
 //  .dependsOn(macros)
 
 //val shared = project.in(file("shared"))
