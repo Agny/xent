@@ -1,3 +1,8 @@
 package ru.agny.xent
 
-type UserId = Long
+import java.util.UUID
+
+type ItemId = Long
+type ItemWeight = Int
+type PlayerId = Long
+type RealmId = UUID
