@@ -1,4 +1,4 @@
-package ru.agny.xent.realm
+package ru.agny.xent.item
 
 import ru.agny.xent._
 

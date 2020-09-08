@@ -1,6 +1,7 @@
 package ru.agny.xent.realm
 
 import ru.agny.xent._
+import ru.agny.xent.item.Item
 
 enum Dynamic extends Item {
   case Battle(
