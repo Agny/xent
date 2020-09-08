@@ -5,8 +5,8 @@ import io.circe.syntax._
 import io.circe.parser._
 
 enum Message {
-  case Event(actor: UserId, timestamp: Long, action: Action)
-  case Notification(actor: UserId, target: UserId, timestamp: Long, action: Action)
+  case Event(actor: PlayerId, timestamp: Long, action: Action)
+  case Notification(actor: PlayerId, target: PlayerId, timestamp: Long, action: Action)
 }
 object Message {
 
@@ -38,7 +38,7 @@ object Message {
 
   given Decoder[Event] = { (c: HCursor) =>
     for {
-      actor <- c.downField("actor").as[UserId]
+      actor <- c.downField("actor").as[PlayerId]
       timestamp <- c.downField("timestamp").as[Long]
       action <- c.downField("action").as[Action]
     } yield Event(actor, timestamp, action).asInstanceOf[Event]
@@ -46,8 +46,8 @@ object Message {
 
   given Decoder[Notification] = { (c: HCursor) =>
     for {
-      actor <- c.downField("actor").as[UserId]
-      target <- c.downField("target").as[UserId]
+      actor <- c.downField("actor").as[PlayerId]
+      target <- c.downField("target").as[PlayerId]
       timestamp <- c.downField("timestamp").as[Long]
       action <- c.downField("action").as[Action]
     } yield Notification(actor, target, timestamp, action).asInstanceOf[Notification]

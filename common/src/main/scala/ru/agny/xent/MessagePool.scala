@@ -60,11 +60,11 @@ object MessagePool extends LazyLoggingDotty {
     val props = new Properties()
     props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, conf.bootstrap)
     props.put(CommonClientConfigs.GROUP_ID_CONFIG, conf.appId)
-    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, conf.isAutoCommit)
-    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, conf.maxPollRecords)
-    props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, conf.commitInterval)
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, conf.isAutoCommit.toString)
+    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, conf.maxPollRecords.toString)
+    props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, conf.commitInterval.toString)
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, conf.autoOffsetResetConfig)
-    props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, conf.maxRequestSize)
+    props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, conf.maxRequestSize.toString)
 
     val producer = new KafkaProducer[Unit, Out](
       props,
