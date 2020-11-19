@@ -16,6 +16,7 @@ enum Dynamic extends MapObject {
       id: ItemId,
       owner: Option[PlayerId],
       cargo: Seq[Resource],
+      guard: Troops,
       movement: Movement
   )
   case Troops(
@@ -28,7 +29,8 @@ enum Dynamic extends MapObject {
   )
 
   override val weight: ItemWeight = this match {
-    case Troops | Freight => ???
+    case a:Troops => a.weight
+    case a:Freight => a.guard.weight
     case _ => MapObject.NotMovable
   }
 }

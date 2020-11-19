@@ -2,7 +2,7 @@ import Dependencies._
 
 ThisBuild / organization := "ru.agny"
 ThisBuild / version := "0.2.0"
-ThisBuild / scalaVersion := "0.26.0-RC1"
+ThisBuild / scalaVersion := "0.27.0-RC1"
 ThisBuild / crossPaths := false
 
 //val macros = project.in(file("macros"))
