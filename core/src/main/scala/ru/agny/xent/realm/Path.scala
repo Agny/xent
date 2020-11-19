@@ -15,9 +15,9 @@ case class Path(from: Coordinate, to: Coordinate) {
   def tiles = cells.length - 1
 
   /**
-    * We are walking from end to start and building sequence of steps by prepending,
-    * so result will be ordered from start to end
-    */
+   * We are walking from end to start and building sequence of steps by prepending,
+   * so result will be ordered from start to end
+   */
   @tailrec private def path_rec(start: Coordinate, end: Coordinate, acc: Seq[Coordinate]): Seq[Coordinate] = {
     val (sx, sy) = (start.x, start.y)
     val (ex, ey) = (end.x, end.y)

@@ -7,15 +7,15 @@ import io.circe.syntax._
 
 object MainLoop {
 
-  def main(args:Array[String]):Unit = {
+  def main(args: Array[String]): Unit = {
     val c = ConfigFactory.load()
     println("loaded")
-    val ep = MessagePool[Event,Notification](c)
+    val ep = MessagePool[Event, Notification](c)
     while (true) {
       ep.take()
       Thread.sleep(2000)
     }
-//    println(Event(1,100,Noop).asJson)
+    //    println(Event(1,100,Noop).asJson)
     /*
     for {
       events = pool.take()

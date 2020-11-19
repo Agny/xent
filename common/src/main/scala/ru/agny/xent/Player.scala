@@ -3,7 +3,7 @@ package ru.agny.xent
 import ru.agny.xent.Player.AIEnemy
 
 case class Player(
-    id: PlayerId
+  id: PlayerId
 ) {
   def isFriendly(other: Player): Boolean = other.id match {
     case AIEnemy.id => false

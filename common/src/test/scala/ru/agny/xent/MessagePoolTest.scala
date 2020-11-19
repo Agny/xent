@@ -41,7 +41,7 @@ class MessagePoolTest extends AnyFlatSpec with ForAllTestContainer {
 
     Thread.sleep(1000) //consumers startup
 
-    eventToNotificationPool.take() should contain theSameElementsAs(messages)
+    eventToNotificationPool.take() should contain theSameElementsAs (messages)
   }
 
 

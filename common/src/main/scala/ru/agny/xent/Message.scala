@@ -51,7 +51,7 @@ object Message {
       timestamp <- c.downField("timestamp").as[Long]
       action <- c.downField("action").as[Action]
     } yield Notification(actor, target, timestamp, action).asInstanceOf[Notification]
-  }  
+  }
 
   given Decoder[Message] = { (c: HCursor) =>
     for {

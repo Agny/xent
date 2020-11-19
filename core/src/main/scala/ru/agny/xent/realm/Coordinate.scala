@@ -1,8 +1,8 @@
 package ru.agny.xent.realm
 
 /**
-  * All coordinates are axial, see https://www.redblobgames.com/grids/hexagons/
-  */
+ * All coordinates are axial, see https://www.redblobgames.com/grids/hexagons/
+ */
 case class Coordinate(x: Int, y: Int) {
 
   def distance(to: Coordinate): Int =

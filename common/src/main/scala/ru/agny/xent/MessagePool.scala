@@ -28,17 +28,17 @@ trait MessagePool[In <: Message, Out <: Message] {
 }
 object MessagePool extends LazyLoggingDotty {
   def apply[In <: Message, Out <: Message](conf: MessagePoolConf)(
-      using Encoder[In],
-      Encoder[Out],
-      Decoder[In],
-      Decoder[Out]
+    using Encoder[In],
+    Encoder[Out],
+    Decoder[In],
+    Decoder[Out]
   ): MessagePool[In, Out] = new DefaultImpl[In, Out](conf)
 
   def apply[In <: Message, Out <: Message](conf: Config)(
-      using Encoder[In],
-      Encoder[Out],
-      Decoder[In],
-      Decoder[Out]
+    using Encoder[In],
+    Encoder[Out],
+    Decoder[In],
+    Decoder[Out]
   ): MessagePool[In, Out] = {
     val kafkaConf = conf.getConfig("kafka")
     val ec = MessagePoolConf(
@@ -51,10 +51,10 @@ object MessagePool extends LazyLoggingDotty {
   }
 
   private class DefaultImpl[In <: Message, Out <: Message](conf: MessagePoolConf)(
-      using Encoder[In],
-      Encoder[Out],
-      Decoder[In],
-      Decoder[Out]
+    using Encoder[In],
+    Encoder[Out],
+    Decoder[In],
+    Decoder[Out]
   ) extends MessagePool[In, Out] {
 
     val props = new Properties()
@@ -113,7 +113,9 @@ object MessagePool extends LazyLoggingDotty {
             state.committed()
           }
 
-          val polled = consumer.poll(ScalaDurationOps(FiniteDuration(conf.maxPollDuration, TimeUnit.MILLISECONDS)).toJava)
+          val polled = consumer.poll(
+            ScalaDurationOps(FiniteDuration(conf.maxPollDuration, TimeUnit.MILLISECONDS)).toJava
+          )
           polled.partitions().forEach { p =>
             polled.records(p).forEach { r =>
               logger.debug(s"Polled ${r}")

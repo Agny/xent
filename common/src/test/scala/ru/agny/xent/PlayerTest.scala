@@ -7,16 +7,16 @@ import org.scalatest.matchers.should.Matchers._
 
 import scala.language.implicitConversions
 
-class PlayerTest extends AnyFlatSpec  {
+class PlayerTest extends AnyFlatSpec {
 
   //still "no implicit found"
   given Position = Position("PlayerTest", "ru.agny.xent", 42)
 
   "Player" should "not be hostile to himself" in {
     val p = Player(1)
-    p.isFriendly(p) should be(true) 
+    p.isFriendly(p) should be(true)
   }
-  
+
   it should "be hostile to others" in {
     val p1 = Player(1)
     val p2 = Player(2)

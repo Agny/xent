@@ -4,9 +4,9 @@ import io.circe.{Codec, Decoder, Encoder, HCursor, Json}
 import io.circe.syntax._
 import io.circe.parser._
 
-enum Action  {
+enum Action {
   case Noop
-  case Op(v:String)
+  case Op(v: String)
 }
 
 object Action {
@@ -25,7 +25,7 @@ object Action {
       v <- c.downField("v").as[String]
     } yield Op(v).asInstanceOf[Op]
   }
-  
+
   given Decoder[Action] = { (c: HCursor) =>
     for {
       discriminator <- c.downField("type").as[String]
