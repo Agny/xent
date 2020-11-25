@@ -2,7 +2,7 @@ import Dependencies._
 
 ThisBuild / organization := "ru.agny"
 ThisBuild / version := "0.2.0"
-ThisBuild / scalaVersion := "0.27.0-RC1"
+ThisBuild / scalaVersion := "3.0.0-M1"
 ThisBuild / crossPaths := false
 
 //val macros = project.in(file("macros"))
@@ -13,6 +13,7 @@ val common = project.in(file("common"))
 
 val core = project.in(file("core"))
   .dependsOn(common % "compile->compile;test->test")
+  .enablePlugins(JmhPlugin)
 //  .dependsOn(macros)
 
 //val shared = project.in(file("shared"))
