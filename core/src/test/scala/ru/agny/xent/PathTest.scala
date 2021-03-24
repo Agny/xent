@@ -10,9 +10,6 @@ import scala.language.implicitConversions
 
 class PathTest extends AnyFlatSpec {
 
-  //still "no implicit found"
-  given Position = Position("PathTest", "ru.agny.xent", 42)
-
   "Path" should "be correct" in {
     val start = Coordinate(0, 0)
     val destination = Coordinate(1, 1)

@@ -10,9 +10,6 @@ import scala.language.implicitConversions
 
 class CoordinateTest extends AnyFlatSpec {
 
-  //still "no implicit found"
-  given Position = Position("CoordinateTest", "ru.agny.xent", 42)
-
   "Coordinate" should "calculate distance" in {
     val from = Coordinate(0, 0)
     val to = Coordinate(3, 1)
