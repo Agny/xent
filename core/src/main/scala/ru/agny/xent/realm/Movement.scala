@@ -6,7 +6,7 @@ case class Movement(
   private val path: Path
 ) {
 
-  private var pos: Hexagon = path.from
+  var pos: Hexagon = path.from
   private var passed: Distance = Hexagon.Center
   private var isFinished = false
 
@@ -28,4 +28,5 @@ case class Movement(
   }
 
   def isDestinationReached(): Boolean = isFinished
+  
 }
