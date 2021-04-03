@@ -13,12 +13,13 @@ case class City(
   owner: Option[PlayerId],
   buildings: Buildings,
   defence: Defence,
-  pos:Hexagon
+  pos: Hexagon
 ) extends DestructibleObject {
 
   override def tick(time: TimeInterval) = {
-    ???
+    //TODO tick something!
+    this
   }
 
-  override def isEliminated() = ???
+  override def isEliminated() = owner.isEmpty
 }

@@ -1,8 +1,9 @@
-package ru.agny.xent
+package ru.agny.xent.realm
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.{Args, Status}
+import ru.agny.xent.Velocity
 import ru.agny.xent.realm.{Hexagon, Movement}
 
 import scala.language.implicitConversions

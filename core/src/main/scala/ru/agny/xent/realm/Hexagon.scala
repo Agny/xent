@@ -18,6 +18,8 @@ case class Hexagon(x: Int, y: Int) {
 
   def path(to: Hexagon): Path = Path(this, to)
 
+  def ~>(to: Hexagon): Movement = Movement(path(to))
+
   inline private def z(): Int = -x - y
 }
 
@@ -29,4 +31,6 @@ object Hexagon {
    */
   val Center: Distance = 60000
   val Length: Distance = Center * 2
+
+  extension (x: Int) def ~(y: Int): Hexagon = Hexagon(x, y)
 }

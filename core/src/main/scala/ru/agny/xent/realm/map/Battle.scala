@@ -3,7 +3,7 @@ package ru.agny.xent.realm.map
 import ru.agny.xent._
 import ru.agny.xent.Player.AIEnemy
 import ru.agny.xent.city.Buildings
-import ru.agny.xent.item.{DestructibleObject, MapObject, Storage}
+import ru.agny.xent.item.{DestructibleObject, MapObject, MovingObject, Storage}
 import ru.agny.xent.realm.{Hexagon, Progress}
 import ru.agny.xent.realm.ai.TechonologyTier
 import ru.agny.xent.war.{Defence, Sides}
@@ -14,7 +14,7 @@ case class Battle(
   sides: Sides,
   passerbyers: Seq[Troops],
   progress: Progress,
-  pos:Hexagon
+  pos: Hexagon
 ) extends DestructibleObject {
   override val weight = MapObject.NotMovable
 
@@ -26,6 +26,16 @@ case class Battle(
 
   def end(): Seq[Troops] = {
     //sides, passerbyers
+    ???
+  }
+}
+
+object Battle {
+  case class Preparation(success: Seq[Battle], passerbyers: Seq[MovingObject])
+
+  def build(
+    actors: Seq[MovingObject],
+    places: Seq[DestructibleObject]): Preparation = {
     ???
   }
 }

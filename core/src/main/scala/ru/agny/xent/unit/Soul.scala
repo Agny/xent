@@ -5,15 +5,23 @@ import ru.agny.xent.item.{Equipment, Equippable, MapObject}
 
 case class Soul(id: ItemId, private val stats: SoulData, private val equip: Equipment) {
 
+  import Soul._
+  
   def carryPower() = stats.carryPower
+
   def weight(): ItemWeight = stats.weight
+
   def endurance() = stats.endurance
+
   def initiative() = stats.initiative
+
   def velocity() = stats.velocity
+
   def spirit() = stats.spirit
+
   def state() = spirit() match {
-    case alive if alive > 0 => SoulState.Active
-    case _ => SoulState.Fallen
+    case alive if alive > 0 => Soul.State.Active
+    case _ => Soul.State.Fallen
   }
 
   def attackRates(using target: MapObject) = stats.attackModifiers
@@ -26,7 +34,12 @@ case class Soul(id: ItemId, private val stats: SoulData, private val equip: Equi
   def becomeUndone(): (Int, Vector[Equippable]) = ???
 }
 
-enum SoulState {
-  case Active
-  case Fallen
+object Soul {
+
+  val Empty = Soul(-1, SoulData.Empty, Equipment.Empty)
+
+  enum State {
+    case Active
+    case Fallen
+  }
 }

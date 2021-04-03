@@ -13,13 +13,16 @@ case class AICity(
   techTier: TechonologyTier,
   defence: Defence,
   storage: Storage,
-  pos:Hexagon
+  pos: Hexagon
 ) extends DestructibleObject {
-  
+
   override def tick(time: TimeInterval) = {
-    ???    
+    //TODO tick something!
+    this
   }
 
-  override def isEliminated() = ???
+  override def isEliminated() = {
+    defence.isEliminated()
+  }
 }
 

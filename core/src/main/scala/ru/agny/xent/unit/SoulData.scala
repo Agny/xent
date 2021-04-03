@@ -30,3 +30,7 @@ case class SoulData() {
   def carryPower: ItemWeight = ???
 
 }
+
+object SoulData {
+  val Empty = SoulData()
+}

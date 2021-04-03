@@ -1,4 +1,4 @@
-package ru.agny.xent
+package ru.agny.xent.realm
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
@@ -7,7 +7,7 @@ import ru.agny.xent.realm.Hexagon
 
 import scala.language.implicitConversions
 
-class CoordinateTest extends AnyFlatSpec {
+class HexagonTest extends AnyFlatSpec {
 
   "Hexagon" should "calculate distance" in {
     val from = Hexagon(0, 0)

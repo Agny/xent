@@ -6,7 +6,7 @@ object Dependencies {
     "org.apache.kafka" % "kafka-clients" % "2.5.0"
   )
   val Testing = Seq(
-    "org.scalatest" %% "scalatest" % "3.2.6" % Test,
+    "org.scalatest" %% "scalatest" % "3.2.7" % Test,
     "com.dimafeng" % "testcontainers-scala-scalatest_2.13" % "0.38.1" % Test,
     "com.dimafeng" % "testcontainers-scala-kafka_2.13" % "0.38.1" % Test
   )

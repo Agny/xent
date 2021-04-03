@@ -17,7 +17,7 @@ case class Troops(
   movement: Movement,
   fatigue: Fatigue
 ) extends MovingObject {
-  override val weight = units.map(_._2.weight).sum
+  override def weight = units.map(_._2.weight).sum
 
   override def tick(time: TimeInterval) = {
     movement.tick(velocity(), time)

@@ -1,4 +1,4 @@
-package ru.agny.xent
+package ru.agny.xent.realm
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._

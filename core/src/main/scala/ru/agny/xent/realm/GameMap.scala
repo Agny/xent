@@ -1,9 +1,10 @@
 package ru.agny.xent.realm
 
 import ru.agny.xent.item.{DestructibleObject, MapObject, MovingObject}
-import ru.agny.xent.realm.GameMap.{DestructibleTickResult}
+import ru.agny.xent.realm.GameMap.DestructibleTickResult
 import ru.agny.xent.TimeInterval
 import ru.agny.xent.realm.Realm.{Strong, Weak}
+import ru.agny.xent.realm.map.Battle.Preparation
 import ru.agny.xent.realm.map.{Battle, Troops}
 
 import scala.collection.mutable
@@ -15,33 +16,60 @@ import scala.collection.mutable
  * @param maxX maximum X range (absolute value)
  * @param maxY maximum Y range (absolute value)
  */
-class GameMap(
+case class GameMap(
   maxX: Int,
   maxY: Int,
-  objects: Seq[DestructibleObject],
-  troops: Seq[MovingObject]
+  private val objects: Seq[DestructibleObject],
+  private val troops: Seq[MovingObject]
 ) {
   private val (minX, minY) = (-maxX, -maxY)
-  private val moving: mutable.Seq[MovingObject] = mutable.Seq.from(troops)
-  private val clashes: mutable.Map[Hexagon, mutable.Seq[MapObject]] = mutable.Map.empty
+  private var moving: Seq[MovingObject] = troops
+  private var places: Map[Hexagon, Seq[DestructibleObject]] = objects.groupMap(_.pos)(x => x)
 
   def tick(timer: Realm.Timer): Unit = {
     timer.tick() match {
       case Weak(volume) =>
-      case Strong(volume, accumulated) =>
-        val dTicked = GameMap.tick(objects, accumulated)
-        val updated = moving.map { x =>
+        val movingPos = moving.groupMap { x =>
           x.tick(volume)
-          if (clashes.isDefinedAt(x.pos)) {
-            x +: clashes(x.pos)
-          } else {
-            clashes += (x.pos -> mutable.Seq(x))
-          }
-        }
-        ???
+          x.pos
+        } { x => x }
 
+        val p = mutable.Map.from(places)
+        val m = mutable.Seq.from(moving)
+        movingPos.foreach { case (pos, xs) =>
+          val Preparation(updatedPlaces, nonparticipants) = Battle.build(xs, p.getOrElse(pos, Seq.empty))
+          p.update(pos, updatedPlaces)
+          nonparticipants ++: m
+        }
+        moving = m.toSeq
+        places = p.toMap
+
+      case Strong(volume, accumulated) =>
+        val DestructibleTickResult(r, l) = GameMap.tick(places.values.flatten.toSeq, accumulated)
+
+        places = r.groupMap(_.pos)(x => x)
+
+        val movingPos = moving.groupMap { x =>
+          x.tick(volume)
+          x.pos
+        } { x => x }
+
+        val p = mutable.Map.from(places)
+        val m = mutable.Seq.from(l)
+        movingPos.foreach { case (pos, xs) =>
+          val Preparation(updatedPlaces, nonparticipants) = Battle.build(xs, p.getOrElse(pos, Seq.empty))
+          p.update(pos, updatedPlaces)
+          nonparticipants ++: m
+        }
+
+        moving = m.toSeq
+        places = p.toMap
     }
   }
+
+  def getState(): Seq[DestructibleObject] = places.values.flatten.toSeq
+
+  def getTroops(): Seq[MovingObject] = moving
 }
 
 object GameMap {
@@ -55,14 +83,14 @@ object GameMap {
     objects: Seq[DestructibleObject],
     time: TimeInterval
   ): DestructibleTickResult = {
-    val r = objects.partition { x =>
+    val (operational, eliminated) = objects.partition { x =>
       val updated = x.tick(time)
       !updated.isEliminated()
     }
-    val cleared = r._2 flatMap {
+    val cleared = eliminated flatMap {
       case b: Battle => b.end()
       case _ => Seq.empty // remnants?
     }
-    DestructibleTickResult(r._1, cleared)
+    DestructibleTickResult(operational, cleared)
   }
 }

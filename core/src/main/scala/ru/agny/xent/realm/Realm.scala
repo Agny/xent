@@ -34,7 +34,7 @@ case class Realm(
 
 object Realm {
 
-  val StaticTickPeriod: TimeInterval = 30
+  val StrongTickPeriod: TimeInterval = 30
 
   case class Timer(now: Long) {
     private var lastTick = now
@@ -45,7 +45,7 @@ object Realm {
       val interval = ((updated - lastTick) / 1000).toInt
       lastTick = updated
       acc += interval
-      if (acc >= StaticTickPeriod) {
+      if (acc >= StrongTickPeriod) {
         val r = Strong(interval, acc)
         acc = 0
         r
