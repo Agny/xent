@@ -1,11 +1,12 @@
 package ru.agny.xent.realm
 
-import ru.agny.xent.item.{DestructibleObject, MapObject, MovingObject}
-import ru.agny.xent.realm.GameMap.DestructibleTickResult
+import ru.agny.xent.item.{DestructibleObject, MapObject, TemporalObject}
+import ru.agny.xent.realm.GameMap.{DestructibleTickResult, BattleTickResult}
 import ru.agny.xent.TimeInterval
 import ru.agny.xent.realm.Realm.{Strong, Weak}
 import ru.agny.xent.realm.map.Battle.Preparation
 import ru.agny.xent.realm.map.{Battle, Troops}
+import GameMap._
 
 import scala.collection.mutable
 
@@ -20,64 +21,37 @@ case class GameMap(
   maxX: Int,
   maxY: Int,
   private val objects: Seq[DestructibleObject],
-  private val troops: Seq[MovingObject]
+  private val battleRelated: Seq[TemporalObject]
 ) {
   private val (minX, minY) = (-maxX, -maxY)
-  private var moving: Seq[MovingObject] = troops
+  private var temporal: Seq[TemporalObject] = battleRelated
   private var places: Map[Hexagon, Seq[DestructibleObject]] = objects.groupMap(_.pos)(x => x)
 
   def tick(timer: Realm.Timer): Unit = {
     timer.tick() match {
       case Weak(volume) =>
-        val movingPos = moving.groupMap { x =>
-          x.tick(volume)
-          x.pos
-        } { x => x }
+        val BTR(troops) = GameMap.tick(temporal, places, volume)
 
-        val p = mutable.Map.from(places)
-        val m = mutable.Seq.from(moving)
-        movingPos.foreach { case (pos, xs) =>
-          val Preparation(updatedPlaces, nonparticipants) = Battle.build(xs, p.getOrElse(pos, Seq.empty))
-          p.update(pos, updatedPlaces)
-          nonparticipants ++: m
-        }
-        moving = m.toSeq
-        places = p.toMap
-
+        temporal = troops
       case Strong(volume, accumulated) =>
-        val DestructibleTickResult(r, l) = GameMap.tick(places.values.flatten.toSeq, accumulated)
+        val DTR(updatedPlaces) = GameMap.tick(places.values.flatten.toSeq, accumulated)
+        val BTR(troops) = GameMap.tick(temporal, places, volume)
 
-        places = r.groupMap(_.pos)(x => x)
-
-        val movingPos = moving.groupMap { x =>
-          x.tick(volume)
-          x.pos
-        } { x => x }
-
-        val p = mutable.Map.from(places)
-        val m = mutable.Seq.from(l)
-        movingPos.foreach { case (pos, xs) =>
-          val Preparation(updatedPlaces, nonparticipants) = Battle.build(xs, p.getOrElse(pos, Seq.empty))
-          p.update(pos, updatedPlaces)
-          nonparticipants ++: m
-        }
-
-        moving = m.toSeq
-        places = p.toMap
+        temporal = troops 
+        places = updatedPlaces.groupMap(_.pos)(x => x)
     }
   }
 
   def getState(): Seq[DestructibleObject] = places.values.flatten.toSeq
 
-  def getTroops(): Seq[MovingObject] = moving
+  def getTroops(): Seq[TemporalObject] = temporal
 }
 
 object GameMap {
-  case class DestructibleTickResult(
-    remains: Seq[DestructibleObject],
-    leftFromBattle: Seq[Troops]
-    //other remnants?
-  )
+  case class DestructibleTickResult(remains: Seq[DestructibleObject])
+  case class BattleTickResult(moving: Seq[TemporalObject])
+  type DTR = DestructibleTickResult
+  type BTR = BattleTickResult
 
   private def tick(
     objects: Seq[DestructibleObject],
@@ -88,9 +62,26 @@ object GameMap {
       !updated.isEliminated()
     }
     val cleared = eliminated flatMap {
-      case b: Battle => b.end()
-      case _ => Seq.empty // remnants?
+      case _ => Seq.empty[DestructibleObject] // remnants?
     }
-    DestructibleTickResult(operational, cleared)
+    DestructibleTickResult(operational)
+  }
+
+  private def tick(
+    temporals: Seq[TemporalObject],
+    objects: Map[Hexagon, Seq[DestructibleObject]],
+    time: TimeInterval
+  ): BattleTickResult = {
+    val movingPos = temporals.groupMap { x =>
+      x.tick(time)
+      x.pos
+    } { x => x }
+
+    val m = mutable.Seq.empty
+    movingPos.foreach { case (pos, xs) =>
+      val Preparation(updatedPlaces, nonparticipants) = Battle.build(xs, objects.getOrElse(pos, Seq.empty))
+      updatedPlaces ++: nonparticipants ++: m
+    }
+    BattleTickResult(m.toSeq)
   }
 }

@@ -3,7 +3,7 @@ package ru.agny.xent.realm.map
 import ru.agny.xent._
 import ru.agny.xent.Player.AIEnemy
 import ru.agny.xent.city.Buildings
-import ru.agny.xent.item.{Backpack, MovingObject, Storage}
+import ru.agny.xent.item.{Backpack, TemporalObject, Storage}
 import ru.agny.xent.realm.Movement
 import ru.agny.xent.realm.ai.TechonologyTier
 import ru.agny.xent.unit.Soul
@@ -16,7 +16,7 @@ case class Troops(
   units: Seq[Soul],
   movement: Movement,
   fatigue: Fatigue
-) extends MovingObject {
+) extends TemporalObject {
   override def weight = units.map(_._2.weight).sum
 
   override def tick(time: TimeInterval) = {

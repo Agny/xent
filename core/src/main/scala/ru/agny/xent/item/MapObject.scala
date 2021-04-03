@@ -10,7 +10,7 @@ trait DestructibleObject extends MapObject {
   override val weight = MapObject.NotMovable
   def isEliminated(): Boolean
 }
-trait MovingObject extends MapObject
+trait TemporalObject extends MapObject
 
 object MapObject {
   val NotMovable: ItemWeight = Int.MaxValue

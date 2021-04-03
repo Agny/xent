@@ -56,5 +56,5 @@ object Realm {
 
   sealed trait Tick
   case class Weak(volume: TimeInterval) extends Tick
-  case class Strong(volume: TimeInterval, accumulated: TimeInterval) extends Tick
+  case class Strong(volume: TimeInterval, volumeFull: TimeInterval) extends Tick
 }
