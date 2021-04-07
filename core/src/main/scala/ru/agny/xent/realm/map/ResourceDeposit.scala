@@ -10,7 +10,7 @@ import ru.agny.xent.war.Defence
 
 case class ResourceDeposit(
   id: ItemId,
-  owner: Option[PlayerId] = None,
+  owner: PlayerId = PlayerId.Neutral,
   resource: Resource,
   pos:Hexagon
 ) extends DestructibleObject {

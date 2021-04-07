@@ -10,16 +10,16 @@ import ru.agny.xent.war.Defence
 
 case class City(
   id: ItemId,
-  owner: Option[PlayerId],
+  owner: PlayerId,
   buildings: Buildings,
   defence: Defence,
   pos: Hexagon
 ) extends DestructibleObject {
 
   override def tick(time: TimeInterval) = {
-    //TODO tick something!
+    //TODO fill something!
     this
   }
 
-  override def isEliminated() = owner.isEmpty
+  override def isEliminated() = owner == PlayerId.Lost
 }

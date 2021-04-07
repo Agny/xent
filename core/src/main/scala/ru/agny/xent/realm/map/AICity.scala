@@ -9,7 +9,7 @@ import ru.agny.xent.war.Defence
 
 case class AICity(
   id: ItemId,
-  owner: Option[PlayerId] = Some(AIEnemy.id),
+  owner: PlayerId = AIEnemy.id,
   techTier: TechonologyTier,
   defence: Defence,
   storage: Storage,
@@ -17,7 +17,7 @@ case class AICity(
 ) extends DestructibleObject {
 
   override def tick(time: TimeInterval) = {
-    //TODO tick something!
+    //TODO fill something!
     this
   }
 

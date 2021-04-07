@@ -2,6 +2,7 @@ package ru.agny.xent.unit
 
 import ru.agny.xent.{ItemId, ItemWeight}
 import ru.agny.xent.item.{Equipment, Equippable, MapObject}
+import ru.agny.xent.realm.map.Troops
 
 case class Soul(id: ItemId, private val stats: SoulData, private val equip: Equipment) {
 
@@ -26,7 +27,14 @@ case class Soul(id: ItemId, private val stats: SoulData, private val equip: Equi
 
   def attackRates(using target: MapObject) = stats.attackModifiers
 
-  def attack[Target <: MapObject](target: Target): Unit = ???
+  def attack(target: Troops): Unit = {
+    target.takeDamage(10)
+  }
+
+  //TODO damage attributes
+  def takeDamage(damage: Int): Unit = {
+    stats.receiveDamage(damage)
+  }
 
   def gainExp(amount: Int): Unit = stats.gainExp(amount)
 

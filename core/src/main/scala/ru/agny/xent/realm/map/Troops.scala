@@ -11,13 +11,13 @@ import ru.agny.xent.war.{Defence, Fatigue, Sides}
 
 case class Troops(
   id: ItemId,
-  owner: Option[PlayerId],
+  owner: PlayerId,
   backpack: Backpack,
   units: Seq[Soul],
   movement: Movement,
   fatigue: Fatigue
 ) extends TemporalObject {
-  override def weight = units.map(_._2.weight).sum
+  override def weight = activeSouls().map(_._2.weight).sum
 
   override def tick(time: TimeInterval) = {
     movement.tick(velocity(), time)
@@ -28,5 +28,23 @@ case class Troops(
 
   def velocity(): Velocity = {
     units.map(_.velocity()).min
+  }
+
+  def isAggressive(): Boolean = true
+
+  def isAbleToFight(): Boolean = activeSouls().nonEmpty
+
+  def activeSouls(): Seq[Soul] = units.filter(_.state() == Soul.State.Active)
+
+  def attack(that: Troops): Unit = {
+    activeSouls().foreach { x =>
+      //TODO targeting!
+      x.attack(that)
+    }
+  }
+
+  //TODO damage attributes
+  def takeDamage(damage: Int): Unit = {
+    activeSouls().foreach(s => s.takeDamage(damage))
   }
 }

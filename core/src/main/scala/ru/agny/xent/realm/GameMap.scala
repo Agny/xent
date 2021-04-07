@@ -4,7 +4,7 @@ import ru.agny.xent.item.{DestructibleObject, MapObject, TemporalObject}
 import ru.agny.xent.realm.GameMap.{DestructibleTickResult, BattleTickResult}
 import ru.agny.xent.TimeInterval
 import ru.agny.xent.realm.Realm.{Strong, Weak}
-import ru.agny.xent.realm.map.Battle.Preparation
+import ru.agny.xent.realm.map.Battle.State
 import ru.agny.xent.realm.map.{Battle, Troops}
 import GameMap._
 
@@ -21,10 +21,10 @@ case class GameMap(
   maxX: Int,
   maxY: Int,
   private val objects: Seq[DestructibleObject],
-  private val battleRelated: Seq[TemporalObject]
+  private val military: Seq[TemporalObject]
 ) {
   private val (minX, minY) = (-maxX, -maxY)
-  private var temporal: Seq[TemporalObject] = battleRelated
+  private var temporal: Seq[TemporalObject] = military
   private var places: Map[Hexagon, Seq[DestructibleObject]] = objects.groupMap(_.pos)(x => x)
 
   def tick(timer: Realm.Timer): Unit = {
@@ -37,7 +37,7 @@ case class GameMap(
         val DTR(updatedPlaces) = GameMap.tick(places.values.flatten.toSeq, accumulated)
         val BTR(troops) = GameMap.tick(temporal, places, volume)
 
-        temporal = troops 
+        temporal = troops
         places = updatedPlaces.groupMap(_.pos)(x => x)
     }
   }
@@ -57,10 +57,7 @@ object GameMap {
     objects: Seq[DestructibleObject],
     time: TimeInterval
   ): DestructibleTickResult = {
-    val (operational, eliminated) = objects.partition { x =>
-      val updated = x.tick(time)
-      !updated.isEliminated()
-    }
+    val (operational, eliminated) = objects.map(_.tick(time)).partition(!_.isEliminated())
     val cleared = eliminated flatMap {
       case _ => Seq.empty[DestructibleObject] // remnants?
     }
@@ -72,16 +69,19 @@ object GameMap {
     objects: Map[Hexagon, Seq[DestructibleObject]],
     time: TimeInterval
   ): BattleTickResult = {
-    val movingPos = temporals.groupMap { x =>
-      x.tick(time)
-      x.pos
-    } { x => x }
+    val (toComplete: Seq[Battle]@unchecked, toClash) = temporals.partition {
+      case b: Battle => b.isFinished()
+      case other => false
+    }
 
+    val leftFromBattle = toComplete.flatMap(_.complete())
+
+    val movingPos = toClash.map(_.tick(time)).groupBy(_.pos)
     val m = mutable.Seq.empty
     movingPos.foreach { case (pos, xs) =>
-      val Preparation(updatedPlaces, nonparticipants) = Battle.build(xs, objects.getOrElse(pos, Seq.empty))
-      updatedPlaces ++: nonparticipants ++: m
+      val State(updatedBattles, nonparticipants) = Battle.build(xs, objects.getOrElse(pos, Seq.empty))
+      updatedBattles ++: nonparticipants ++: m
     }
-    BattleTickResult(m.toSeq)
+    BattleTickResult(leftFromBattle ++: m.toSeq)
   }
 }

@@ -6,10 +6,10 @@ import org.scalatest.{Args, Status}
 import ru.agny.xent.PlayerId
 import ru.agny.xent.city.Buildings
 import ru.agny.xent.item.{Backpack, Storage}
-import ru.agny.xent.realm.map.{AICity, City, Troops}
+import ru.agny.xent.realm.map.{AICity, Battle, City, Troops}
 import ru.agny.xent.unit.Soul
 import ru.agny.xent.utils.{ItemIdGenerator, PlayerIdGenerator}
-import ru.agny.xent.war.{Defence, Fatigue}
+import ru.agny.xent.war.{Defence, Fatigue, Sides}
 import Hexagon._
 import ru.agny.xent.Player.AIEnemy
 import ru.agny.xent.realm.Realm.{StrongTickPeriod, Timer}
@@ -29,10 +29,10 @@ class GameMapTest extends AnyFlatSpec {
     val roaming = getTroops(playerTwo, roamingMovement)
     val troops = Seq(freight, roaming)
 
-    val city = City(ItemIdGenerator.next, Some(playerOne), Buildings.Default, Defence.Empty, 0 ~ 0)
+    val city = City(ItemIdGenerator.next, playerOne, Buildings.Default, Defence.Empty, 0 ~ 0)
     val aICity = AICity(
       ItemIdGenerator.next,
-      Some(AIEnemy.id),
+      AIEnemy.id,
       TechonologyTier.Default,
       Defence.Empty,
       Storage.Empty,
@@ -46,8 +46,8 @@ class GameMapTest extends AnyFlatSpec {
   }
 
   it should "remove destructed" in {
-    val city = City(ItemIdGenerator.next, Some(playerOne), Buildings.Default, Defence.Empty, 0 ~ 0)
-    val aICity = AICity(ItemIdGenerator.next, Some(AIEnemy.id), TechonologyTier.Default, Defence.Empty, Storage
+    val city = City(ItemIdGenerator.next, playerOne, Buildings.Default, Defence.Empty, 0 ~ 0)
+    val aICity = AICity(ItemIdGenerator.next, AIEnemy.id, TechonologyTier.Default, Defence.Empty, Storage
       .Empty, 7 ~ 0)
     val places = Seq(city, aICity)
 
@@ -56,9 +56,28 @@ class GameMapTest extends AnyFlatSpec {
 
     gm.getState() shouldBe Seq(city)
   }
+  
+  it should "add retired from battle troops" in {
+    val sides = Map(
+      playerOne -> Seq(getTroops(playerOne, 2 ~ 2 ~> (1 ~ 1))),
+      playerTwo -> Seq(getTroops(playerTwo, 2 ~ 1 ~> (1 ~ 1))),
+    )
+    val otherTroops = Seq(getTroops(playerTwo, 0 ~ 0 ~> (1 ~ 1)))
+    val b = Battle(ItemIdGenerator.next, Sides(sides), Progress.Start(), 0 ~ 0)
+    val roaming = getTroops(playerTwo, 0 ~ 0 ~> (4 ~ 4))
+    val military = Seq(b, roaming)
+
+    val gm = GameMap(maxX, maxY, Seq.empty, military)
+    gm.tick(timer)
+    
+    val expectedTroops = sides.values.toSeq.flatten :+ roaming
+    
+    gm.getState() shouldBe Seq.empty
+    gm.getTroops() should contain theSameElementsAs expectedTroops 
+  }
 
   private def getTroops(player: PlayerId, movement: Movement): Troops = {
-    Troops(ItemIdGenerator.next, Some(player), Backpack.Empty, Seq(Soul.Empty), movement, Fatigue.Empty)
+    Troops(ItemIdGenerator.next, player, Backpack.Empty, Seq(Soul.Empty), movement, Fatigue.Empty)
   }
 
 }

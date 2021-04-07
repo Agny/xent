@@ -10,7 +10,7 @@ import ru.agny.xent.war.Defence
 
 case class ProductionSite(
   id: ItemId,
-  owner: Option[PlayerId],
+  owner: PlayerId,
   resource: Resource,
   defence: Defence,
   progress: Progress,

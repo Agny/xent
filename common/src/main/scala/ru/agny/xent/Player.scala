@@ -13,5 +13,7 @@ case class Player(
 }
 
 object Player {
-  val AIEnemy = Player(-1)
+  val AIEnemy = Player(PlayerId.AIEnemy)
+
+  def isHostile(a: PlayerId, b: PlayerId): Boolean = a != b
 }

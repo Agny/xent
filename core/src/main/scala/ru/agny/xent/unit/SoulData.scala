@@ -5,15 +5,15 @@ import ru.agny.xent.{ItemWeight, Velocity}
 
 //TODO Equipment boosting stats
 /** @param level is required for equipping items and learning skills. Represents experience, accumulated by the soul in this incarnation */
-case class SoulData() {
+case class SoulData(level: Level, spiritPower: Spirit) {
 
   def armor: Int = ???
 
-  def spirit: Int = ???
+  def spirit: Int = spiritPower.points
 
-  def velocity: Velocity = ???
+  def velocity: Velocity = 10
 
-  def weight: Int = ???
+  def weight: Int = spirit
 
   def endurance: Int = ???
 
@@ -23,7 +23,9 @@ case class SoulData() {
 
   def defenseModifiers: Int = ???
 
-  def receiveDamage(dmg: Int): SoulData = ???
+  def receiveDamage(dmg: Int): Unit = {
+    spiritPower.change(-dmg)
+  }
 
   def gainExp(amount: Int) = ???
 
@@ -32,5 +34,5 @@ case class SoulData() {
 }
 
 object SoulData {
-  val Empty = SoulData()
+  val Empty = SoulData(Level.start, Spirit(10, 10, 100))
 }
