@@ -7,6 +7,7 @@ object Dependencies {
   )
   val Testing = Seq(
     "org.scalatest" %% "scalatest" % "3.2.7" % Test,
+    "org.scalamock" % "scalamock_2.13" % "5.1.0" % Test,
     "com.dimafeng" % "testcontainers-scala-scalatest_2.13" % "0.38.1" % Test,
     "com.dimafeng" % "testcontainers-scala-kafka_2.13" % "0.38.1" % Test
   )

@@ -3,7 +3,7 @@ package ru.agny.xent.realm
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.{Args, Status}
-import ru.agny.xent.PlayerId
+import ru.agny.xent.{Player, PlayerId, PlayerService}
 import ru.agny.xent.city.Buildings
 import ru.agny.xent.item.{Backpack, Storage}
 import ru.agny.xent.realm.map.{AICity, Battle, City, Troops}
@@ -21,6 +21,8 @@ class GameMapTest extends AnyFlatSpec {
   val playerOne = PlayerIdGenerator.next
   val playerTwo = PlayerIdGenerator.next
   val timer = Timer(System.currentTimeMillis() - StrongTickPeriod * 1000)
+
+  given PlayerService = Player.defaultPS
 
   "GameMap" should "init state by input parameters" in {
     val freightMovement = 0 ~ 0 ~> (2 ~ 2)
@@ -56,24 +58,27 @@ class GameMapTest extends AnyFlatSpec {
 
     gm.getState() shouldBe Seq(city)
   }
-  
-  it should "add retired from battle troops" in {
-    val sides = Map(
-      playerOne -> Seq(getTroops(playerOne, 2 ~ 2 ~> (1 ~ 1))),
-      playerTwo -> Seq(getTroops(playerTwo, 2 ~ 1 ~> (1 ~ 1))),
+
+  it should "return troops upon battle completion" in {
+    val timer = Timer(System.currentTimeMillis() - Progress.DefaultCap * 1000)
+
+    val battleTroops = Seq(
+      getTroops(playerOne, 2 ~ 2 ~> (1 ~ 1)),
+      getTroops(playerTwo, 2 ~ 1 ~> (1 ~ 1))
     )
-    val otherTroops = Seq(getTroops(playerTwo, 0 ~ 0 ~> (1 ~ 1)))
-    val b = Battle(ItemIdGenerator.next, Sides(sides), Progress.Start(), 0 ~ 0)
     val roaming = getTroops(playerTwo, 0 ~ 0 ~> (4 ~ 4))
+    val sides = battleTroops.groupMap(_.owner)(x => x)
+
+    val b = Battle(ItemIdGenerator.next, Sides(sides), Progress.Start(), 0 ~ 0)
     val military = Seq(b, roaming)
 
     val gm = GameMap(maxX, maxY, Seq.empty, military)
     gm.tick(timer)
-    
-    val expectedTroops = sides.values.toSeq.flatten :+ roaming
-    
+
+    val expectedTemporal = roaming +: battleTroops
+
     gm.getState() shouldBe Seq.empty
-    gm.getTroops() should contain theSameElementsAs expectedTroops 
+    gm.getTroops() should contain theSameElementsAs expectedTemporal
   }
 
   private def getTroops(player: PlayerId, movement: Movement): Troops = {

@@ -5,7 +5,7 @@ import ru.agny.xent.TimeInterval._
 import ru.agny.xent.realm.map.Troops
 import ru.agny.xent.{Player, PlayerId}
 
-case class Sides(troops: Map[PlayerId, Seq[Troops]]) {
+case class Sides(troops: Map[PlayerId, Seq[Troops]])(using ps: PlayerService) {
 
   import Sides._
 
@@ -60,7 +60,7 @@ object Sides {
    * @param players to build a map of
    * @return relations map
    */
-  private def hostilityMap(players: Seq[PlayerId]): Map[PlayerId, Seq[PlayerId]] = {
+  private def hostilityMap(players: Seq[PlayerId])(using ps: PlayerService): Map[PlayerId, Seq[PlayerId]] = {
     var hostility = Map.empty[PlayerId, Seq[PlayerId]]
     players.zipWithIndex.map { case (p1, idx) =>
       players.drop(idx + 1).map { p2 =>

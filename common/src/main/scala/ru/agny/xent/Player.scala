@@ -14,6 +14,7 @@ case class Player(
 
 object Player {
   val AIEnemy = Player(PlayerId.AIEnemy)
+  val defaultPS = new DefaultPlayerService()
 
-  def isHostile(a: PlayerId, b: PlayerId): Boolean = a != b
+  def isHostile(a: PlayerId, b: PlayerId)(using ps: PlayerService): Boolean = ps.isHostile(a, b)
 }

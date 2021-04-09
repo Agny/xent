@@ -20,8 +20,12 @@ case class Progress(
   def updateCap(v: TimeInterval): Unit = {
     cap = v
   }
+
+  def isDone(): Boolean = cap == 0
 }
 
 object Progress {
-  def Start() = Progress(0, 100)
+  val DefaultCap = 100
+
+  def Start() = Progress(0, DefaultCap)
 }

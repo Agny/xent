@@ -13,8 +13,8 @@ import scala.annotation.tailrec
 
 case class Battle(
   id: ItemId,
-  private var sides: Sides,
-  private var progress: Progress,
+  var sides: Sides,
+  private val progress: Progress,
   pos: Hexagon
 ) extends TemporalObject {
   override val weight = MapObject.NotMovable
@@ -30,9 +30,7 @@ case class Battle(
     }
   }
 
-  def isFinished(): Boolean = {
-    sides.getRoundLength() == TimeInterval.Zero
-  }
+  def isFinished(): Boolean = progress.isDone()
 
   def complete(): Seq[Troops] = {
     sides.troops.values.flatten.toSeq
@@ -53,7 +51,8 @@ object Battle {
 
   def build(
     actors: Seq[TemporalObject],
-    places: Seq[DestructibleObject]): State = {
+    places: Seq[DestructibleObject])
+    (using PlayerService): State = {
     //TODO apply modifiers from cities/defence
     val (battles: Seq[Battle]@unchecked, troops: Seq[Troops]@unchecked) = actors.partition {
       case b: Battle => true
@@ -74,7 +73,7 @@ object Battle {
    * @return state
    */
   @tailrec
-  private def formBattle(actors: Map[PlayerId, Seq[Troops]], state: State): State = {
+  private def formBattle(actors: Map[PlayerId, Seq[Troops]], state: State)(using PlayerService): State = {
     actors.headOption match {
       case Some(v@(pid, troops)) =>
         val (hostile, other) = actors.tail.partition { case (x, _) => Player.isHostile(pid, x) }

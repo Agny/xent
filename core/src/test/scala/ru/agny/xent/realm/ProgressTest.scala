@@ -19,12 +19,17 @@ class ProgressTest extends AnyFlatSpec {
 
   "Progress" should "indicate overflow" in {
     val p = Progress(0, 10)
-    val negative = p.fill(9)
-    val positive1 = p.fill(1)
-    val positive2 = p.fill(10)
 
+    val negative = p.fill(9)
+    p shouldBe Progress(9, 10)
     negative shouldBe false
+
+    val positive1 = p.fill(1)
+    p shouldBe Progress(0, 10)
     positive1 shouldBe true
+
+    val positive2 = p.fill(10)
+    p shouldBe Progress(0, 10)
     positive2 shouldBe true
   }
 
@@ -32,12 +37,15 @@ class ProgressTest extends AnyFlatSpec {
     val p = Progress(0, 10)
     val negative1 = p.fill(9)
     p.updateCap(20)
+    val snapshot = p.copy()
     val negative2 = p.fill(1)
     val positive1 = p.fill(10)
     p.updateCap(5)
     val negative3 = p.fill(1)
-    val positive2 = p.fill(4)
+    val positive2 = p.fill(36)
 
+    snapshot shouldBe Progress(9, 20)
+    p shouldBe Progress(32, 5)
     negative1 shouldBe false
     negative2 shouldBe false
     negative3 shouldBe false

@@ -1,8 +1,8 @@
 package ru.agny.xent.realm
 
 import ru.agny.xent.item.{DestructibleObject, MapObject, TemporalObject}
-import ru.agny.xent.realm.GameMap.{DestructibleTickResult, BattleTickResult}
-import ru.agny.xent.TimeInterval
+import ru.agny.xent.realm.GameMap.{BattleTickResult, DestructibleTickResult}
+import ru.agny.xent.{PlayerService, TimeInterval}
 import ru.agny.xent.realm.Realm.{Strong, Weak}
 import ru.agny.xent.realm.map.Battle.State
 import ru.agny.xent.realm.map.{Battle, Troops}
@@ -22,7 +22,7 @@ case class GameMap(
   maxY: Int,
   private val objects: Seq[DestructibleObject],
   private val military: Seq[TemporalObject]
-) {
+)(using ps: PlayerService) {
   private val (minX, minY) = (-maxX, -maxY)
   private var temporal: Seq[TemporalObject] = military
   private var places: Map[Hexagon, Seq[DestructibleObject]] = objects.groupMap(_.pos)(x => x)
@@ -56,7 +56,7 @@ object GameMap {
   private def tick(
     objects: Seq[DestructibleObject],
     time: TimeInterval
-  ): DestructibleTickResult = {
+  )(using ps: PlayerService): DestructibleTickResult = {
     val (operational, eliminated) = objects.map(_.tick(time)).partition(!_.isEliminated())
     val cleared = eliminated flatMap {
       case _ => Seq.empty[DestructibleObject] // remnants?
@@ -68,19 +68,18 @@ object GameMap {
     temporals: Seq[TemporalObject],
     objects: Map[Hexagon, Seq[DestructibleObject]],
     time: TimeInterval
-  ): BattleTickResult = {
-    val (toComplete: Seq[Battle]@unchecked, toClash) = temporals.partition {
+  )(using ps: PlayerService): BattleTickResult = {
+    val (toComplete: Seq[Battle]@unchecked, toClash) = temporals.map(_.tick(time)).partition {
       case b: Battle => b.isFinished()
       case other => false
     }
 
     val leftFromBattle = toComplete.flatMap(_.complete())
-
-    val movingPos = toClash.map(_.tick(time)).groupBy(_.pos)
-    val m = mutable.Seq.empty
+    val movingPos = toClash.groupBy(_.pos)
+    var m = Seq.empty[TemporalObject]
     movingPos.foreach { case (pos, xs) =>
       val State(updatedBattles, nonparticipants) = Battle.build(xs, objects.getOrElse(pos, Seq.empty))
-      updatedBattles ++: nonparticipants ++: m
+      m = updatedBattles ++: nonparticipants ++: m
     }
     BattleTickResult(leftFromBattle ++: m.toSeq)
   }
