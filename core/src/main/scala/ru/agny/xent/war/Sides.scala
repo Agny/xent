@@ -22,6 +22,7 @@ case class Sides(troops: Map[PlayerId, Seq[Troops]])(using ps: PlayerService) {
       if (ls <= rs) ls / rs.toDouble
       else rs / ls.toDouble
     }.max
+    //if one side is incapable to fight, i.e. k=NaN, then round length become zero
     (TimeInterval.BaseRound + TimeInterval.BaseRound * k).toInterval
   }
 
@@ -62,8 +63,8 @@ object Sides {
    */
   private def hostilityMap(players: Seq[PlayerId])(using ps: PlayerService): Map[PlayerId, Seq[PlayerId]] = {
     var hostility = Map.empty[PlayerId, Seq[PlayerId]]
-    players.zipWithIndex.map { case (p1, idx) =>
-      players.drop(idx + 1).map { p2 =>
+    players.zipWithIndex.foreach { case (p1, idx) =>
+      players.drop(idx + 1).foreach { p2 =>
         if (Player.isHostile(p1, p2)) {
           hostility = hostility.updatedWith(p2) {
             case Some(v) => Some(p1 +: v)

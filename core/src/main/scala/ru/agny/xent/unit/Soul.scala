@@ -28,7 +28,7 @@ case class Soul(id: ItemId, private val stats: SoulData, private val equip: Equi
   def attackRates(using target: MapObject) = stats.attackModifiers
 
   def attack(target: Troops): Unit = {
-    target.takeDamage(10)
+    target.takeDamage(DefaultDamage)
   }
 
   //TODO damage attributes
@@ -44,6 +44,7 @@ case class Soul(id: ItemId, private val stats: SoulData, private val equip: Equi
 
 object Soul {
 
+  val DefaultDamage = 10
   val Empty = Soul(-1, SoulData.Empty, Equipment.Empty)
 
   enum State {
