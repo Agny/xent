@@ -14,6 +14,9 @@ val common = project.in(file("common"))
 val core = project.in(file("core"))
   .dependsOn(common % "compile->compile;test->test")
   .enablePlugins(JmhPlugin)
+
+val utils = project.in(file("utils"))
+  .dependsOn(core % "compile->compile;test->test")
 //  .dependsOn(macros)
 
 //val shared = project.in(file("shared"))

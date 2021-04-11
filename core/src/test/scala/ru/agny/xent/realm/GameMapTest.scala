@@ -34,8 +34,6 @@ class GameMapTest extends AnyFlatSpec {
     val city = City(ItemIdGenerator.next, playerOne, Buildings.Default, Defence.Empty, 0 ~ 0)
     val aICity = AICity(
       ItemIdGenerator.next,
-      AIEnemy.id,
-      TechonologyTier.Default,
       Defence.Empty,
       Storage.Empty,
       7 ~ 0)
@@ -49,8 +47,7 @@ class GameMapTest extends AnyFlatSpec {
 
   it should "remove destructed" in {
     val city = City(ItemIdGenerator.next, playerOne, Buildings.Default, Defence.Empty, 0 ~ 0)
-    val aICity = AICity(ItemIdGenerator.next, AIEnemy.id, TechonologyTier.Default, Defence.Empty, Storage
-      .Empty, 7 ~ 0)
+    val aICity = AICity(ItemIdGenerator.next, Defence.Empty, Storage.Empty, 7 ~ 0)
     val places = Seq(city, aICity)
 
     val gm = GameMap(maxX, maxY, places, Seq.empty)

@@ -12,6 +12,7 @@ object PlayerId {
   val Lost: PlayerId = -2
 }
 type RealmId = UUID
+type ResourceName = String
 type TimeInterval = Int //seconds
 object TimeInterval {
   val Zero: TimeInterval = 0
