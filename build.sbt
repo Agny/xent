@@ -13,6 +13,7 @@ val common = project.in(file("common"))
 
 val core = project.in(file("core"))
   .dependsOn(common % "compile->compile;test->test")
+  .settings(libraryDependencies ++= Postgre ++ Doobie)
   .enablePlugins(JmhPlugin)
 
 val utils = project.in(file("utils"))

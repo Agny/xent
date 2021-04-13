@@ -22,12 +22,12 @@ case class GameMap(
   maxY: Int,
   private val objects: Seq[DestructibleObject],
   private val military: Seq[TemporalObject]
-)(using ps: PlayerService) {
+) {
   private val (minX, minY) = (-maxX, -maxY)
   private var temporal: Seq[TemporalObject] = military
   private var places: Map[Hexagon, Seq[DestructibleObject]] = objects.groupMap(_.pos)(x => x)
 
-  def tick(timer: Realm.Timer): Unit = {
+  def tick(timer: Realm.Timer)(using ps: PlayerService): Unit = {
     timer.tick() match {
       case Weak(volume) =>
         val BTR(troops) = GameMap.tick(temporal, places, volume)

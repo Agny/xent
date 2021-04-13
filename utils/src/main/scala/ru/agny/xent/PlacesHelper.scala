@@ -18,6 +18,7 @@ import scala.util.Random
  */
 object PlacesHelper {
   val MaxProbability = 1000 // mean part goes down to 0.1%
+  val MinReachness = 50
 
   val resourceProbabilities = Resource.values.map {
     case v@Resource.Copper => v -> 10
@@ -41,6 +42,7 @@ object PlacesHelper {
       ResourceDeposit(
         ItemIdGenerator.next,
         r,
+        MinReachness + Random.nextInt(MinReachness),
         pos
       )
     }

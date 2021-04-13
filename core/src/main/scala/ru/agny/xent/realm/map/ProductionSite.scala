@@ -11,15 +11,24 @@ import ru.agny.xent.war.Defence
 case class ProductionSite(
   id: ItemId,
   owner: PlayerId,
-  resource: Resource,
+  deposit: ResourceDeposit,
   defence: Defence,
-  progress: Progress,
-  pos:Hexagon
+  storage: Storage,
+  pos: Hexagon
 ) extends DestructibleObject {
 
+  private val progress = Progress(0, deposit.resource.yieldTime)
+
   override def tick(time: TimeInterval) = {
-    ???
+    if (deposit.isDepleted()) {
+      this
+    } else {
+      if (progress.fill(time)) {
+        storage.add(deposit.extract())
+      }
+      this
+    }
   }
 
-  override def isEliminated() = ???
+  override def isEliminated() = defence.isEliminated()
 }

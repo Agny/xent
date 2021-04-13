@@ -3,6 +3,7 @@ package ru.agny.xent.realm
 import ru.agny.xent.Message.Event
 import ru.agny.xent.Action.{Noop, Op}
 import ru.agny.xent.*
+import ru.agny.xent.PlayerService
 import ru.agny.xent.realm.Realm.Timer
 
 /**
@@ -14,9 +15,13 @@ import ru.agny.xent.realm.Realm.Timer
 case class Realm(
   id: RealmId,
   //    level: Level,
-  map: GameMap
+  players: PlayerService,
+  map: GameMap,
+  worldTime: Long
 ) {
-  val timer = Timer(System.currentTimeMillis())
+  given ps: PlayerService = players
+
+  private val timer = Timer(worldTime)
 
   def handle(events: Seq[Event]): Unit = {
     events.sortBy(_.timestamp).foldLeft(tick()) {

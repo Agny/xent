@@ -4,10 +4,10 @@ import io.circe.{Codec, Decoder, Encoder, HCursor, Json}
 import io.circe.syntax._
 import io.circe.parser._
 
-enum Message {
+enum Message:
   case Event(actor: PlayerId, timestamp: Long, action: Action)
   case Notification(actor: PlayerId, target: PlayerId, timestamp: Long, action: Action)
-}
+end Message
 object Message {
 
   given Encoder[Event] = { (a: Event) =>

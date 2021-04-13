@@ -4,10 +4,10 @@ import io.circe.{Codec, Decoder, Encoder, HCursor, Json}
 import io.circe.syntax._
 import io.circe.parser._
 
-enum Action {
+enum Action:
   case Noop
   case Op(v: String)
-}
+end Action
 
 object Action {
 
