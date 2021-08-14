@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   val Postgre = Seq(
-    "org.postgresql" % "postgresql" % "42.2.16"
+    "org.postgresql" % "postgresql" % "42.2.23"
   )
 
   val Doobie = Seq()
@@ -16,10 +16,9 @@ object Dependencies {
     "org.apache.kafka" % "kafka-clients" % "2.5.0"
   )
   val Testing = Seq(
-    "org.scalatest" %% "scalatest" % "3.2.7" % Test,
-    "org.scalamock" % "scalamock_2.13" % "5.1.0" % Test,
-    "com.dimafeng" % "testcontainers-scala-scalatest_2.13" % "0.38.1" % Test,
-    "com.dimafeng" % "testcontainers-scala-kafka_2.13" % "0.38.1" % Test
+    "org.scalatest" %% "scalatest" % "3.2.9" % Test,
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.5" % Test,
+    "com.dimafeng" %% "testcontainers-scala-kafka" % "0.39.5" % Test
   )
   val Circe = Seq(
     "io.circe" %% "circe-core",
@@ -27,15 +26,15 @@ object Dependencies {
     "io.circe" %% "circe-jawn",
     "io.circe" %% "circe-numbers",
     "io.circe" %% "circe-parser"
-  ).map(_ % "0.14.0-M5")
+  ).map(_ % "0.14.1")
   val Cats = Seq(
-    "org.typelevel" %% "cats-core" % "2.5.0",
-    "org.typelevel" %% "cats-effect" % "3.0.2"
+    "org.typelevel" %% "cats-core" % "2.6.1",
+    "org.typelevel" %% "cats-effect" % "3.2.2"
   )
   val Config = Seq(
-    "com.typesafe" % "config" % "1.4.0"
+    "com.typesafe" % "config" % "1.4.1"
   )
   val Logging = Seq(
-    "ch.qos.logback" % "logback-classic" % "1.2.3"
+    "ch.qos.logback" % "logback-classic" % "1.2.5"
   )
 }
