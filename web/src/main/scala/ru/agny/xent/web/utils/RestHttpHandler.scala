@@ -4,21 +4,17 @@ import io.circe.generic.auto._
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
-import ru.agny.xent.battle.Outpost
-import ru.agny.xent.core.city.City
-import ru.agny.xent.core.{LayerRuntime, ResourceCell}
-import ru.agny.xent.web.{MapView, MessageHandler, ObjectView, ViewCenter}
 
 /*
 * Temporary handler for test purposes
 * */
-case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) extends SimpleChannelInboundHandler[FullHttpRequest] {
+case class RestHttpHandler() extends SimpleChannelInboundHandler[FullHttpRequest] {
 
   val initPath = "/init"
   val loadPath = "/load"
 
   override def channelRead0(ctx: ChannelHandlerContext, msg: FullHttpRequest): Unit = {
-    val buf = Unpooled.copiedBuffer(getResponse(msg, runtime))
+    val buf = Unpooled.copiedBuffer(getResponse(msg))
     val resp = new DefaultFullHttpResponse(msg.protocolVersion, HttpResponseStatus.OK, buf)
     resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8")
     val keepAlive = HttpUtil.isKeepAlive(msg)
@@ -33,9 +29,9 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
     }
   }
 
-  private def getResponse(in: FullHttpRequest, runtime: LayerRuntime): Array[Byte] = {
+  private def getResponse(in: FullHttpRequest): Array[Byte] = {
     val uriDecoder = new QueryStringDecoder(in.uri())
-    val rez = in.method() match {
+    /*val rez = in.method() match {
       case HttpMethod.GET if in.uri().startsWith(loadPath) =>
         JsonOps.toJson(loadMap(uriDecoder)).toString().getBytes("UTF-8")
       case HttpMethod.GET if in.uri().startsWith(initPath) =>
@@ -46,9 +42,10 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
         ack.value.getBytes("UTF-8")
       case _ => "none".getBytes("UTF-8")
     }
-    rez
+    rez*/
+    Array.empty
   }
-
+/*
   private def loadMap(decoder: QueryStringDecoder) = {
     val x = decoder.parameters().get("x").get(0)
     val y = decoder.parameters().get("y").get(0)
@@ -75,7 +72,7 @@ case class RestHttpHandler(handler: MessageHandler, runtime: LayerRuntime) exten
       case None => ViewCenter(0, 0, -1)
     }
   }
-
+*/
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
     cause.printStackTrace()
     ctx.close

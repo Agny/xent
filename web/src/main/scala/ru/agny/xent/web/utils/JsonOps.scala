@@ -4,15 +4,15 @@ import io.circe._
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
-import ru.agny.xent.core.utils.UserIdGenerator
-import ru.agny.xent.messages._
-import ru.agny.xent.messages.production._
-import ru.agny.xent.messages.unit.{CreateSoulMessage, CreateTroopMessage}
-import ru.agny.xent.web.IncomeMessage
+import ru.agny.xent.utils.PlayerIdGenerator
+//import ru.agny.xent.messages._
+//import ru.agny.xent.messages.production._
+//import ru.agny.xent.messages.unit.{CreateSoulMessage, CreateTroopMessage}
+//import ru.agny.xent.web.IncomeMessage
 
 object JsonOps {
 
-  import NewUserMessageCodec._
+/*  import NewUserMessageCodec._
 
   def toMessage(txt: String): ReactiveLog = {
     val res = for {
@@ -46,5 +46,5 @@ object NewUserMessageCodec {
   implicit val encodeMessage: Encoder[NewUserMessage] = Encoder.forProduct3("id", "name", "layer")(u => (u.user, u.name, u.layer))
 
   private def withGeneratedId(name: String, layer: String): NewUserMessage =
-    NewUserMessage(UserIdGenerator.next, name, layer)
-}
+    NewUserMessage(PlayerIdGenerator.next, name, layer)
+*/}

@@ -1,5 +1,5 @@
 package ru.agny.xent.web
 
-import ru.agny.xent.core.Coordinate
+import ru.agny.xent.realm.Hexagon
 
-case class ObjectView(tpe: String, c: Coordinate)
+case class ObjectView(tpe: String, h: Hexagon)

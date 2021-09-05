@@ -37,4 +37,7 @@ object Dependencies {
   val Logging = Seq(
     "ch.qos.logback" % "logback-classic" % "1.2.5"
   )
+  val Netty = Seq (
+    "io.netty" % "netty-all" % "4.1.67.Final"
+  )
 }

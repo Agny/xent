@@ -1,17 +1,13 @@
 package ru.agny.xent.web
 
 import java.net.InetSocketAddress
-
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.group.{ChannelGroup, DefaultChannelGroup}
 import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.socket.nio.{NioDatagramChannel, NioServerSocketChannel}
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import io.netty.handler.ssl.util.SelfSignedCertificate
 import io.netty.util.concurrent.ImmediateEventExecutor
-import ru.agny.xent.core.LayerRuntime
-import ru.agny.xent.core.utils.LayerGenerator
-import ru.agny.xent.messages.MessageQueue
 import ru.agny.xent.web.utils.{GameServerHttpInitializer, GameServerInitializer}
 
 case class GameServer(address: InetSocketAddress, context:SslContext) {
@@ -27,11 +23,11 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
   }
 
   def createInitializer(group: ChannelGroup) = {
-    val queue = MessageQueue.global
-    val messageHandler = MessageHandler(queue)
-    val runtime = LayerRuntime.run(LayerGenerator.setupLayers(), queue)
+//    val queue = MessageQueue.global
+//    val messageHandler = MessageHandler(queue)
+//    val runtime = LayerRuntime.run(LayerGenerator.setupLayers(), queue)
     //    GameServerHttpInitializer(context, messageHandler, runtime)
-    GameServerInitializer(channelGroup, context, messageHandler)
+    GameServerInitializer(channelGroup, context)
   }
 
   def destroy = {
@@ -41,7 +37,7 @@ case class GameServer(address: InetSocketAddress, context:SslContext) {
 }
 
 object GameServer {
-  val port = 8888
+  val port = 8052
 
   def run = {
     val cert = new SelfSignedCertificate()
